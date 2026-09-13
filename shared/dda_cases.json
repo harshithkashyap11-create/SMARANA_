@@ -1,0 +1,68 @@
+[
+  {
+    "name": "insufficient_data_first_session",
+    "state": {"level": 3, "window": [], "lockedByDoctor": false, "capLevel": null, "minLevel": 1, "maxLevel": 10},
+    "session": {"level": 3, "accuracy": 0.5, "meanReactionMs": 2000, "mistakes": 4, "hintsUsed": 0, "rounds": 5, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false},
+    "config": {"windowSize": 3, "promoteAccuracy": 0.85, "demoteAccuracy": 0.60, "reactionWorsenRatio": 1.25, "hintPenaltyPerRound": 0.5},
+    "expected": {"level": 3, "reasonCode": "insufficient_data", "messageKey": "dda.same_next_time", "windowLength": 1}
+  },
+  {
+    "name": "guest_mode_no_change_not_recorded",
+    "state": {"level": 3, "window": [], "lockedByDoctor": false, "capLevel": null, "minLevel": 1, "maxLevel": 10},
+    "session": {"level": 3, "accuracy": 0.1, "meanReactionMs": 5000, "mistakes": 9, "hintsUsed": 5, "rounds": 5, "completed": true, "challengeMode": false, "guestMode": true, "fatigueFlagged": false},
+    "config": {"windowSize": 3, "promoteAccuracy": 0.85, "demoteAccuracy": 0.60, "reactionWorsenRatio": 1.25, "hintPenaltyPerRound": 0.5},
+    "expected": {"level": 3, "reasonCode": "guest", "messageKey": "dda.thanks_for_playing", "windowLength": 0}
+  },
+  {
+    "name": "demote_when_rt_worsens",
+    "state": {"level": 3, "window": [
+      {"level": 3, "accuracy": 0.5, "meanReactionMs": 2000, "mistakes": 3, "hintsUsed": 0, "rounds": 5, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false},
+      {"level": 3, "accuracy": 0.55, "meanReactionMs": 2100, "mistakes": 3, "hintsUsed": 0, "rounds": 5, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false}
+    ], "lockedByDoctor": false, "capLevel": null, "minLevel": 1, "maxLevel": 10},
+    "session": {"level": 3, "accuracy": 0.4, "meanReactionMs": 2700, "mistakes": 3, "hintsUsed": 0, "rounds": 5, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false},
+    "config": {"windowSize": 3, "promoteAccuracy": 0.85, "demoteAccuracy": 0.60, "reactionWorsenRatio": 1.25, "hintPenaltyPerRound": 0.5},
+    "expected": {"level": 2, "reasonCode": "demote", "messageKey": "dda.easier_next_time", "windowLength": 0,
+                 "explanation": "Accuracy stayed under 60% across 3 rounds while reaction time increased."}
+  },
+  {
+    "name": "fatigue_hold_never_demotes",
+    "state": {"level": 3, "window": [
+      {"level": 3, "accuracy": 0.5, "meanReactionMs": 2000, "mistakes": 3, "hintsUsed": 0, "rounds": 5, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false},
+      {"level": 3, "accuracy": 0.5, "meanReactionMs": 2000, "mistakes": 3, "hintsUsed": 0, "rounds": 5, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false}
+    ], "lockedByDoctor": false, "capLevel": null, "minLevel": 1, "maxLevel": 10},
+    "session": {"level": 3, "accuracy": 0.2, "meanReactionMs": 4000, "mistakes": 4, "hintsUsed": 0, "rounds": 5, "completed": false, "challengeMode": false, "guestMode": false, "fatigueFlagged": true},
+    "config": {"windowSize": 3, "promoteAccuracy": 0.85, "demoteAccuracy": 0.60, "reactionWorsenRatio": 1.25, "hintPenaltyPerRound": 0.5},
+    "expected": {"level": 3, "reasonCode": "fatigue_hold", "messageKey": "dda.thanks_for_playing", "windowLength": 3}
+  },
+  {
+    "name": "promote_blocked_by_hints",
+    "state": {"level": 4, "window": [
+      {"level": 4, "accuracy": 0.9, "meanReactionMs": 1500, "mistakes": 0, "hintsUsed": 1, "rounds": 6, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false},
+      {"level": 4, "accuracy": 0.95, "meanReactionMs": 1500, "mistakes": 0, "hintsUsed": 0, "rounds": 6, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false}
+    ], "lockedByDoctor": false, "capLevel": null, "minLevel": 1, "maxLevel": 10},
+    "session": {"level": 4, "accuracy": 1.0, "meanReactionMs": 1500, "mistakes": 0, "hintsUsed": 3, "rounds": 6, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false},
+    "config": {"windowSize": 3, "promoteAccuracy": 0.85, "demoteAccuracy": 0.60, "reactionWorsenRatio": 1.25, "hintPenaltyPerRound": 0.5},
+    "expected": {"level": 4, "reasonCode": "hold", "messageKey": "dda.same_next_time", "windowLength": 3}
+  },
+  {
+    "name": "promote_at_doctor_cap",
+    "state": {"level": 5, "window": [
+      {"level": 5, "accuracy": 0.9, "meanReactionMs": 1500, "mistakes": 0, "hintsUsed": 0, "rounds": 6, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false},
+      {"level": 5, "accuracy": 0.9, "meanReactionMs": 1500, "mistakes": 0, "hintsUsed": 0, "rounds": 6, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false}
+    ], "lockedByDoctor": false, "capLevel": 5, "minLevel": 1, "maxLevel": 10},
+    "session": {"level": 5, "accuracy": 0.9, "meanReactionMs": 1500, "mistakes": 0, "hintsUsed": 0, "rounds": 6, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false},
+    "config": {"windowSize": 3, "promoteAccuracy": 0.85, "demoteAccuracy": 0.60, "reactionWorsenRatio": 1.25, "hintPenaltyPerRound": 0.5},
+    "expected": {"level": 5, "reasonCode": "cap", "messageKey": "dda.same_next_time", "windowLength": 0,
+                 "explanation": "Reached the doctor-set cap of level 5."}
+  },
+  {
+    "name": "doctor_lock_holds",
+    "state": {"level": 3, "window": [
+      {"level": 3, "accuracy": 0.3, "meanReactionMs": 3000, "mistakes": 4, "hintsUsed": 0, "rounds": 5, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false},
+      {"level": 3, "accuracy": 0.3, "meanReactionMs": 3000, "mistakes": 4, "hintsUsed": 0, "rounds": 5, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false}
+    ], "lockedByDoctor": true, "capLevel": null, "minLevel": 1, "maxLevel": 10},
+    "session": {"level": 3, "accuracy": 0.3, "meanReactionMs": 4000, "mistakes": 4, "hintsUsed": 0, "rounds": 5, "completed": true, "challengeMode": false, "guestMode": false, "fatigueFlagged": false},
+    "config": {"windowSize": 3, "promoteAccuracy": 0.85, "demoteAccuracy": 0.60, "reactionWorsenRatio": 1.25, "hintPenaltyPerRound": 0.5},
+    "expected": {"level": 3, "reasonCode": "doctor_lock", "messageKey": "dda.same_next_time", "windowLength": 3}
+  }
+]

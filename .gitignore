@@ -1,0 +1,27 @@
+# env
+.env
+*.env.local
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+# node
+node_modules/
+frontend/dist/
+frontend/dev-dist/
+frontend/playwright-report/
+frontend/test-results/
+# data
+media/
+minio-data/
+postgres-data/
+# os/editor
+.DS_Store
+.idea/
+.vscode/
+# claude code local
+.claude/settings.local.json
