@@ -5,18 +5,28 @@ import { Link } from "react-router-dom";
 import { apiClient } from "../../../api/client";
 import { listGames, type GameDefinitionDto } from "../../../db/repo/games";
 import { games } from "../../../games/registry";
+import {
+  loadLatestResume,
+  type ResumeState,
+} from "../../../games/engine/resume";
 
 const challengeKey = `games-challenge:${new Date().toISOString().slice(0, 10)}`;
 export function GamesPage() {
   const { t } = useTranslation();
   const [definitions, setDefinitions] = useState<GameDefinitionDto[]>([]);
+  const [resume, setResume] = useState<ResumeState | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const [challenge, setChallenge] = useState(
     () => sessionStorage.getItem(challengeKey) === "true",
   );
   useEffect(() => {
-    void listGames()
-      .then(setDefinitions)
-      .catch(() =>
+    void Promise.all([listGames(), loadLatestResume()])
+      .then(([items, interrupted]) => {
+        setDefinitions(items);
+        setResume(interrupted);
+      })
+      .catch(() => {
         setDefinitions(
           games.map((game) => ({
             key: game.key,
@@ -26,12 +36,32 @@ export function GamesPage() {
             max_level: 10,
             is_regional: true,
           })),
-        ),
-      );
+        );
+        setFailed(true);
+      })
+      .finally(() => setLoading(false));
   }, []);
+  if (loading) return <p>{t("games.loadingList")}</p>;
   return (
     <section>
       <h1 className="mb-5 text-3xl font-bold">{t("games.title")}</h1>
+      {failed && (
+        <p className="mb-4 rounded-card bg-warning/20 p-4">
+          {t("games.offlineList")}
+        </p>
+      )}
+      {resume && (
+        <Link
+          className="mb-5 block min-h-touch rounded-card bg-success/20 p-5 text-xl font-bold"
+          to={`/patient/games/${resume.gameKey}`}
+        >
+          <span className="block text-sm font-normal">
+            {t("games.resumeTitle")}
+          </span>
+          {games.find((item) => item.key === resume.gameKey)?.name ??
+            t("games.continue")}
+        </Link>
+      )}
       <label className="mb-6 flex min-h-touch items-center gap-4 rounded-card bg-surface p-4 text-xl font-bold">
         <input
           checked={challenge}
@@ -53,10 +83,17 @@ export function GamesPage() {
               key={game.key}
               to={`/patient/games/${game.key}`}
             >
-              {game.name}
+              <span>{game.name}</span>
+              {game.is_regional && (
+                <span className="ml-3 rounded-full bg-success/20 px-3 py-1 text-sm font-normal">
+                  {t("games.regional")}
+                </span>
+              )}
             </Link>
           ))}
       </div>
+      {definitions.filter((item) => games.some((game) => game.key === item.key))
+        .length === 0 && <p>{t("games.empty")}</p>}
     </section>
   );
 }

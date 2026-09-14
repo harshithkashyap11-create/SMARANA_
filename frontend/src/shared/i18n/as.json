@@ -152,7 +152,11 @@
     "backHome": "TODO: Back home",
     "resumeTitle": "TODO: Continue your game?",
     "continue": "TODO: Continue",
-    "startOver": "TODO: Start over"
+    "startOver": "TODO: Start over",
+    "loadingList": "TODO: Getting your games ready…",
+    "offlineList": "TODO: Here are the games saved on this device.",
+    "regional": "TODO: From your region",
+    "empty": "TODO: Games will be ready here soon."
   },
   "dda": {
     "harder_next_time": "TODO: Great job! Next time will be a little more interesting.",

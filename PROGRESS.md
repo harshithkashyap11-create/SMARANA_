@@ -41,6 +41,9 @@ Phase 4 — Caregiver
 | T034 | 2026-09-14 | `feat(games): complete T030-T034 adaptive games foundation` | Playable Memory Match and Sequence Recall with deterministic level knobs, hints, and default content assets. |
 | T035 | 2026-09-14 | `feat(games): complete T035-T036 fatigue and session resume` | Shared fatigue detector, gentle break flow, session flags, configured play cap, quiz reuse, and DDA fatigue holds. |
 | T036 | 2026-09-14 | `feat(games): complete T035-T036 fatigue and session resume` | Patient-scoped resume card restores the exact seeded round; start-over records a recoverable local abandonment. |
+| T037 | 2026-09-14 | `feat(games): complete T037-T039 regional games and catalog` | Object Sorting supports tap-tap and drag placement, level-scaled categories/items, and explicit distractors; Tea Garden Attention adds density and a soft timed round at L4+. |
+| T038 | 2026-09-14 | `feat(games): complete T037-T039 regional games and catalog` | Bihu Rhythm Recall uses testable audio with audio-only high levels; Daily Life Sequencing provides level-scaled ordering and partial scoring. |
+| T039 | 2026-09-14 | `feat(games): complete T037-T039 regional games and catalog` | Six-game regional catalog, day-scoped challenge control, interrupted-game continuation, and Phase 3 mentor demo script. |
 | T040 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Assignment-scoped patient switcher, Today medicine statuses, response times, seven-day adherence, and device sync recency. |
 | T041 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Source ownership protection, before/after audit history, scoped history reads, and recoverable routine deletion. |
 | T042 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Schedule CRUD form with categories, day selection, validation, optimistic creation, and locked doctor items. |

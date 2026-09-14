@@ -3,8 +3,8 @@ import { useParams } from "react-router-dom";
 import { loadContentPack, type ContentPack } from "../../../content/packs";
 import { listGames, type GameDefinitionDto } from "../../../db/repo/games";
 import { GamePlayer } from "../../../games/engine/GamePlayer";
-import { memoryMatch } from "../../../games/modules/memory_match";
-import { sequenceRecall } from "../../../games/modules/sequence_recall";
+import type { GameModule } from "../../../games/engine/types";
+import { gameByKey } from "../../../games/registry";
 import { currentPatient } from "./GamesPage";
 const challengeKey = `games-challenge:${new Date().toISOString().slice(0, 10)}`;
 export function GamePage() {
@@ -37,9 +37,13 @@ export function GamePage() {
     patientId: data.patientId,
     sessionCapMinutes: data.sessionCapMinutes,
   };
-  if (gameKey === memoryMatch.key)
-    return <GamePlayer {...shared} module={memoryMatch} />;
-  if (gameKey === sequenceRecall.key)
-    return <GamePlayer {...shared} module={sequenceRecall} />;
+  const module = gameByKey(gameKey);
+  if (module)
+    return (
+      <GamePlayer
+        {...shared}
+        module={module as unknown as GameModule<unknown>}
+      />
+    );
   return <p>Game unavailable.</p>;
 }

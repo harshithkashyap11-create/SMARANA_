@@ -152,7 +152,11 @@
     "backHome": "Back home",
     "resumeTitle": "Continue your game?",
     "continue": "Continue",
-    "startOver": "Start over"
+    "startOver": "Start over",
+    "loadingList": "Getting your games ready…",
+    "offlineList": "Here are the games saved on this device.",
+    "regional": "From your region",
+    "empty": "Games will be ready here soon."
   },
   "dda": {
     "harder_next_time": "Great job! Next time will be a little more interesting.",
