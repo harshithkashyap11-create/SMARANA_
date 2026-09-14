@@ -3,9 +3,13 @@
 from decimal import Decimal
 from uuid import uuid4
 
+from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
+from apps.shared.models import TimeStamped, UUIDModel
 
 
 class User(AbstractUser):
@@ -41,3 +45,34 @@ class User(AbstractUser):
 
     def __str__(self) -> str:
         return self.display_name or self.username
+
+
+class PatientCredential(UUIDModel, TimeStamped):
+    """Human-friendly credentials used by a patient to sign in."""
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="patient_credential",
+    )
+    login_id = models.CharField(max_length=32, unique=True)
+    pin_hash = models.CharField(max_length=128)
+    failed_attempts = models.PositiveSmallIntegerField(default=0)
+    locked_until = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["login_id"]
+
+    def __str__(self) -> str:
+        return self.login_id
+
+    def clean(self) -> None:
+        super().clean()
+        if self.user_id and self.user.role != User.Role.PATIENT:
+            raise ValidationError({"user": "Patient credentials require a patient user."})
+
+    def set_pin(self, raw_pin: str) -> None:
+        self.pin_hash = make_password(raw_pin)
+
+    def check_pin(self, raw_pin: str) -> bool:
+        return check_password(raw_pin, self.pin_hash)

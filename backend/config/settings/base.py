@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "django_filters",
     "apps.shared.apps.SharedConfig",
     "apps.accounts.apps.AccountsConfig",
+    "apps.patients.apps.PatientsConfig",
 ]
 
 MIDDLEWARE = [
