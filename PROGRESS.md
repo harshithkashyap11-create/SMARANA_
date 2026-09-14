@@ -11,12 +11,13 @@ Phase 0 — Foundation
 ## Done
 | Task | Date | Commit | Notes |
 |---|---|---|---|
+| T001 | 2026-09-14 | `feat(foundation): T001 repository skeleton and Docker Compose` | Compose development stack, Make targets, and minimal backend/frontend bootstraps. |
 
 ## Assumptions made (review with mentor)
-- (none yet)
+- PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
 
 ## Known issues / tech debt
-- (none yet)
+- Pin container and language dependency versions with lock files as the backend/frontend toolchains are completed in later foundation tasks.
 
 ## Next up
-- T001
+- T002
