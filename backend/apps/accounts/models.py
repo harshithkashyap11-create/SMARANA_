@@ -76,3 +76,28 @@ class PatientCredential(UUIDModel, TimeStamped):
 
     def check_pin(self, raw_pin: str) -> bool:
         return check_password(raw_pin, self.pin_hash)
+
+
+class DeviceSession(UUIDModel, TimeStamped):
+    """Track the refresh token currently issued to one user device."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="device_sessions",
+    )
+    device_id = models.CharField(max_length=255)
+    refresh_token_jti = models.CharField(max_length=255, unique=True)
+    last_seen_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ["-last_seen_at", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "device_id"],
+                name="unique_user_device_session",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user} on {self.device_id}"

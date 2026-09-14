@@ -5,8 +5,19 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './assignmentSummary';
 export * from './healthOk';
 export * from './healthUnavailable';
+export * from './loginResponse';
+export * from './logout';
+export * from './me';
+export * from './patchedPreference';
+export * from './patientSummary';
+export * from './preference';
+export * from './professionalLogin';
+export * from './refresh';
+export * from './roleEnum';
+export * from './rotatedTokenResponse';
 export * from './schemaRetrieve200Four';
 export * from './schemaRetrieve200One';
 export * from './schemaRetrieve200Three';
@@ -14,3 +25,5 @@ export * from './schemaRetrieve200Two';
 export * from './schemaRetrieveFormat';
 export * from './schemaRetrieveLang';
 export * from './schemaRetrieveParams';
+export * from './themeEnum';
+export * from './userSummary';

@@ -1,7 +1,7 @@
 """Root URL configuration."""
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView
 from rest_framework.permissions import AllowAny
 
@@ -15,4 +15,5 @@ urlpatterns = [
         name="api-schema",
     ),
     path("api/v1/health/", health_check, name="health-check"),
+    path("api/v1/auth/", include("apps.accounts.urls")),
 ]

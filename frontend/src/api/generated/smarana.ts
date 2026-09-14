@@ -6,6 +6,14 @@
  */
 import type {
   HealthOk,
+  LoginResponse,
+  Logout,
+  Me,
+  PatchedPreference,
+  Preference,
+  ProfessionalLogin,
+  Refresh,
+  RotatedTokenResponse,
   SchemaRetrieve200Four,
   SchemaRetrieve200One,
   SchemaRetrieve200Three,
@@ -43,6 +51,167 @@ export const schemaRetrieve = async (params?: SchemaRetrieveParams, options?: Pa
     method: 'GET'
 
 
+  }
+);}
+
+
+
+export const getV1AuthLoginCreateUrl = () => {
+
+
+
+
+  return `/api/v1/auth/login/`
+}
+
+export const v1AuthLoginCreate = async (professionalLogin: ProfessionalLogin, options?: Parameters<typeof apiClient>[1]): Promise<LoginResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiClient<LoginResponse>(getV1AuthLoginCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(professionalLogin)
+  }
+);}
+
+
+
+export const getV1AuthLogoutCreateUrl = () => {
+
+
+
+
+  return `/api/v1/auth/logout/`
+}
+
+export const v1AuthLogoutCreate = async (logout: Logout, options?: Parameters<typeof apiClient>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiClient<void>(getV1AuthLogoutCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(logout)
+  }
+);}
+
+
+
+export const getV1AuthMeRetrieveUrl = () => {
+
+
+
+
+  return `/api/v1/auth/me/`
+}
+
+export const v1AuthMeRetrieve = async ( options?: Parameters<typeof apiClient>[1]): Promise<Me> => {
+
+  return apiClient<Me>(getV1AuthMeRetrieveUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+export const getV1AuthMePreferencesPartialUpdateUrl = () => {
+
+
+
+
+  return `/api/v1/auth/me/preferences/`
+}
+
+export const v1AuthMePreferencesPartialUpdate = async (patchedPreference?: PatchedPreference, options?: Parameters<typeof apiClient>[1]): Promise<Preference> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiClient<Preference>(getV1AuthMePreferencesPartialUpdateUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(patchedPreference)
+  }
+);}
+
+
+
+export const getV1AuthRefreshCreateUrl = () => {
+
+
+
+
+  return `/api/v1/auth/refresh/`
+}
+
+export const v1AuthRefreshCreate = async (refresh: Refresh, options?: Parameters<typeof apiClient>[1]): Promise<RotatedTokenResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiClient<RotatedTokenResponse>(getV1AuthRefreshCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(refresh)
   }
 );}
 

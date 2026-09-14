@@ -1,5 +1,6 @@
 """Settings shared by every Smārana environment."""
 
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -9,7 +10,7 @@ PROJECT_ROOT = BASE_DIR.parent
 
 env = environ.Env(
     DJANGO_DEBUG=(bool, False),
-    DJANGO_SECRET_KEY=(str, "development-only-change-me"),
+    DJANGO_SECRET_KEY=(str, "development-only-change-me-at-least-32-bytes"),
 )
 environ.Env.read_env(PROJECT_ROOT / ".env")
 
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "django_filters",
     "apps.shared.apps.SharedConfig",
@@ -105,6 +107,14 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "apps.shared.pagination.StandardPagination",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "apps.shared.exceptions.user_facing_exception_handler",
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": False,
 }
 
 SPECTACULAR_SETTINGS = {

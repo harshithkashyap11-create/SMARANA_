@@ -148,6 +148,121 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/auth/login/:
+    post:
+      operationId: v1_auth_login_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfessionalLogin'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProfessionalLogin'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProfessionalLogin'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: ''
+  /api/v1/auth/logout/:
+    post:
+      operationId: v1_auth_logout_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Logout'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/auth/me/:
+    get:
+      operationId: v1_auth_me_retrieve
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+  /api/v1/auth/me/preferences/:
+    patch:
+      operationId: v1_auth_me_preferences_partial_update
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPreference'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPreference'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPreference'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preference'
+          description: ''
+  /api/v1/auth/refresh/:
+    post:
+      operationId: v1_auth_refresh_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Refresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Refresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Refresh'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RotatedTokenResponse'
+          description: ''
   /api/v1/health/:
     get:
       operationId: health_check
@@ -172,6 +287,16 @@ paths:
           description: ''
 components:
   schemas:
+    AssignmentSummary:
+      type: object
+      properties:
+        patients:
+          type: array
+          items:
+            $ref: '#/components/schemas/PatientSummary'
+          readOnly: true
+      required:
+      - patients
     HealthOk:
       type: object
       properties:
@@ -192,6 +317,169 @@ components:
       required:
       - db
       - status
+    LoginResponse:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/UserSummary'
+          readOnly: true
+      required:
+      - access
+      - refresh
+      - user
+    Logout:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - refresh
+    Me:
+      type: object
+      properties:
+        user:
+          allOf:
+          - $ref: '#/components/schemas/UserSummary'
+          readOnly: true
+        role:
+          type: string
+          readOnly: true
+        preferences:
+          allOf:
+          - $ref: '#/components/schemas/Preference'
+          readOnly: true
+        assignments:
+          allOf:
+          - $ref: '#/components/schemas/AssignmentSummary'
+          readOnly: true
+      required:
+      - assignments
+      - preferences
+      - role
+      - user
+    PatchedPreference:
+      type: object
+      properties:
+        theme:
+          $ref: '#/components/schemas/ThemeEnum'
+        font_scale:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,1})?$
+    PatientSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - name
+    Preference:
+      type: object
+      properties:
+        theme:
+          $ref: '#/components/schemas/ThemeEnum'
+        font_scale:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,1})?$
+    ProfessionalLogin:
+      type: object
+      properties:
+        email_or_phone:
+          type: string
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+        device_id:
+          type: string
+          maxLength: 255
+      required:
+      - device_id
+      - email_or_phone
+      - password
+    Refresh:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - refresh
+    RoleEnum:
+      enum:
+      - patient
+      - caregiver
+      - doctor
+      - admin
+      type: string
+      description: |-
+        * `patient` - Patient
+        * `caregiver` - Caregiver
+        * `doctor` - Doctor
+        * `admin` - Admin
+    RotatedTokenResponse:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - refresh
+    ThemeEnum:
+      enum:
+      - light
+      - dark
+      type: string
+      description: |-
+        * `light` - Light
+        * `dark` - Dark
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        display_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+        phone:
+          type: string
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+      required:
+      - display_name
+      - email
+      - id
+      - phone
+      - role
   securitySchemes:
     jwtAuth:
       type: http
