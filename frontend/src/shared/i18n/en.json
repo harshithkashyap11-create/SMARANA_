@@ -99,6 +99,10 @@
     "nextDose": "Next dose",
     "askPriya": "Ask Priya"
   },
+  "memories": { "title": "My memories", "loading": "One moment…", "empty": "Nothing here yet. Priya can add this for you.", "read": "Read to me", "photos": "Memory photos" },
+  "quiz": { "start": "Memory questions", "correct": "Yes! That's {{label}}.", "saved_as": "This is saved as {{label}}.", "enough": "That's enough for today", "breakTitle": "Would you like a short break?", "breakYes": "Yes, take a break", "breakContinue": "Keep going", "prompt": { "who": "Who is this?", "when": "When was this?", "where": "Where was this?", "occasion": "What was the occasion?" } },
+  "people": { "title": "My people", "call": "Call {{name}}?", "yes": "Yes, call", "no": "Not now" },
+  "sos": { "label": "SOS", "confirm": "Would you like emergency help?", "yes": "Yes, tell my caregiver", "no": "Not now", "sent": "Your caregiver has been told. Help is on the way." },
   "progress": {
     "title": "My progress",
     "loading": "One moment…",

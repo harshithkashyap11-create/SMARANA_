@@ -14,6 +14,10 @@ import { PlaceholderPage } from "../features/patient/PlaceholderPage";
 import { RoutinePage } from "../features/patient/routine/RoutinePage";
 import { MedicinesPage } from "../features/patient/medicines/MedicinesPage";
 import { ProgressPage } from "../features/patient/progress/ProgressPage";
+import { MemoriesPage } from "../features/patient/memories/MemoriesPage";
+import { MemoryDetailPage } from "../features/patient/memories/MemoryDetailPage";
+import { MemoryQuizPage } from "../features/patient/memories/quiz/MemoryQuizPage";
+import { PeoplePage } from "../features/patient/people/PeoplePage";
 
 export const router = createBrowserRouter([
   {
@@ -38,6 +42,10 @@ export const router = createBrowserRouter([
       { path: "/patient/routine", element: <RoutinePage /> },
       { path: "/patient/medicines", element: <MedicinesPage /> },
       { path: "/patient/progress", element: <ProgressPage /> },
+      { path: "/patient/memories", element: <MemoriesPage /> },
+      { path: "/patient/memories/quiz", element: <MemoryQuizPage /> },
+      { path: "/patient/memories/:memoryId", element: <MemoryDetailPage /> },
+      { path: "/patient/people", element: <PeoplePage /> },
       { path: "/patient/:section", element: <PlaceholderPage /> },
     ],
   },

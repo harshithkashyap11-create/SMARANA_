@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "apps.patients.apps.PatientsConfig",
     "apps.routines.apps.RoutinesConfig",
     "apps.alerts.apps.AlertsConfig",
+    "apps.memories.apps.MemoriesConfig",
 ]
 
 MIDDLEWARE = [

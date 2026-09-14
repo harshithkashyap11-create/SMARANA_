@@ -29,12 +29,18 @@ Phase 2 — Patient core
 | T022 | 2026-09-14 | `feat(patient-core): complete T021-T024 daily support experience` | Encouraging progress summary API and cards with non-clinical completion, points, star streaks, and upcoming activities. |
 | T023 | 2026-09-14 | `feat(patient-core): complete T021-T024 daily support experience` | Deterministic routine reminders, responses, medicines, daily materialisation, missed-reminder processing, and permission coverage. |
 | T024 | 2026-09-14 | `feat(patient-core): complete T021-T024 daily support experience` | Patient routine and medicine screens with confirmation, snooze, help/call, undo feedback, and local-first response persistence. |
+| T025 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Consent-scoped memory APIs, offline cache, photo stories, tagged people, and read-aloud detail. |
+| T026 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Least-recent quiz questions across who/when/where/occasion, five-question repeat guard, family fallback, and idempotent attempts. |
+| T027 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Large-option memory quiz with supportive feedback, local-first attempts, and repeated-struggle break prompt. |
+| T028 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Emergency-first family cards with spoken call confirmation and one-tap telephone links. |
+| T029 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Persistent long-press SOS, idempotent events, in-app caregiver recipients, scoped acknowledgement, and emergency call actions. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
 - Assamese and Bengali catalogs mirror the English keys with `TODO:` values until translated content is supplied.
 - T012 returns nullable patient-card age and language until T020 adds date of birth and the later preferences/content work establishes the persisted language source.
 - Patient region is stored as a stable string key until T090 introduces the `content.Region` model.
+- SOS uses one open patient alert whose evidence lists every active caregiver recipient; each emergency event remains separately idempotent and auditable.
 
 ## Known issues / tech debt
 - Pin container and language dependency versions with lock files as the backend/frontend toolchains are completed in later foundation tasks.
@@ -45,4 +51,4 @@ Phase 2 — Patient core
 - The local database may retain the removed pre-commit T021 prototype reminder table; it is unreferenced and fresh installations do not create it.
 
 ## Next up
-- T023b — Calm Time: guided breathing with slow voice.
+- T030 — Game engine session lifecycle, seeded RNG, metrics, and persistence.

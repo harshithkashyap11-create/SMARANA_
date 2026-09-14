@@ -46,11 +46,14 @@ def test_raise_alert_reuses_existing_open_alert_for_patient_and_rule() -> None:
     )
 
     assert duplicate.pk == first.pk
-    assert Alert.objects.filter(
-        patient=patient,
-        rule_key=Alert.RuleKey.PIN_LOCKOUT,
-        status=Alert.Status.OPEN,
-    ).count() == 1
+    assert (
+        Alert.objects.filter(
+            patient=patient,
+            rule_key=Alert.RuleKey.PIN_LOCKOUT,
+            status=Alert.Status.OPEN,
+        ).count()
+        == 1
+    )
     duplicate.refresh_from_db()
     assert duplicate.explanation == "Initial lockout."
 

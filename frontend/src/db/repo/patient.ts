@@ -24,6 +24,18 @@ export interface PatientRepository {
 }
 
 export class DexiePatientRepository implements PatientRepository {
+  async getFamilyMembers(): Promise<CachedFamilyMember[]> {
+    const cachedProfile = await db.profile.orderBy("refreshedAt").last();
+    const patientId = cachedProfile?.id;
+    if (!patientId) return db.familyMembers.toArray();
+    try {
+      const remote = await apiClient<Array<{ id: string; name: string; relationship_label: string; relationship: string; photo_url: string | null; phone: string; is_emergency_contact: boolean }>>(`/api/v1/patients/${patientId}/family/`, { method: "GET" });
+      const members = remote.map((item) => ({ id: item.id, patientId, name: item.name, relationship: item.relationship_label || item.relationship, photoUrl: item.photo_url, phone: item.phone, isEmergencyContact: item.is_emergency_contact }));
+      await db.familyMembers.bulkPut(members);
+      return members.sort((a, b) => Number(Boolean(b.isEmergencyContact)) - Number(Boolean(a.isEmergencyContact)));
+    } catch { return db.familyMembers.where("patientId").equals(patientId).toArray(); }
+  }
+
   async getOrientation(): Promise<Orientation> {
     const cached = await db.profile.orderBy("refreshedAt").last();
     const online = typeof navigator === "undefined" || navigator.onLine;

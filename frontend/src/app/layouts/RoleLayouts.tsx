@@ -7,6 +7,7 @@ import { useAuthStore } from "../../features/auth/authStore";
 import { useIdleLogout } from "../../shared/hooks/useIdleLogout";
 import { useIdlePrompt } from "../../shared/hooks/useIdlePrompt";
 import { ConfirmDialog } from "../../shared/ui";
+import { SosButton } from "../../features/patient/sos/SosButton";
 
 export function RequireRole({
   allowed,
@@ -128,6 +129,7 @@ export function PatientLayout() {
         onNo={leave}
         onYes={confirmPresence}
       />
+      <SosButton />
     </div>
   );
 }

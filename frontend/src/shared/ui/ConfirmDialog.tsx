@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { BigButton } from "./BigButton";
+import { useTts } from "../hooks/useTts";
 
 interface ConfirmDialogProps {
   children?: ReactNode;
@@ -23,6 +24,7 @@ export function ConfirmDialog({
   ttsLabel,
   yesLabel,
 }: ConfirmDialogProps) {
+  const speak = useTts();
   if (!open) return null;
 
   return (
@@ -42,6 +44,7 @@ export function ConfirmDialog({
               aria-label={ttsLabel}
               className="min-h-touch min-w-16 rounded-card border-2 border-primary"
               type="button"
+              onClick={() => speak(title)}
             >
               ◖))
             </button>

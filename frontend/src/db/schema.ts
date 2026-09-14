@@ -18,6 +18,18 @@ export interface CachedFamilyMember {
   name: string;
   relationship: string;
   photoUrl: string | null;
+  phone?: string;
+  isEmergencyContact?: boolean;
+}
+
+export interface CachedMemory {
+  id: string; patientId: string; title: string; occasion: string; occurredOn: string | null; place: string; summary: string;
+  people: Array<{ id: string; name: string; relationship: string }>;
+  media: Array<{ id: string; kind: string; url: string | null; caption: string }>;
+}
+
+export interface CachedQuizAttempt {
+  id: string; patientId: string; memoryId: string | null; questionType: string; expected: string; given: string; correct: boolean; attemptedAt: string; responseMs: number; idempotencyKey: string;
 }
 
 export interface CachedRoutineItem {
@@ -61,6 +73,8 @@ class SmaranaDatabase extends Dexie {
   reminders!: EntityTable<CachedReminder, "id">;
   reminderResponses!: EntityTable<CachedReminderResponse, "id">;
   medications!: EntityTable<CachedMedication, "id">;
+  memories!: EntityTable<CachedMemory, "id">;
+  quizAttempts!: EntityTable<CachedQuizAttempt, "id">;
 
   constructor() {
     super("smarana");
@@ -78,6 +92,12 @@ class SmaranaDatabase extends Dexie {
       reminders: "&id, patientId, scheduled_at",
       reminderResponses: "&id, reminderId",
       medications: "&id, patientId",
+    });
+    this.version(4).stores({
+      meta: "&key", profile: "&id, refreshedAt", familyMembers: "&id, patientId",
+      routineItems: "&id, patientId", reminders: "&id, patientId, scheduled_at",
+      reminderResponses: "&id, reminderId", medications: "&id, patientId",
+      memories: "&id, patientId", quizAttempts: "&id, patientId, attemptedAt, idempotencyKey",
     });
   }
 }

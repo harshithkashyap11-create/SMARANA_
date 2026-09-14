@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from apps.patients.models import PatientProfile
-from apps.shared.models import TimeStamped, UUIDModel
+from apps.shared.models import OfflineCapable, TimeStamped, UUIDModel
 
 
 class Alert(UUIDModel, TimeStamped):
@@ -76,3 +76,24 @@ class Alert(UUIDModel, TimeStamped):
 
     def __str__(self) -> str:
         return f"{self.patient}: {self.get_rule_key_display()}"
+
+
+class SosEvent(OfflineCapable):
+    """An emergency request made from the patient's device."""
+
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="sos_events")
+    triggered_at = models.DateTimeField(default=timezone.now)
+    location_text = models.CharField(max_length=255, blank=True)
+    notified = models.JSONField(default=list)
+    acknowledged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="acknowledged_sos_events",
+        blank=True,
+        null=True,
+    )
+    acknowledged_at = models.DateTimeField(blank=True, null=True)
+    resolution_note = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-triggered_at", "id"]

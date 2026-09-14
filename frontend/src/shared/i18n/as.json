@@ -99,6 +99,10 @@
     "nextDose": "TODO: Next dose",
     "askPriya": "TODO: Ask Priya"
   },
+  "memories": { "title": "মোৰ স্মৃতি", "loading": "অলপ সময়…", "empty": "এতিয়া ইয়াত একো নাই।", "read": "মোক পঢ়ি শুনাওক", "photos": "স্মৃতিৰ ছবি" },
+  "quiz": { "start": "স্মৃতিৰ প্ৰশ্ন", "correct": "হয়! এয়া {{label}}।", "saved_as": "এইটো {{label}} বুলি ৰখা হৈছে।", "enough": "আজিৰ বাবে যথেষ্ট", "breakTitle": "অলপ জিৰণি ল’বনে?", "breakYes": "হয়, জিৰণি লওঁ", "breakContinue": "আগবাঢ়ি যাওঁ", "prompt": { "who": "এয়া কোন?", "when": "এয়া কেতিয়া হৈছিল?", "where": "এয়া ক’ত হৈছিল?", "occasion": "অনুষ্ঠানটো কি আছিল?" } },
+  "people": { "title": "মোৰ আপোনজন", "call": "{{name}}-লৈ ফোন কৰিবনে?", "yes": "হয়, ফোন কৰক", "no": "এতিয়া নহয়" },
+  "sos": { "label": "সহায়", "confirm": "জৰুৰী সহায় লাগেনে?", "yes": "হয়, জনাওক", "no": "এতিয়া নহয়", "sent": "আপোনাৰ যত্ন লোৱা ব্যক্তিক জনোৱা হৈছে। সহায় আহি আছে।" },
   "progress": {
     "title": "TODO: My progress",
     "loading": "TODO: One moment…",
