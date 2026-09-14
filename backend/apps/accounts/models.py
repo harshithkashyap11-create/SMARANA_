@@ -72,7 +72,7 @@ class PatientCredential(UUIDModel, TimeStamped):
             raise ValidationError({"user": "Patient credentials require a patient user."})
 
     def set_pin(self, raw_pin: str) -> None:
-        self.pin_hash = make_password(raw_pin)
+        self.pin_hash = make_password(raw_pin, hasher="argon2")
 
     def check_pin(self, raw_pin: str) -> bool:
         return check_password(raw_pin, self.pin_hash)

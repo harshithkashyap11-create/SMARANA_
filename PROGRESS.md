@@ -18,11 +18,13 @@ Phase 1 — Auth, roles & assignments
 | T005 | 2026-09-14 | `feat(api): T005 generate OpenAPI client` | Public OpenAPI schema, deterministic Orval client generation, bearer/refresh mutator, and generated health client integration. |
 | T006 | 2026-09-14 | `feat(testing): T006 add reusable care scenario and demo seed` | Minimal patient assignment models, reusable role factories and fixtures, frozen time, and idempotent demo accounts. |
 | T010 | 2026-09-14 | `feat(auth): T010 add professional JWT authentication` | Approval-gated professional login, rotating device-bound refresh tokens, logout, self context, preferences, and generated API contracts. |
+| T011 | 2026-09-14 | `feat(auth): T011 add patient PIN login and lockout alerts` | Argon2 patient PIN login, 30-day device sessions, timed lockout with deduplicated caregiver alerts, and primary-caregiver PIN reset. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
 - Assamese and Bengali catalogs mirror the English keys with `TODO:` values until translated content is supplied.
 - T010 persists the existing theme and font-scale preferences; T016 owns the remaining preference fields and persisted login/preference audit events, as its task card explicitly requires wiring those flows.
+- T011 keeps PIN mutations in account services so T016 can add the task-card-required login, lockout, and PIN-reset audit events when the append-only audit app is introduced.
 
 ## Known issues / tech debt
 - Pin container and language dependency versions with lock files as the backend/frontend toolchains are completed in later foundation tasks.
@@ -30,6 +32,7 @@ Phase 1 — Auth, roles & assignments
 - Replace the placeholder SVG PWA artwork with final install icons before release.
 - `renderWithProviders` currently accepts a generic repository map; tighten it to concrete repository interfaces as offline repositories are introduced.
 - Login and preference audit rows are intentionally deferred to T016, which introduces the append-only audit app and helper.
+- Patient login, lockout, and PIN-reset audit rows are intentionally deferred to T016, whose scope explicitly wires the T011 flow.
 
 ## Next up
-- T011
+- T012

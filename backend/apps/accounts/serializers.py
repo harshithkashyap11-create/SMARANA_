@@ -12,6 +12,23 @@ class ProfessionalLoginSerializer(serializers.Serializer):
     device_id = serializers.CharField(max_length=255)
 
 
+class PatientLoginSerializer(serializers.Serializer):
+    login_id = serializers.CharField(max_length=32)
+    pin = serializers.RegexField(r"^\d{4}$", write_only=True)
+    device_id = serializers.CharField(max_length=255)
+
+
+class PatientPinResetSerializer(serializers.Serializer):
+    patient_id = serializers.UUIDField()
+    new_pin = serializers.RegexField(r"^\d{4}$", write_only=True)
+
+
+class LockedResponseSerializer(serializers.Serializer):
+    detail = serializers.CharField(read_only=True)
+    code = serializers.CharField(read_only=True)
+    retry_after_seconds = serializers.IntegerField(read_only=True)
+
+
 class RefreshSerializer(serializers.Serializer):
     refresh = serializers.CharField(write_only=True)
 

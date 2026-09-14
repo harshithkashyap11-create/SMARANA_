@@ -236,6 +236,61 @@ paths:
               schema:
                 $ref: '#/components/schemas/Preference'
           description: ''
+  /api/v1/auth/patient/login/:
+    post:
+      operationId: v1_auth_patient_login_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientLogin'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientLogin'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientLogin'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: ''
+        '423':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LockedResponse'
+          description: ''
+  /api/v1/auth/patient/pin-reset/:
+    post:
+      operationId: v1_auth_patient_pin_reset_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientPinReset'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientPinReset'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientPinReset'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/auth/refresh/:
     post:
       operationId: v1_auth_refresh_create
@@ -317,6 +372,22 @@ components:
       required:
       - db
       - status
+    LockedResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        retry_after_seconds:
+          type: integer
+          readOnly: true
+      required:
+      - code
+      - detail
+      - retry_after_seconds
     LoginResponse:
       type: object
       properties:
@@ -374,6 +445,36 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,1}(?:\.\d{0,1})?$
+    PatientLogin:
+      type: object
+      properties:
+        login_id:
+          type: string
+          maxLength: 32
+        pin:
+          type: string
+          writeOnly: true
+          pattern: ^\d{4}$
+        device_id:
+          type: string
+          maxLength: 255
+      required:
+      - device_id
+      - login_id
+      - pin
+    PatientPinReset:
+      type: object
+      properties:
+        patient_id:
+          type: string
+          format: uuid
+        new_pin:
+          type: string
+          writeOnly: true
+          pattern: ^\d{4}$
+      required:
+      - new_pin
+      - patient_id
     PatientSummary:
       type: object
       properties:

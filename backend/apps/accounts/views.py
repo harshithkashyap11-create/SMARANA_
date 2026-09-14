@@ -6,12 +6,16 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
+from apps.accounts.models import User
 from apps.accounts.serializers import (
+    LockedResponseSerializer,
     LoginResponseSerializer,
     LogoutSerializer,
     MeSerializer,
+    PatientLoginSerializer,
+    PatientPinResetSerializer,
     PatientSummarySerializer,
     PreferenceSerializer,
     ProfessionalLoginSerializer,
@@ -20,14 +24,18 @@ from apps.accounts.serializers import (
     UserSummarySerializer,
 )
 from apps.accounts.services import (
+    PinLocked,
     assigned_patients,
     authenticate_professional,
     issue_tokens,
     logout_session,
     refresh_session,
+    reset_patient_pin,
     update_preferences,
+    verify_pin,
 )
 from apps.shared.exceptions import UserFacingError
+from apps.shared.permissions import IsRole
 
 
 def _token_error() -> UserFacingError:
@@ -55,6 +63,55 @@ class ProfessionalLoginView(APIView):
         )
 
 
+class PatientLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        request=PatientLoginSerializer,
+        responses={200: LoginResponseSerializer, 423: LockedResponseSerializer},
+    )
+    def post(self, request: Request) -> Response:
+        serializer = PatientLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            user = verify_pin(
+                login_id=serializer.validated_data["login_id"],
+                pin=serializer.validated_data["pin"],
+            )
+        except PinLocked as exc:
+            return Response(
+                {
+                    "detail": "locked",
+                    "code": "locked",
+                    "retry_after_seconds": exc.retry_after_seconds,
+                },
+                status=status.HTTP_423_LOCKED,
+            )
+        tokens = issue_tokens(user=user, device_id=serializer.validated_data["device_id"])
+        return Response(
+            {
+                "access": tokens.access,
+                "refresh": tokens.refresh,
+                "user": UserSummarySerializer(user).data,
+            }
+        )
+
+
+class PatientPinResetView(APIView):
+    permission_classes = [IsAuthenticated, IsRole(User.Role.CAREGIVER)]
+
+    @extend_schema(request=PatientPinResetSerializer, responses={204: None})
+    def post(self, request: Request) -> Response:
+        serializer = PatientPinResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reset_patient_pin(
+            caregiver=request.user,
+            patient_id=str(serializer.validated_data["patient_id"]),
+            pin=serializer.validated_data["new_pin"],
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class RefreshView(APIView):
     permission_classes = [AllowAny]
 
@@ -64,7 +121,7 @@ class RefreshView(APIView):
         serializer.is_valid(raise_exception=True)
         try:
             tokens = refresh_session(refresh_token=serializer.validated_data["refresh"])
-        except TokenError as exc:
+        except (InvalidToken, TokenError) as exc:
             raise _token_error() from exc
         return Response({"access": tokens.access, "refresh": tokens.refresh})
 
@@ -78,7 +135,7 @@ class LogoutView(APIView):
         serializer.is_valid(raise_exception=True)
         try:
             logout_session(user=request.user, refresh_token=serializer.validated_data["refresh"])
-        except TokenError as exc:
+        except (InvalidToken, TokenError) as exc:
             raise _token_error() from exc
         return Response(status=status.HTTP_204_NO_CONTENT)
 

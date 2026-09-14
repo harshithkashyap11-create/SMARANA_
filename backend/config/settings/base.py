@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "apps.shared.apps.SharedConfig",
     "apps.accounts.apps.AccountsConfig",
     "apps.patients.apps.PatientsConfig",
+    "apps.alerts.apps.AlertsConfig",
 ]
 
 MIDDLEWARE = [

@@ -24,7 +24,7 @@ class PatientCredentialFactory(DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory, role=User.Role.PATIENT)
     login_id = factory.Sequence(lambda number: f"PATIENT{number:04d}")
-    pin_hash = factory.LazyFunction(lambda: make_password("1234"))
+    pin_hash = factory.LazyFunction(lambda: make_password("1234", hasher="argon2"))
 
 
 class PatientFactory(DjangoModelFactory):

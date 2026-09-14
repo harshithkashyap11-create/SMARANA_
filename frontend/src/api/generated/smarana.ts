@@ -10,6 +10,8 @@ import type {
   Logout,
   Me,
   PatchedPreference,
+  PatientLogin,
+  PatientPinReset,
   Preference,
   ProfessionalLogin,
   Refresh,
@@ -177,6 +179,76 @@ return apiClient<Preference>(getV1AuthMePreferencesPartialUpdateUrl(),
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
     body: JSON.stringify(patchedPreference)
+  }
+);}
+
+
+
+export const getV1AuthPatientLoginCreateUrl = () => {
+
+
+
+
+  return `/api/v1/auth/patient/login/`
+}
+
+export const v1AuthPatientLoginCreate = async (patientLogin: PatientLogin, options?: Parameters<typeof apiClient>[1]): Promise<LoginResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiClient<LoginResponse>(getV1AuthPatientLoginCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(patientLogin)
+  }
+);}
+
+
+
+export const getV1AuthPatientPinResetCreateUrl = () => {
+
+
+
+
+  return `/api/v1/auth/patient/pin-reset/`
+}
+
+export const v1AuthPatientPinResetCreate = async (patientPinReset: PatientPinReset, options?: Parameters<typeof apiClient>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiClient<void>(getV1AuthPatientPinResetCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(patientPinReset)
   }
 );}
 

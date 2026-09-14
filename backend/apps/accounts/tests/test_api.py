@@ -105,6 +105,27 @@ def test_refresh_rotates_and_rejects_old_refresh(api: APIClient) -> None:
 
 
 @pytest.mark.django_db
+def test_refresh_rejects_deactivated_user_without_advancing_session(api: APIClient) -> None:
+    user = _professional(role=User.Role.CAREGIVER)
+    login = api.post(
+        LOGIN_URL,
+        {"email_or_phone": "person@example.com", "password": PASSWORD, "device_id": "phone"},
+        format="json",
+    )
+    session = DeviceSession.objects.get(user=user, device_id="phone")
+    original_jti = session.refresh_token_jti
+    user.is_active = False
+    user.save(update_fields=["is_active"])
+
+    response = api.post(REFRESH_URL, {"refresh": login.data["refresh"]}, format="json")
+
+    assert response.status_code == 401
+    assert response.data == {"detail": "token_not_valid", "code": "token_not_valid"}
+    session.refresh_from_db()
+    assert session.refresh_token_jti == original_jti
+
+
+@pytest.mark.django_db
 def test_me_returns_only_active_assigned_patients(api: APIClient, care_scenario) -> None:
     caregiver = care_scenario["caregiver"]
     patient = care_scenario["patient"]
