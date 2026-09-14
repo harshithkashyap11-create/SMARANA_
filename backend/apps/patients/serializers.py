@@ -1,9 +1,11 @@
-"""Read-only patient API shapes."""
+"""Role-specific patient API shapes."""
 
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from apps.patients.models import PatientProfile
+from apps.patients.media import media_url
+from apps.patients.models import ConsentSettings, FamilyMember, PatientProfile
 
 
 class PatientCardSerializer(serializers.ModelSerializer):
@@ -28,11 +30,96 @@ class PatientCardSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     @extend_schema_field(serializers.IntegerField(allow_null=True))
-    def get_age(self, obj: PatientProfile) -> None:
+    def get_age(self, obj: PatientProfile) -> int | None:
+        if obj.date_of_birth is None:
+            return None
+        today = timezone.localdate()
+        return (
+            today.year
+            - obj.date_of_birth.year
+            - ((today.month, today.day) < (obj.date_of_birth.month, obj.date_of_birth.day))
+        )
+
+    @extend_schema_field(serializers.CharField(allow_null=True))
+    def get_language(self, obj: PatientProfile) -> str | None:
         del obj
         return None
 
-    @extend_schema_field(serializers.CharField(allow_null=True))
-    def get_language(self, obj: PatientProfile) -> None:
-        del obj
-        return None
+
+CAREGIVER_PROFILE_FIELDS = (
+    "date_of_birth",
+    "gender",
+    "region",
+    "cultural_notes",
+    "home_label",
+    "known_places",
+    "life_events",
+    "work_history",
+    "favourite_songs",
+    "hobbies",
+    "happy_things",
+    "soothing_prompts",
+    "accessibility",
+    "challenge_mode_default",
+)
+
+
+class PatientProfileCaregiverSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PatientProfile
+        fields = CAREGIVER_PROFILE_FIELDS
+
+
+class PatientProfileDoctorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PatientProfile
+        fields = ("session_cap_minutes", "max_difficulty_level")
+
+
+class FamilyMemberSerializer(serializers.ModelSerializer):
+    photo_url = serializers.SerializerMethodField()
+    photo = serializers.ImageField(write_only=True, required=False)
+
+    class Meta:
+        model = FamilyMember
+        fields = (
+            "id",
+            "name",
+            "relationship",
+            "relationship_label",
+            "photo",
+            "photo_url",
+            "phone",
+            "is_emergency_contact",
+            "linked_user",
+            "order",
+        )
+        read_only_fields = ("id", "photo_url")
+
+    @extend_schema_field(serializers.URLField(allow_null=True))
+    def get_photo_url(self, obj: FamilyMember) -> str | None:
+        return media_url(obj.photo)
+
+
+class FamilyMemberDoctorSerializer(serializers.ModelSerializer):
+    photo_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FamilyMember
+        fields = ("id", "name", "relationship", "relationship_label", "photo_url", "order")
+        read_only_fields = fields
+
+    @extend_schema_field(serializers.URLField(allow_null=True))
+    def get_photo_url(self, obj: FamilyMember) -> str | None:
+        return media_url(obj.photo)
+
+
+class ConsentSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConsentSettings
+        fields = (
+            "share_memories_with_doctor",
+            "use_memories_in_quiz",
+            "share_mood_with_doctor",
+            "share_audio_with_doctor",
+        )

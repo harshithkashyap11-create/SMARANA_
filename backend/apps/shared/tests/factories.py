@@ -5,7 +5,13 @@ from django.contrib.auth.hashers import make_password
 from factory.django import DjangoModelFactory
 
 from apps.accounts.models import PatientCredential, User
-from apps.patients.models import CareAssignment, DoctorAssignment, PatientProfile
+from apps.patients.models import (
+    CareAssignment,
+    ConsentSettings,
+    DoctorAssignment,
+    FamilyMember,
+    PatientProfile,
+)
 
 
 class UserFactory(DjangoModelFactory):
@@ -65,3 +71,19 @@ class DoctorAssignmentFactory(DjangoModelFactory):
 
     patient = factory.SubFactory(PatientFactory)
     doctor = factory.SubFactory(DoctorFactory)
+
+
+class FamilyMemberFactory(DjangoModelFactory):
+    class Meta:
+        model = FamilyMember
+
+    patient = factory.SubFactory(PatientFactory)
+    name = factory.Sequence(lambda number: f"Family member {number}")
+    relationship = FamilyMember.Relationship.FRIEND
+
+
+class ConsentSettingsFactory(DjangoModelFactory):
+    class Meta:
+        model = ConsentSettings
+
+    patient = factory.SubFactory(PatientFactory)

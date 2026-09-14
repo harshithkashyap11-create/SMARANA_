@@ -3,7 +3,7 @@
 Update this file at the end of every task (`/finish-task` does it). Keep it short. This is the memory Claude Code reads at the start of each session.
 
 ## Current phase
-Phase 1 — Auth, roles & assignments
+Phase 2 — Patient core
 
 ## In flight
 - None.
@@ -24,11 +24,13 @@ Phase 1 — Auth, roles & assignments
 | T014 | 2026-09-14 | `feat(frontend): T014 add patient PIN login and idle prompt` | Remembered patient login ID, large keypad, gentle lock copy, patient shell, and 30-minute presence prompt. |
 | T015 | 2026-09-14 | `feat(phase-1): complete T015 language preferences and T016 audit trail` | Native-language tiles, persisted en/as/bn selection, Bengali font bundle, and synchronized account preference support. |
 | T016 | 2026-09-14 | `feat(phase-1): complete T015 language preferences and T016 audit trail` | Append-only audit app covers login success/failure and preference updates, with read-only admin visibility. |
+| T020 | 2026-09-14 | `feat(patients): T020 add life-history, family, and consent APIs` | Full patient profile fields, role-scoped updates, family CRUD with signed media, consent controls, and audited changes. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
 - Assamese and Bengali catalogs mirror the English keys with `TODO:` values until translated content is supplied.
 - T012 returns nullable patient-card age and language until T020 adds date of birth and the later preferences/content work establishes the persisted language source.
+- Patient region is stored as a stable string key until T090 introduces the `content.Region` model.
 
 ## Known issues / tech debt
 - Pin container and language dependency versions with lock files as the backend/frontend toolchains are completed in later foundation tasks.
@@ -38,4 +40,4 @@ Phase 1 — Auth, roles & assignments
 - T014's minimal Dexie `meta` store now also persists the language selection. IndexedDB is deliberately treated as optional during SSR and unit tests.
 
 ## Next up
-- Phase 1 complete; select the next scoped task from the backlog.
+- T021 — Patient home tiles, bottom nav, and daily orientation card.

@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "django_filters",
+    "storages",
     "apps.shared.apps.SharedConfig",
     "apps.accounts.apps.AccountsConfig",
     "apps.audit.apps.AuditConfig",
@@ -98,6 +99,19 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_URL = "/media/"
+STORAGES = {
+    "default": {"BACKEND": "storages.backends.s3.S3Storage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
+AWS_ACCESS_KEY_ID = env("MINIO_ROOT_USER", default="smarana")
+AWS_SECRET_ACCESS_KEY = env("MINIO_ROOT_PASSWORD", default="smarana_dev_password")
+AWS_STORAGE_BUCKET_NAME = env("MINIO_BUCKET", default="smarana-media")
+AWS_S3_ENDPOINT_URL = env("MINIO_ENDPOINT", default="http://minio:9000")
+AWS_S3_REGION_NAME = env("MINIO_REGION", default="us-east-1")
+AWS_QUERYSTRING_AUTH = True
+AWS_QUERYSTRING_EXPIRE = 600
+AWS_DEFAULT_ACL = None
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
 

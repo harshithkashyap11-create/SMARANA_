@@ -32,7 +32,12 @@ class AuditEvent(UUIDModel):
 
     class Meta:
         ordering = ["-created_at", "-id"]
-        indexes = [models.Index(fields=["patient", "created_at"])]
+        indexes = [
+            models.Index(
+                fields=["patient", "created_at"],
+                name="audit_audit_patien_4a3b60_idx",
+            )
+        ]
 
     def __str__(self) -> str:
         return f"{self.action} {self.target_model} at {self.created_at:%Y-%m-%d %H:%M}"

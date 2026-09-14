@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from apps.accounts.models import User
-from apps.shared.models import TimeStamped, UUIDModel
+from apps.shared.models import SoftDelete, TimeStamped, UUIDModel
 
 
 class PatientProfile(UUIDModel, TimeStamped):
@@ -18,6 +18,23 @@ class PatientProfile(UUIDModel, TimeStamped):
         on_delete=models.CASCADE,
         related_name="patient_profile",
     )
+    date_of_birth = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=32, blank=True)
+    # Region records are introduced by T090; keep the stable region key until then.
+    region = models.CharField(max_length=64, blank=True)
+    cultural_notes = models.TextField(blank=True)
+    home_label = models.CharField(max_length=255, blank=True)
+    known_places = models.JSONField(default=list, blank=True)
+    life_events = models.JSONField(default=list, blank=True)
+    work_history = models.TextField(blank=True)
+    favourite_songs = models.JSONField(default=list, blank=True)
+    hobbies = models.JSONField(default=list, blank=True)
+    happy_things = models.JSONField(default=list, blank=True)
+    soothing_prompts = models.JSONField(default=list, blank=True)
+    accessibility = models.JSONField(default=dict, blank=True)
+    session_cap_minutes = models.PositiveSmallIntegerField(blank=True, null=True)
+    max_difficulty_level = models.PositiveSmallIntegerField(blank=True, null=True)
+    challenge_mode_default = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["user__username"]
@@ -29,6 +46,72 @@ class PatientProfile(UUIDModel, TimeStamped):
         super().clean()
         if self.user_id and self.user.role != User.Role.PATIENT:
             raise ValidationError({"user": "Patient profiles require a patient user."})
+
+
+class FamilyMember(UUIDModel, TimeStamped, SoftDelete):
+    """A familiar person shown on the patient's device."""
+
+    class Relationship(models.TextChoices):
+        DAUGHTER = "daughter", "Daughter"
+        SON = "son", "Son"
+        SPOUSE = "spouse", "Spouse"
+        GRANDCHILD = "grandchild", "Grandchild"
+        FRIEND = "friend", "Friend"
+        SIBLING = "sibling", "Sibling"
+        OTHER = "other", "Other"
+
+    patient = models.ForeignKey(
+        PatientProfile,
+        on_delete=models.CASCADE,
+        related_name="family_members",
+    )
+    name = models.CharField(max_length=255)
+    relationship = models.CharField(max_length=32, choices=Relationship.choices)
+    relationship_label = models.CharField(max_length=128, blank=True)
+    photo = models.ImageField(upload_to="family/%Y/%m/", blank=True)
+    phone = models.CharField(max_length=32, blank=True)
+    is_emergency_contact = models.BooleanField(default=False)
+    linked_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="family_links",
+        blank=True,
+        null=True,
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "name", "id"]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.relationship})"
+
+
+class ConsentSettings(UUIDModel, TimeStamped):
+    """Patient-controlled sharing choices."""
+
+    patient = models.OneToOneField(
+        PatientProfile,
+        on_delete=models.CASCADE,
+        related_name="consent",
+    )
+    share_memories_with_doctor = models.BooleanField(default=False)
+    use_memories_in_quiz = models.BooleanField(default=False)
+    share_mood_with_doctor = models.BooleanField(default=False)
+    share_audio_with_doctor = models.BooleanField(default=False)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="consent_updates",
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        ordering = ["patient__user__username"]
+
+    def __str__(self) -> str:
+        return f"Consent for {self.patient}"
 
 
 class CareAssignment(UUIDModel, TimeStamped):

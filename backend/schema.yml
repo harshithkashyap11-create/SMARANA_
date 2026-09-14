@@ -389,6 +389,209 @@ paths:
               schema:
                 $ref: '#/components/schemas/PatientCard'
           description: ''
+  /api/v1/patients/{id}/consent/:
+    get:
+      operationId: v1_patients_consent_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+    patch:
+      operationId: v1_patients_consent_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+  /api/v1/patients/{id}/family/:
+    get:
+      operationId: v1_patients_family_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+    post:
+      operationId: v1_patients_family_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientCard'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+  /api/v1/patients/{id}/family/{family_id}/:
+    patch:
+      operationId: v1_patients_family_partial_update
+      parameters:
+      - in: path
+        name: family_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+    delete:
+      operationId: v1_patients_family_destroy
+      parameters:
+      - in: path
+        name: family_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/patients/{id}/profile/:
+    patch:
+      operationId: v1_patients_profile_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
 components:
   schemas:
     AssignmentSummary:
@@ -421,6 +624,16 @@ components:
       required:
       - db
       - status
+    LanguageEnum:
+      enum:
+      - en
+      - as
+      - bn
+      type: string
+      description: |-
+        * `en` - English
+        * `as` - Assamese
+        * `bn` - Bengali
     LockedResponse:
       type: object
       properties:
@@ -508,6 +721,36 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PatientCard'
+    PatchedPatientCard:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        age:
+          type: integer
+          nullable: true
+          readOnly: true
+        language:
+          type: string
+          nullable: true
+          readOnly: true
+        primary_caregiver_name:
+          type: string
+          readOnly: true
+          nullable: true
+        last_active_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        open_alert_count:
+          type: integer
+          readOnly: true
     PatchedPreference:
       type: object
       properties:
@@ -518,11 +761,7 @@ components:
           format: decimal
           pattern: ^-?\d{0,1}(?:\.\d{0,1})?$
         language:
-          type: string
-          enum:
-          - en
-          - as
-          - bn
+          $ref: '#/components/schemas/LanguageEnum'
     PatientCard:
       type: object
       properties:
@@ -614,11 +853,7 @@ components:
           format: decimal
           pattern: ^-?\d{0,1}(?:\.\d{0,1})?$
         language:
-          type: string
-          enum:
-          - en
-          - as
-          - bn
+          $ref: '#/components/schemas/LanguageEnum'
     ProfessionalLogin:
       type: object
       properties:
