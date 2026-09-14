@@ -10,4 +10,5 @@ export interface PatchedPreference {
   theme?: ThemeEnum;
   /** @pattern ^-?\d{0,1}(?:\.\d{0,1})?$ */
   font_scale?: string;
+  language?: 'as' | 'bn' | 'en';
 }

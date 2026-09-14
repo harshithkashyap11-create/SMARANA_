@@ -225,6 +225,7 @@ def update_preferences(
     user: User,
     theme: str | None = None,
     font_scale: Decimal | None = None,
+    language: str | None = None,
 ) -> User:
     """Update the preference fields currently owned by the User model."""
 
@@ -235,6 +236,9 @@ def update_preferences(
     if font_scale is not None:
         user.font_scale = font_scale
         update_fields.append("font_scale")
+    if language is not None:
+        user.language = language
+        update_fields.append("language")
     if not update_fields:
         return user
 

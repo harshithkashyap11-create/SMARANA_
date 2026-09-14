@@ -517,6 +517,12 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,1}(?:\.\d{0,1})?$
+        language:
+          type: string
+          enum:
+          - en
+          - as
+          - bn
     PatientCard:
       type: object
       properties:
@@ -607,6 +613,12 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,1}(?:\.\d{0,1})?$
+        language:
+          type: string
+          enum:
+          - en
+          - as
+          - bn
     ProfessionalLogin:
       type: object
       properties:

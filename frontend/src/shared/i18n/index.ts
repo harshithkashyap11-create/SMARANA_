@@ -7,6 +7,9 @@ import en from "./en.json";
 
 export const i18n = i18next.createInstance();
 
+export const supportedLanguages = ["en", "as", "bn"] as const;
+export type SupportedLanguage = (typeof supportedLanguages)[number];
+
 void i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },

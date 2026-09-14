@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "django_filters",
     "apps.shared.apps.SharedConfig",
     "apps.accounts.apps.AccountsConfig",
+    "apps.audit.apps.AuditConfig",
     "apps.patients.apps.PatientsConfig",
     "apps.alerts.apps.AlertsConfig",
 ]

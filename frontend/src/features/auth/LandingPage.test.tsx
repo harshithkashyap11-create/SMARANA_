@@ -1,4 +1,5 @@
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { expect, test } from "vitest";
 
 import { renderWithProviders } from "../../test/utils";
@@ -13,4 +14,14 @@ test("renders four large role tiles with patient first", () => {
   for (const tile of tiles) {
     expect(tile).toHaveClass("min-h-touch");
   }
+});
+
+test("switches the landing copy and document language using native language tiles", async () => {
+  const user = userEvent.setup();
+  renderWithProviders(<LandingPage />);
+
+  await user.click(screen.getByRole("button", { name: "বাংলা" }));
+
+  expect(screen.getByText("TODO: Gentle support for every day.")).toBeInTheDocument();
+  expect(document.documentElement).toHaveAttribute("lang", "bn");
 });

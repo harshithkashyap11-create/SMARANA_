@@ -12,6 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from apps.accounts.models import DeviceSession
 from apps.accounts.services import set_pin
 from apps.alerts.models import Alert
+from apps.audit.models import AuditEvent
 
 LOGIN_URL = "/api/v1/auth/patient/login/"
 RESET_URL = "/api/v1/auth/patient/pin-reset/"
@@ -40,6 +41,7 @@ def test_correct_pin_logs_in_with_argon2_hash_and_device_bound_refresh(
     assert response.data["user"]["role"] == "patient"
     assert identify_hasher(credential.pin_hash).algorithm == "argon2"
     assert DeviceSession.objects.filter(user=patient.user, device_id="patient-phone").exists()
+    assert AuditEvent.objects.filter(actor=patient.user, action="login").exists()
     refresh = RefreshToken(response.data["refresh"])
     assert int(refresh["exp"]) - int(refresh["iat"]) == 30 * 24 * 60 * 60
     outstanding = OutstandingToken.objects.get(jti=refresh["jti"])
@@ -77,6 +79,7 @@ def test_fifth_wrong_pin_locks_and_raises_one_open_alert(
         rule_key=Alert.RuleKey.PIN_LOCKOUT,
         status=Alert.Status.OPEN,
     ).count() == 1
+    assert AuditEvent.objects.filter(action="login_failed").count() == 6
 
 
 @pytest.mark.django_db

@@ -47,7 +47,7 @@ class UserSummarySerializer(serializers.ModelSerializer):
 class PreferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("theme", "font_scale")
+        fields = ("theme", "font_scale", "language")
 
 
 class PatientSummarySerializer(serializers.ModelSerializer):

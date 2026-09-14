@@ -34,6 +34,7 @@ from apps.accounts.services import (
     update_preferences,
     verify_pin,
 )
+from apps.audit.services import audit
 from apps.shared.exceptions import UserFacingError
 from apps.shared.permissions import IsRole
 
@@ -49,11 +50,16 @@ class ProfessionalLoginView(APIView):
     def post(self, request: Request) -> Response:
         serializer = ProfessionalLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = authenticate_professional(
-            email_or_phone=serializer.validated_data["email_or_phone"],
-            password=serializer.validated_data["password"],
-        )
+        try:
+            user = authenticate_professional(
+                email_or_phone=serializer.validated_data["email_or_phone"],
+                password=serializer.validated_data["password"],
+            )
+        except UserFacingError:
+            audit(None, "login_failed", User, request=request)
+            raise
         tokens = issue_tokens(user=user, device_id=serializer.validated_data["device_id"])
+        audit(user, "login", user, request=request)
         return Response(
             {
                 "access": tokens.access,
@@ -79,6 +85,7 @@ class PatientLoginView(APIView):
                 pin=serializer.validated_data["pin"],
             )
         except PinLocked as exc:
+            audit(None, "login_failed", User, request=request)
             return Response(
                 {
                     "detail": "locked",
@@ -87,7 +94,11 @@ class PatientLoginView(APIView):
                 },
                 status=status.HTTP_423_LOCKED,
             )
+        except UserFacingError:
+            audit(None, "login_failed", User, request=request)
+            raise
         tokens = issue_tokens(user=user, device_id=serializer.validated_data["device_id"])
+        audit(user, "login", user, patient=user.patient_profile, request=request)
         return Response(
             {
                 "access": tokens.access,
@@ -164,5 +175,19 @@ class PreferenceView(APIView):
     def patch(self, request: Request) -> Response:
         serializer = PreferenceSerializer(instance=request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        previous = {field: str(getattr(request.user, field)) for field in serializer.validated_data}
         user = update_preferences(user=request.user, **serializer.validated_data)
+        audit(
+            user,
+            "update",
+            user,
+            patient=getattr(user, "patient_profile", None),
+            changes={
+                "before": previous,
+                "after": {
+                    key: str(value) for key, value in serializer.validated_data.items()
+                },
+            },
+            request=request,
+        )
         return Response(PreferenceSerializer(user).data)

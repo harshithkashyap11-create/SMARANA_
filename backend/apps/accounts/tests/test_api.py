@@ -8,6 +8,7 @@ from django.contrib.auth.hashers import check_password
 from rest_framework.test import APIClient
 
 from apps.accounts.models import DeviceSession, User
+from apps.audit.models import AuditEvent
 from apps.patients.models import CareAssignment
 from apps.shared.tests.factories import CareAssignmentFactory, CaregiverFactory, DoctorFactory
 
@@ -44,6 +45,7 @@ def test_approved_caregiver_logs_in_and_device_session_is_reused(api: APIClient)
     assert first.data["user"]["role"] == User.Role.CAREGIVER
     assert second.status_code == 200
     assert DeviceSession.objects.filter(user=user, device_id="priya-phone").count() == 1
+    assert AuditEvent.objects.filter(actor=user, action="login").count() == 2
 
 
 @pytest.mark.django_db
@@ -82,6 +84,7 @@ def test_wrong_password_and_unknown_email_have_identical_response(api: APIClient
         "detail": "credentials_not_verified",
         "code": "credentials_not_verified",
     }
+    assert AuditEvent.objects.filter(action="login_failed").count() == 2
 
 
 @pytest.mark.django_db
@@ -151,7 +154,7 @@ def test_preferences_patch_validates_and_persists(api: APIClient) -> None:
 
     response = api.patch(
         PREFERENCES_URL,
-        {"theme": User.Theme.DARK, "font_scale": "1.4"},
+        {"theme": User.Theme.DARK, "font_scale": "1.4", "language": "bn"},
         format="json",
     )
 
@@ -159,6 +162,10 @@ def test_preferences_patch_validates_and_persists(api: APIClient) -> None:
     user.refresh_from_db()
     assert user.theme == User.Theme.DARK
     assert str(user.font_scale) == "1.4"
+    assert user.language == "bn"
+    event = AuditEvent.objects.get(actor=user, action="update")
+    assert event.changes["before"]["theme"] == User.Theme.LIGHT
+    assert event.changes["after"]["language"] == "bn"
 
 
 @pytest.mark.django_db

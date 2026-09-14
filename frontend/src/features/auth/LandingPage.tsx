@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import { supportedLanguages, type SupportedLanguage } from "../../shared/i18n";
 import { useThemeStore } from "../../shared/theme/store";
 import { IconTile } from "../../shared/ui";
 
@@ -9,6 +10,11 @@ export function LandingPage() {
   const navigate = useNavigate();
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
   const cycleFontScale = useThemeStore((state) => state.cycleFontScale);
+  const languageNames: Record<SupportedLanguage, string> = {
+    en: "English",
+    as: "অসমীয়া",
+    bn: "বাংলা",
+  };
 
   return (
     <main className="mx-auto flex min-h-screen max-w-[720px] flex-col gap-6 px-4 py-8">
@@ -48,18 +54,22 @@ export function LandingPage() {
         aria-label={t("landing.settings")}
         className="mt-auto grid gap-3 sm:grid-cols-3"
       >
-        <label className="flex min-h-touch items-center gap-2 rounded-card bg-surface px-4">
-          <span>{t("landing.language")}</span>
-          <select
-            className="min-h-[44px] flex-1 bg-surface text-text"
-            value={i18n.language.split("-")[0]}
-            onChange={(event) => void i18n.changeLanguage(event.target.value)}
-          >
-            <option value="en">English</option>
-            <option value="as">অসমীয়া</option>
-            <option value="bn">বাংলা</option>
-          </select>
-        </label>
+        <div className="rounded-card bg-surface p-3 sm:col-span-3">
+          <p className="mb-2">{t("landing.language")}</p>
+          <div aria-label={t("landing.language")} className="grid gap-2 sm:grid-cols-3" role="group">
+            {supportedLanguages.map((language) => (
+              <button
+                aria-pressed={i18n.language.split("-")[0] === language}
+                className="min-h-touch rounded-card bg-calm px-3 font-semibold text-text"
+                key={language}
+                onClick={() => void i18n.changeLanguage(language)}
+                type="button"
+              >
+                {languageNames[language]}
+              </button>
+            ))}
+          </div>
+        </div>
         <button
           className="min-h-touch rounded-card bg-surface px-4"
           onClick={toggleTheme}

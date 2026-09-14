@@ -11,13 +11,33 @@ class SmaranaUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         (
             "Smārana",
-            {"fields": ("role", "display_name", "theme", "font_scale", "is_approved", "phone")},
+            {
+                "fields": (
+                    "role",
+                    "display_name",
+                    "theme",
+                    "font_scale",
+                    "language",
+                    "is_approved",
+                    "phone",
+                )
+            },
         ),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         (
             "Smārana",
-            {"fields": ("role", "display_name", "theme", "font_scale", "is_approved", "phone")},
+            {
+                "fields": (
+                    "role",
+                    "display_name",
+                    "theme",
+                    "font_scale",
+                    "language",
+                    "is_approved",
+                    "phone",
+                )
+            },
         ),
     )
     list_display = ("username", "display_name", "role", "is_approved", "is_staff")

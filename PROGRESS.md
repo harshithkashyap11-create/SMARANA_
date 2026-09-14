@@ -22,12 +22,12 @@ Phase 1 — Auth, roles & assignments
 | T012 | 2026-09-14 | `feat(patients): T012 add assignment-scoped patient reads` | Completed assignment history fields, role-scoped patient selectors, and read-only patient list/detail API contracts. |
 | T013 | 2026-09-14 | `test(frontend): complete T013 browser login coverage` | Landing page, professional login, role routing, auth store, professional idle logout, and Playwright role-guard coverage. |
 | T014 | 2026-09-14 | `feat(frontend): T014 add patient PIN login and idle prompt` | Remembered patient login ID, large keypad, gentle lock copy, patient shell, and 30-minute presence prompt. |
+| T015 | 2026-09-14 | `feat(phase-1): complete T015 language preferences and T016 audit trail` | Native-language tiles, persisted en/as/bn selection, Bengali font bundle, and synchronized account preference support. |
+| T016 | 2026-09-14 | `feat(phase-1): complete T015 language preferences and T016 audit trail` | Append-only audit app covers login success/failure and preference updates, with read-only admin visibility. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
 - Assamese and Bengali catalogs mirror the English keys with `TODO:` values until translated content is supplied.
-- T010 persists the existing theme and font-scale preferences; T016 owns the remaining preference fields and persisted login/preference audit events, as its task card explicitly requires wiring those flows.
-- T011 keeps PIN mutations in account services so T016 can add the task-card-required login, lockout, and PIN-reset audit events when the append-only audit app is introduced.
 - T012 returns nullable patient-card age and language until T020 adds date of birth and the later preferences/content work establishes the persisted language source.
 
 ## Known issues / tech debt
@@ -35,9 +35,7 @@ Phase 1 — Auth, roles & assignments
 - React Router remains on the project-mandated v6 line; npm reports two moderate advisories whose available fix upgrades to v7, so migration should be handled as a separate compatibility task.
 - Replace the placeholder SVG PWA artwork with final install icons before release.
 - `renderWithProviders` currently accepts a generic repository map; tighten it to concrete repository interfaces as offline repositories are introduced.
-- Login and preference audit rows are intentionally deferred to T016, which introduces the append-only audit app and helper.
-- Patient login, lockout, and PIN-reset audit rows are intentionally deferred to T016, whose scope explicitly wires the T011 flow.
-- T014 introduces the minimal Dexie `meta` store required to remember the last successful patient login ID; T015 will reuse it for language persistence.
+- T014's minimal Dexie `meta` store now also persists the language selection. IndexedDB is deliberately treated as optional during SSR and unit tests.
 
 ## Next up
-- T015
+- Phase 1 complete; select the next scoped task from the backlog.

@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Noto Sans Bengali";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/noto-sans-bengali.woff2") format("woff2");
+}
+
 :root,
 [data-theme="light"] {
   --scale: 1;
@@ -47,6 +55,11 @@
       "Segoe UI",
       sans-serif;
     font-size: calc(20px * var(--scale));
+  }
+
+  html[data-language="as"],
+  html[data-language="bn"] {
+    font-family: "Noto Sans Bengali", sans-serif;
   }
 
   body {

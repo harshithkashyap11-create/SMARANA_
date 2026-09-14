@@ -35,6 +35,11 @@ class User(AbstractUser):
         default=Decimal("1.0"),
         validators=[MinValueValidator(Decimal("1.0")), MaxValueValidator(Decimal("1.6"))],
     )
+    language = models.CharField(
+        max_length=8,
+        choices=(("en", "English"), ("as", "Assamese"), ("bn", "Bengali")),
+        default="en",
+    )
     is_approved = models.BooleanField(default=False)
     phone = models.CharField(max_length=32, blank=True)
 

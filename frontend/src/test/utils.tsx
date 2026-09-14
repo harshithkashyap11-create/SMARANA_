@@ -7,6 +7,7 @@ import { MemoryRouter } from "react-router-dom";
 import { AppContextProvider } from "../app/AppContextProvider";
 import { type AppRole, type RepositoryMap } from "../app/context";
 import { i18n } from "../shared/i18n";
+import { LanguageProvider } from "../shared/i18n/LanguageProvider";
 import { ThemeProvider } from "../shared/theme/ThemeProvider";
 
 interface ProviderOptions extends Omit<RenderOptions, "wrapper"> {
@@ -28,6 +29,7 @@ export function renderWithProviders(
 
   function Wrapper({ children }: PropsWithChildren) {
     return (
+    <LanguageProvider>
       <I18nextProvider i18n={i18n}>
         <QueryClientProvider client={queryClient}>
           <AppContextProvider repos={repos} role={role}>
@@ -40,6 +42,7 @@ export function renderWithProviders(
           </AppContextProvider>
         </QueryClientProvider>
       </I18nextProvider>
+    </LanguageProvider>
     );
   }
 
