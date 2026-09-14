@@ -61,8 +61,10 @@ services:
       context: ./backend
     command: python manage.py runserver 0.0.0.0:8000
     environment: &backend-environment
+      DJANGO_SETTINGS_MODULE: config.settings.dev
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-development-only-change-me}
       DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,backend,testserver}
       POSTGRES_DB: ${POSTGRES_DB:-smarana}
       POSTGRES_USER: ${POSTGRES_USER:-smarana}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smarana_dev}

@@ -1,12 +1,11 @@
 """Root URL configuration."""
 
-from django.http import HttpRequest, JsonResponse
+from django.contrib import admin
 from django.urls import path
 
+from config.views import health_check
 
-def health_check(request: HttpRequest) -> JsonResponse:
-    """Report that the development backend is running."""
-    return JsonResponse({"status": "ok"})
-
-
-urlpatterns = [path("health/", health_check, name="health-check")]
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("api/v1/health/", health_check, name="health-check"),
+]

@@ -31,7 +31,8 @@ The first build downloads container images and language packages, so it can take
 | Service | URL |
 |---|---|
 | Frontend | http://localhost:5173 |
-| Backend health check | http://localhost:8000/health/ |
+| Backend health check | http://localhost:8000/api/v1/health/ |
+| Django Admin | http://localhost:8000/admin/ |
 | MinIO API | http://localhost:9000 |
 | MinIO console | http://localhost:9001 |
 
