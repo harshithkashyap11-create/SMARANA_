@@ -149,7 +149,10 @@
     "loading": "TODO: Getting the game ready…",
     "round": "TODO: Round {{current}} of {{total}}",
     "playAgain": "TODO: Play again",
-    "backHome": "TODO: Back home"
+    "backHome": "TODO: Back home",
+    "resumeTitle": "TODO: Continue your game?",
+    "continue": "TODO: Continue",
+    "startOver": "TODO: Start over"
   },
   "dda": {
     "harder_next_time": "TODO: Great job! Next time will be a little more interesting.",

@@ -5,6 +5,7 @@ import type {
   SessionSummary,
 } from "../../games/dda";
 import { db, getMeta, setMeta, type CachedGameSession } from "../schema";
+import type { FatigueReason } from "../../games/engine/fatigue";
 
 export interface GameDefinitionDto {
   key: string;
@@ -26,8 +27,11 @@ export interface ResumeState {
     mistakes: number;
     hintsUsed: number;
     reactionTimes: number[];
+    answers: Array<{ correct: boolean; reactionMs: number }>;
     rawEvents: unknown[];
   };
+  fatigueFlags?: FatigueReason[];
+  suppressFatigueUntilRound?: number;
 }
 export const resumeKey = (patientId: string, gameKey: string): string =>
   `game-resume:${patientId}:${gameKey}`;
@@ -52,6 +56,61 @@ export async function clearResume(
   gameKey: string,
 ): Promise<void> {
   await db.meta.delete(resumeKey(patientId, gameKey));
+}
+export async function loadLatestResume(): Promise<ResumeState | null> {
+  const profile = await db.profile.orderBy("refreshedAt").last();
+  const entries = await db.meta
+    .filter(
+      (entry) =>
+        entry.key.startsWith("game-resume:") &&
+        (!profile || entry.key.startsWith(`game-resume:${profile.id}:`)),
+    )
+    .toArray();
+  const states = entries.flatMap((entry) => {
+    try {
+      return [JSON.parse(entry.value) as ResumeState];
+    } catch {
+      return [];
+    }
+  });
+  return (
+    states.sort(
+      (a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt),
+    )[0] ?? null
+  );
+}
+
+export async function abandonResume(value: ResumeState): Promise<void> {
+  const endedAt = new Date();
+  const times = value.metrics.reactionTimes;
+  await db.transaction("rw", db.gameSessions, db.meta, async () => {
+    await db.gameSessions.put({
+      id: crypto.randomUUID(),
+      patientId: value.patientId,
+      gameKey: value.gameKey,
+      seed: value.seed,
+      level: value.level,
+      challengeMode: false,
+      startedAt: value.startedAt,
+      endedAt: endedAt.toISOString(),
+      synced: false,
+      metrics: {
+        accuracy: value.metrics.correct / Math.max(value.roundIndex, 1),
+        mean_reaction_ms:
+          times.reduce((sum, item) => sum + item, 0) /
+          Math.max(times.length, 1),
+        mistakes: value.metrics.mistakes,
+        hints_used: value.metrics.hintsUsed,
+        rounds: value.roundIndex,
+        duration_ms: endedAt.getTime() - Date.parse(value.startedAt),
+        completed: false,
+        abandoned_reason: "user_exit",
+        fatigue_flags: value.fatigueFlags ?? [],
+        raw_events: value.metrics.rawEvents,
+      },
+    });
+    await db.meta.delete(resumeKey(value.patientId, value.gameKey));
+  });
 }
 export async function getDifficulty(
   patientId: string,

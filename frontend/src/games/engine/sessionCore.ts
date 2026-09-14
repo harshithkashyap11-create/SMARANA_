@@ -31,6 +31,10 @@ export function recordAnswer<R>(
       correct: resume.metrics.correct + (score.correct ? 1 : 0),
       mistakes: resume.metrics.mistakes + (score.correct ? 0 : 1),
       reactionTimes: [...resume.metrics.reactionTimes, reactionMs],
+      answers: [
+        ...(resume.metrics.answers ?? []),
+        { correct: score.correct, reactionMs },
+      ],
       rawEvents: answer.extra
         ? [...resume.metrics.rawEvents, answer.extra]
         : resume.metrics.rawEvents,

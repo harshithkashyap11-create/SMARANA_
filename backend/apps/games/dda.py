@@ -95,14 +95,6 @@ def next_difficulty(
             f"Difficulty is locked by Dr. {name}.",
             "dda.same_next_time",
         )
-    if len(window) < config.windowSize:
-        return _result(
-            updated,
-            state.level,
-            "insufficient_data",
-            "More sessions are needed before adjusting difficulty.",
-            "dda.same_next_time",
-        )
     if session.fatigueFlagged or not session.completed:
         return _result(
             updated,
@@ -110,6 +102,14 @@ def next_difficulty(
             "fatigue_hold",
             "Held because the latest session was cut short or a break was suggested.",
             "dda.thanks_for_playing",
+        )
+    if len(window) < config.windowSize:
+        return _result(
+            updated,
+            state.level,
+            "insufficient_data",
+            "More sessions are needed before adjusting difficulty.",
+            "dda.same_next_time",
         )
     all_low = all(item["accuracy"] < config.demoteAccuracy for item in window)
     earlier_mean = sum(item["meanReactionMs"] for item in window[:-1]) / len(window[:-1])

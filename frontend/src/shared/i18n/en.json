@@ -149,7 +149,10 @@
     "loading": "Getting the game ready…",
     "round": "Round {{current}} of {{total}}",
     "playAgain": "Play again",
-    "backHome": "Back home"
+    "backHome": "Back home",
+    "resumeTitle": "Continue your game?",
+    "continue": "Continue",
+    "startOver": "Start over"
   },
   "dda": {
     "harder_next_time": "Great job! Next time will be a little more interesting.",

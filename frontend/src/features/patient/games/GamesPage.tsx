@@ -60,11 +60,16 @@ export function GamesPage() {
     </section>
   );
 }
-export async function currentPatientId(): Promise<string> {
-  const response = await apiClient<{ results: Array<{ id: string }> }>(
-    "/api/v1/patients/",
-    { method: "GET" },
-  );
+export async function currentPatient(): Promise<{
+  id: string;
+  sessionCapMinutes: number;
+}> {
+  const response = await apiClient<{
+    results: Array<{ id: string; session_cap_minutes: number | null }>;
+  }>("/api/v1/patients/", { method: "GET" });
   if (!response.results[0]) throw new Error("Patient unavailable");
-  return response.results[0].id;
+  return {
+    id: response.results[0].id,
+    sessionCapMinutes: response.results[0].session_cap_minutes ?? 20,
+  };
 }

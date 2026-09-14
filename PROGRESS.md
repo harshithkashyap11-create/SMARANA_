@@ -39,6 +39,8 @@ Phase 4 — Caregiver
 | T032 | 2026-09-14 | `feat(games): complete T030-T034 adaptive games foundation` | Matching TypeScript DDA, supportive end flow, offline prediction, and authoritative server reconciliation. |
 | T033 | 2026-09-14 | `feat(games): complete T030-T034 adaptive games foundation` | Day-scoped challenge toggle raises only the played level while respecting game and doctor caps. |
 | T034 | 2026-09-14 | `feat(games): complete T030-T034 adaptive games foundation` | Playable Memory Match and Sequence Recall with deterministic level knobs, hints, and default content assets. |
+| T035 | 2026-09-14 | `feat(games): complete T035-T036 fatigue and session resume` | Shared fatigue detector, gentle break flow, session flags, configured play cap, quiz reuse, and DDA fatigue holds. |
+| T036 | 2026-09-14 | `feat(games): complete T035-T036 fatigue and session resume` | Patient-scoped resume card restores the exact seeded round; start-over records a recoverable local abandonment. |
 | T040 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Assignment-scoped patient switcher, Today medicine statuses, response times, seven-day adherence, and device sync recency. |
 | T041 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Source ownership protection, before/after audit history, scoped history reads, and recoverable routine deletion. |
 | T042 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Schedule CRUD form with categories, day selection, validation, optimistic creation, and locked doctor items. |

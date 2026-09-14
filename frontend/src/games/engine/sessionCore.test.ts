@@ -3,6 +3,8 @@ import { defaultPack } from "../../content/packs";
 import type { ResumeState } from "../../db/repo/games";
 import { demoTap } from "../modules/demo_tap";
 import { buildRoundAtIndex, recordAnswer } from "./sessionCore";
+import { detectFatigue } from "./fatigue";
+import { nextDifficulty, type DifficultyStateData } from "../dda";
 
 const resume = (): ResumeState => ({
   gameKey: "demo_tap",
@@ -16,6 +18,7 @@ const resume = (): ResumeState => ({
     mistakes: 0,
     hintsUsed: 1,
     reactionTimes: [],
+    answers: [],
     rawEvents: [],
   },
 });
@@ -57,5 +60,44 @@ describe("game session core", () => {
     expect(buildRoundAtIndex(demoTap, afterMount, defaultPack)).toEqual(
       buildRoundAtIndex(demoTap, beforeUnmount, defaultPack),
     );
+  });
+
+  test("accepting a fatigue break produces a DDA hold", () => {
+    let state = resume();
+    for (let index = 0; index < 4; index += 1) {
+      const round = buildRoundAtIndex(demoTap, state, defaultPack);
+      state = recordAnswer(demoTap, round, state, { value: 99 }, 700);
+    }
+    const flags = detectFatigue({
+      events: state.metrics.answers,
+      startedAt: state.startedAt,
+      now: "2026-09-14T10:01:00Z",
+    });
+    const difficulty: DifficultyStateData = {
+      level: 3,
+      window: [],
+      lockedByDoctor: false,
+      capLevel: null,
+      minLevel: 1,
+      maxLevel: 10,
+    };
+    const result = nextDifficulty(difficulty, {
+      level: 3,
+      accuracy: 0,
+      meanReactionMs: 700,
+      mistakes: 4,
+      hintsUsed: 0,
+      rounds: 4,
+      completed: false,
+      challengeMode: false,
+      guestMode: false,
+      fatigueFlagged: flags.length > 0,
+    });
+    expect(flags).toContain("consecutive_mistakes");
+    expect(result.change).toMatchObject({
+      fromLevel: 3,
+      toLevel: 3,
+      reasonCode: "fatigue_hold",
+    });
   });
 });

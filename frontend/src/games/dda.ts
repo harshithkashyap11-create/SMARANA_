@@ -94,14 +94,6 @@ export function nextDifficulty(
       `Difficulty is locked by Dr. ${state.lockedByName ?? "the care team"}.`,
       "dda.same_next_time",
     );
-  if (updated.window.length < config.windowSize)
-    return result(
-      updated,
-      state.level,
-      "insufficient_data",
-      "More sessions are needed before adjusting difficulty.",
-      "dda.same_next_time",
-    );
   if (session.fatigueFlagged || !session.completed)
     return result(
       updated,
@@ -109,6 +101,14 @@ export function nextDifficulty(
       "fatigue_hold",
       "Held because the latest session was cut short or a break was suggested.",
       "dda.thanks_for_playing",
+    );
+  if (updated.window.length < config.windowSize)
+    return result(
+      updated,
+      state.level,
+      "insufficient_data",
+      "More sessions are needed before adjusting difficulty.",
+      "dda.same_next_time",
     );
   const low = updated.window.every(
     (item) => item.accuracy < config.demoteAccuracy,

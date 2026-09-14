@@ -4,6 +4,7 @@ import type { GameDefinitionDto } from "../../db/repo/games";
 import type { GameModule } from "./types";
 import { SupportiveEndScreen } from "./SupportiveEndScreen";
 import { useGameSession } from "./useGameSession";
+import { BreakPrompt } from "../../shared/ui";
 
 export function GamePlayer<R>({
   module,
@@ -11,12 +12,14 @@ export function GamePlayer<R>({
   patientId,
   content,
   challengeMode,
+  sessionCapMinutes,
 }: {
   module: GameModule<R>;
   game: GameDefinitionDto;
   patientId: string;
   content: ContentPack;
   challengeMode: boolean;
+  sessionCapMinutes?: number;
 }) {
   const { t } = useTranslation();
   const session = useGameSession(
@@ -25,6 +28,7 @@ export function GamePlayer<R>({
     patientId,
     content,
     challengeMode,
+    sessionCapMinutes,
   );
   if (session.messageKey)
     return (
@@ -48,6 +52,11 @@ export function GamePlayer<R>({
         round={session.round}
         onAnswer={(answer) => session.answer(answer)}
         onHint={() => session.hint()}
+      />
+      <BreakPrompt
+        open={session.breakOpen}
+        onBreak={() => session.acceptBreak()}
+        onContinue={() => session.continuePlaying()}
       />
     </section>
   );

@@ -28,6 +28,7 @@ class PatientCardSerializer(serializers.ModelSerializer):
             "last_active_at",
             "open_alert_count",
             "is_primary",
+            "session_cap_minutes",
         )
         read_only_fields = fields
 

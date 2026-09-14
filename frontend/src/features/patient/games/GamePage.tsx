@@ -5,20 +5,27 @@ import { listGames, type GameDefinitionDto } from "../../../db/repo/games";
 import { GamePlayer } from "../../../games/engine/GamePlayer";
 import { memoryMatch } from "../../../games/modules/memory_match";
 import { sequenceRecall } from "../../../games/modules/sequence_recall";
-import { currentPatientId } from "./GamesPage";
+import { currentPatient } from "./GamesPage";
 const challengeKey = `games-challenge:${new Date().toISOString().slice(0, 10)}`;
 export function GamePage() {
   const { gameKey = "" } = useParams();
   const [data, setData] = useState<{
     game: GameDefinitionDto;
     patientId: string;
+    sessionCapMinutes: number;
     content: ContentPack;
   } | null>(null);
   useEffect(() => {
-    void Promise.all([listGames(), currentPatientId(), loadContentPack()]).then(
-      ([items, patientId, content]) => {
+    void Promise.all([listGames(), currentPatient(), loadContentPack()]).then(
+      ([items, patient, content]) => {
         const game = items.find((item) => item.key === gameKey);
-        if (game) setData({ game, patientId, content });
+        if (game)
+          setData({
+            game,
+            patientId: patient.id,
+            sessionCapMinutes: patient.sessionCapMinutes,
+            content,
+          });
       },
     );
   }, [gameKey]);
@@ -28,6 +35,7 @@ export function GamePage() {
     content: data.content,
     game: data.game,
     patientId: data.patientId,
+    sessionCapMinutes: data.sessionCapMinutes,
   };
   if (gameKey === memoryMatch.key)
     return <GamePlayer {...shared} module={memoryMatch} />;

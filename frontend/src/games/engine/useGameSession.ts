@@ -14,6 +14,7 @@ import type { CachedGameSession } from "../../db/schema";
 import { nextDifficulty, sessionLevel, type DifficultyStateData } from "../dda";
 import { type Answer, type GameModule } from "./types";
 import { buildRoundAtIndex, recordAnswer } from "./sessionCore";
+import { detectFatigue } from "./fatigue";
 
 export interface GameSessionController<R> {
   ready: boolean;
@@ -21,8 +22,11 @@ export interface GameSessionController<R> {
   roundIndex: number;
   totalRounds: number;
   messageKey: string | null;
+  breakOpen: boolean;
   answer(answer: Answer): void;
   hint(): void;
+  acceptBreak(): void;
+  continuePlaying(): void;
   restart(): void;
 }
 const newMetrics = (): ResumeState["metrics"] => ({
@@ -30,6 +34,7 @@ const newMetrics = (): ResumeState["metrics"] => ({
   mistakes: 0,
   hintsUsed: 0,
   reactionTimes: [],
+  answers: [],
   rawEvents: [],
 });
 
@@ -39,12 +44,14 @@ export function useGameSession<R>(
   patientId: string,
   content: ContentPack,
   challengeMode: boolean,
+  sessionCapMinutes = 20,
 ): GameSessionController<R> {
   const [resume, setResumeState] = useState<ResumeState | null>(null);
   const [difficulty, setDifficulty] = useState<DifficultyStateData | null>(
     null,
   );
   const [messageKey, setMessageKey] = useState<string | null>(null);
+  const [breakOpen, setBreakOpen] = useState(false);
   const roundStarted = useRef(0);
   const start = useCallback(async () => {
     const storedDifficulty = await getDifficulty(patientId, game);
@@ -77,7 +84,11 @@ export function useGameSession<R>(
     return buildRoundAtIndex(module, resume, content);
   }, [content, module, resume]);
   const finish = useCallback(
-    async (finalResume: ResumeState) => {
+    async (
+      finalResume: ResumeState,
+      completed = true,
+      abandonedReason: "break_prompt" | null = null,
+    ) => {
       if (!difficulty) return;
       const endedAt = new Date();
       const times = finalResume.metrics.reactionTimes;
@@ -90,10 +101,10 @@ export function useGameSession<R>(
         mistakes: finalResume.metrics.mistakes,
         hintsUsed: finalResume.metrics.hintsUsed,
         rounds: finalResume.roundIndex,
-        completed: true,
+        completed,
         challengeMode,
         guestMode: false,
-        fatigueFlagged: false,
+        fatigueFlagged: Boolean(finalResume.fatigueFlags?.length),
       };
       const local = nextDifficulty(difficulty, summary);
       const session: CachedGameSession = {
@@ -113,13 +124,14 @@ export function useGameSession<R>(
           hints_used: summary.hintsUsed,
           rounds: summary.rounds,
           duration_ms: endedAt.getTime() - Date.parse(finalResume.startedAt),
-          completed: true,
-          abandoned_reason: null,
-          fatigue_flags: [],
+          completed,
+          abandoned_reason: abandonedReason,
+          fatigue_flags: finalResume.fatigueFlags ?? [],
           raw_events: finalResume.metrics.rawEvents,
         },
       };
       await persistLocalResult(patientId, game, session, local);
+      setBreakOpen(false);
       setMessageKey(local.messageKey);
       await clearResume(patientId, module.key);
       try {
@@ -144,14 +156,34 @@ export function useGameSession<R>(
         Date.now() - roundStarted.current,
       );
       const nextIndex = next.roundIndex;
-      setResumeState(next);
-      if (nextIndex >= module.roundsForLevel(resume.level)) void finish(next);
+      const fatigueFlags = detectFatigue({
+        events: next.metrics.answers,
+        startedAt: next.startedAt,
+        sessionCapMinutes,
+      });
+      const flagged = fatigueFlags.length
+        ? {
+            ...next,
+            fatigueFlags: [
+              ...new Set([...(next.fatigueFlags ?? []), ...fatigueFlags]),
+            ],
+          }
+        : next;
+      setResumeState(flagged);
+      const canPrompt =
+        fatigueFlags.length > 0 &&
+        nextIndex > (resume.suppressFatigueUntilRound ?? 0);
+      if (canPrompt) {
+        setBreakOpen(true);
+        void saveResume(flagged);
+      } else if (nextIndex >= module.roundsForLevel(resume.level))
+        void finish(flagged);
       else {
         roundStarted.current = Date.now();
-        void saveResume(next);
+        void saveResume(flagged);
       }
     },
-    [finish, module, resume, round],
+    [finish, module, resume, round, sessionCapMinutes],
   );
   const hint = useCallback(() => {
     if (!resume) return;
@@ -162,6 +194,24 @@ export function useGameSession<R>(
     setResumeState(next);
     void saveResume(next);
   }, [resume]);
+  const acceptBreak = useCallback(() => {
+    if (resume) void finish(resume, false, "break_prompt");
+  }, [finish, resume]);
+  const continuePlaying = useCallback(() => {
+    if (!resume) return;
+    const next = {
+      ...resume,
+      suppressFatigueUntilRound: resume.roundIndex + 3,
+    };
+    setBreakOpen(false);
+    if (resume.roundIndex >= module.roundsForLevel(resume.level))
+      void finish(next);
+    else {
+      roundStarted.current = Date.now();
+      setResumeState(next);
+      void saveResume(next);
+    }
+  }, [finish, module, resume]);
   const restart = useCallback(() => {
     setMessageKey(null);
     setResumeState(null);
@@ -173,8 +223,11 @@ export function useGameSession<R>(
     roundIndex: resume?.roundIndex ?? 0,
     totalRounds: resume ? module.roundsForLevel(resume.level) : 0,
     messageKey,
+    breakOpen,
     answer,
     hint,
+    acceptBreak,
+    continuePlaying,
     restart,
   };
 }
