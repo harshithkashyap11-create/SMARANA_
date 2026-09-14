@@ -3,7 +3,7 @@
 Update this file at the end of every task (`/finish-task` does it). Keep it short. This is the memory Claude Code reads at the start of each session.
 
 ## Current phase
-Phase 2 — Patient core
+Phase 4 — Caregiver
 
 ## In flight
 - None.
@@ -34,6 +34,9 @@ Phase 2 — Patient core
 | T027 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Large-option memory quiz with supportive feedback, local-first attempts, and repeated-struggle break prompt. |
 | T028 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Emergency-first family cards with spoken call confirmation and one-tap telephone links. |
 | T029 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Persistent long-press SOS, idempotent events, in-app caregiver recipients, scoped acknowledgement, and emergency call actions. |
+| T040 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Assignment-scoped patient switcher, Today medicine statuses, response times, seven-day adherence, and device sync recency. |
+| T041 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Source ownership protection, before/after audit history, scoped history reads, and recoverable routine deletion. |
+| T042 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Schedule CRUD form with categories, day selection, validation, optimistic creation, and locked doctor items. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
@@ -51,4 +54,4 @@ Phase 2 — Patient core
 - The local database may retain the removed pre-commit T021 prototype reminder table; it is unreferenced and fresh installations do not create it.
 
 ## Next up
-- T030 — Game engine session lifecycle, seeded RNG, metrics, and persistence.
+- T043 — Memory upload (caregiver) with client-side image compression.

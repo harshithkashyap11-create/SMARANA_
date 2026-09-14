@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from apps.accounts.models import User
+from apps.audit.models import AuditEvent
 from apps.patients import services
 from apps.patients.media import media_url
 from apps.patients.models import ConsentSettings, FamilyMember, PatientProfile
@@ -30,15 +31,22 @@ from apps.patients.serializers import (
     PatientProfileDoctorSerializer,
     ProgressSummarySerializer,
 )
-from apps.routines.models import Medication, Reminder
+from apps.routines.models import Medication, Reminder, RoutineItem
 from apps.routines.serializers import (
+    AdherenceReminderSerializer,
     MedicationSerializer,
     ReminderResponseInputSerializer,
     ReminderResponseSerializer,
     ReminderSerializer,
+    RoutineHistorySerializer,
     RoutineItemSerializer,
 )
-from apps.routines.services import record_response
+from apps.routines.services import (
+    create_routine_item,
+    delete_routine_item,
+    record_response,
+    update_routine_item,
+)
 from apps.shared.permissions import IsRole
 
 
@@ -75,11 +83,15 @@ class PatientViewSet(ReadOnlyModelViewSet):
         else:
             greeting_key = "evening"
 
-        next_reminder = patient.routine_reminders.filter(
-            scheduled_at__date=now.date(),
-            scheduled_at__gte=now,
-            status__in=[Reminder.Status.PENDING, Reminder.Status.LATER],
-        ).select_related("routine_item").first()
+        next_reminder = (
+            patient.routine_reminders.filter(
+                scheduled_at__date=now.date(),
+                scheduled_at__gte=now,
+                status__in=[Reminder.Status.PENDING, Reminder.Status.LATER],
+            )
+            .select_related("routine_item")
+            .first()
+        )
         members = list(patient.family_members.all())
         member = members[now.date().toordinal() % len(members)] if members else None
         family_member = None
@@ -146,12 +158,107 @@ class PatientViewSet(ReadOnlyModelViewSet):
         }
         return Response(ProgressSummarySerializer(payload).data)
 
-    @action(detail=True, methods=["get"], url_path="routine-items")
+    @action(detail=True, methods=["get", "post"], url_path="routine-items")
     def routine_items(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        del request, args, kwargs
+        del args, kwargs
+        patient = self.get_object()
+        if request.method == "POST":
+            if request.user.role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
+                raise PermissionDenied("Only care-team members can add routine items.")
+            serializer = RoutineItemSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            item = create_routine_item(
+                actor=request.user, patient=patient, fields=dict(serializer.validated_data)
+            )
+            return Response(RoutineItemSerializer(item).data, status=status.HTTP_201_CREATED)
         return Response(
-            RoutineItemSerializer(self.get_object().routine_items.all(), many=True).data
+            RoutineItemSerializer(
+                patient.routine_items.select_related("created_by"), many=True
+            ).data
         )
+
+    @action(
+        detail=True,
+        methods=["patch", "delete"],
+        url_path=r"routine-items/(?P<routine_item_id>[^/.]+)",
+    )
+    def routine_item_detail(
+        self, request: Request, routine_item_id: str, *args: Any, **kwargs: Any
+    ) -> Response:
+        del args, kwargs
+        patient = self.get_object()
+        item = get_object_or_404(patient.routine_items.all(), id=routine_item_id)
+        if request.user.role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
+            raise PermissionDenied("Only care-team members can change routine items.")
+        if request.method == "DELETE":
+            delete_routine_item(actor=request.user, item=item)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = RoutineItemSerializer(item, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        item = update_routine_item(
+            actor=request.user, item=item, fields=dict(serializer.validated_data)
+        )
+        return Response(RoutineItemSerializer(item).data)
+
+    @action(
+        detail=True, methods=["get"], url_path=r"routine-items/(?P<routine_item_id>[^/.]+)/history"
+    )
+    def routine_item_history(
+        self, request: Request, routine_item_id: str, *args: Any, **kwargs: Any
+    ) -> Response:
+        del request, args, kwargs
+        patient = self.get_object()
+        item = get_object_or_404(patient.routine_items.all(), id=routine_item_id)
+        rows = AuditEvent.objects.filter(
+            patient=patient, target_model=item._meta.label, target_id=item.id
+        ).select_related("actor")
+        payload = [
+            {
+                "id": row.id,
+                "actor_name": row.actor.display_name if row.actor else None,
+                "actor_role": row.actor_role,
+                "action": row.action,
+                "changes": row.changes,
+                "created_at": row.created_at,
+            }
+            for row in rows
+        ]
+        return Response(RoutineHistorySerializer(payload, many=True).data)
+
+    @action(detail=True, methods=["get"], url_path="adherence")
+    def adherence(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        del args, kwargs
+        if request.user.role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
+            raise PermissionDenied("Only care-team members can view adherence.")
+        try:
+            days = min(31, max(1, int(request.query_params.get("days", "7"))))
+        except ValueError:
+            days = 7
+        patient = self.get_object()
+        today = timezone.localdate()
+        start = today - timedelta(days=days - 1)
+        reminders = (
+            patient.routine_reminders.filter(
+                routine_item__category=RoutineItem.Category.MEDICINE,
+                scheduled_at__date__range=(start, today),
+            )
+            .select_related("routine_item")
+            .prefetch_related("responses")
+        )
+        by_day = []
+        counts = {choice: 0 for choice, _ in Reminder.Status.choices}
+        for offset in range(days):
+            day = start + timedelta(days=offset)
+            day_rows = [row for row in reminders if timezone.localdate(row.scheduled_at) == day]
+            for row in day_rows:
+                counts[row.status] += 1
+            by_day.append(
+                {
+                    "date": day.isoformat(),
+                    "reminders": AdherenceReminderSerializer(day_rows, many=True).data,
+                }
+            )
+        return Response({"days": by_day, "summary": counts})
 
     @extend_schema(parameters=[OpenApiParameter("date", OpenApiTypes.DATE)])
     @action(detail=True, methods=["get"], url_path="reminders")

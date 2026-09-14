@@ -1,6 +1,6 @@
 """Assignment-scoped patient queries."""
 
-from django.db.models import Count, Max, OuterRef, Q, Subquery
+from django.db.models import BooleanField, Count, Exists, Max, OuterRef, Q, Subquery
 from django.db.models.query import QuerySet
 
 from apps.accounts.models import User
@@ -17,6 +17,12 @@ def patients_for(user: User) -> QuerySet[PatientProfile]:
         last_active_at=Max("user__device_sessions__last_seen_at"),
         open_alert_count=Count("alerts", filter=Q(alerts__status="open"), distinct=True),
         primary_caregiver_name=Subquery(primary_caregiver),
+        is_primary=Exists(
+            CareAssignment.objects.filter(
+                patient=OuterRef("pk"), caregiver=user, active=True, is_primary=True
+            ),
+            output_field=BooleanField(),
+        ),
     ).order_by("user__username", "id")
     if user.role == User.Role.PATIENT:
         return queryset.filter(user=user)

@@ -15,6 +15,7 @@ class PatientCardSerializer(serializers.ModelSerializer):
     primary_caregiver_name = serializers.CharField(read_only=True, allow_null=True)
     last_active_at = serializers.DateTimeField(read_only=True, allow_null=True)
     open_alert_count = serializers.IntegerField(read_only=True)
+    is_primary = serializers.BooleanField(read_only=True, default=False)
 
     class Meta:
         model = PatientProfile
@@ -26,6 +27,7 @@ class PatientCardSerializer(serializers.ModelSerializer):
             "primary_caregiver_name",
             "last_active_at",
             "open_alert_count",
+            "is_primary",
         )
         read_only_fields = fields
 

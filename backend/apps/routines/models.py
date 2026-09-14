@@ -4,10 +4,10 @@ from django.conf import settings
 from django.db import models
 
 from apps.patients.models import PatientProfile
-from apps.shared.models import TimeStamped, UUIDModel
+from apps.shared.models import SoftDelete, TimeStamped, UUIDModel
 
 
-class RoutineItem(UUIDModel, TimeStamped):
+class RoutineItem(UUIDModel, TimeStamped, SoftDelete):
     class Category(models.TextChoices):
         MEDICINE = "medicine", "Medicine"
         WATER = "water", "Water"

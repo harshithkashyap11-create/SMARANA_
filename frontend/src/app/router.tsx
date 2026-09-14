@@ -18,6 +18,7 @@ import { MemoriesPage } from "../features/patient/memories/MemoriesPage";
 import { MemoryDetailPage } from "../features/patient/memories/MemoryDetailPage";
 import { MemoryQuizPage } from "../features/patient/memories/quiz/MemoryQuizPage";
 import { PeoplePage } from "../features/patient/people/PeoplePage";
+import { CaregiverPortal } from "../features/caregiver/CaregiverPortal";
 
 export const router = createBrowserRouter([
   {
@@ -63,10 +64,10 @@ export const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "/caregiver",
+        path: "/caregiver/:patientId?/:tab?",
         element: (
           <RequireRole allowed={["caregiver"]}>
-            <RoleHome role="caregiver" />
+            <CaregiverPortal />
           </RequireRole>
         ),
       },
