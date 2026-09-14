@@ -3,6 +3,10 @@ export type BodyType<BodyData> = BodyData;
 
 type RefreshAccessToken = () => Promise<string | null>;
 
+export type ApiClientOptions = RequestInit & {
+  skipAuthRefresh?: boolean;
+};
+
 let accessToken: string | null = null;
 let refreshAccessToken: RefreshAccessToken | null = null;
 
@@ -37,17 +41,19 @@ async function parseResponse(response: Response): Promise<unknown> {
 
 async function request<T>(
   url: string,
-  options: RequestInit,
+  options: ApiClientOptions,
   canRefresh: boolean,
 ): Promise<T> {
-  const headers = new Headers(options.headers);
+  const fetchOptions = { ...options };
+  delete fetchOptions.skipAuthRefresh;
+  const headers = new Headers(fetchOptions.headers);
   headers.set("Accept", "application/json");
 
   if (accessToken) {
     headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(url, { ...fetchOptions, headers });
 
   if (response.status === 401 && canRefresh && refreshAccessToken) {
     const refreshedToken = await refreshAccessToken();
@@ -65,6 +71,9 @@ async function request<T>(
   return body as T;
 }
 
-export function apiClient<T>(url: string, options: RequestInit): Promise<T> {
-  return request<T>(url, options, true);
+export function apiClient<T>(
+  url: string,
+  options: ApiClientOptions,
+): Promise<T> {
+  return request<T>(url, options, options.skipAuthRefresh !== true);
 }

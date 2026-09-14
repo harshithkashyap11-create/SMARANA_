@@ -6,7 +6,7 @@ Update this file at the end of every task (`/finish-task` does it). Keep it shor
 Phase 1 — Auth, roles & assignments
 
 ## In flight
-- None
+- T013 — Frontend auth: landing, professional login, role routing, and auth store
 
 ## Done
 | Task | Date | Commit | Notes |

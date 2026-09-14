@@ -4,11 +4,49 @@
     "title": "Smārana",
     "welcome": "A calm place for memories and daily support."
   },
+  "auth": {
+    "back": "Back",
+    "emailOrPhone": "Email or phone",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "logout": "Log out",
+    "navigation": "Navigation",
+    "dashboard": "Dashboard",
+    "roleMismatch": "Please use the sign-in page for your role.",
+    "loginTitle": {
+      "caregiver": "Caregiver sign in",
+      "doctor": "Doctor sign in",
+      "admin": "Admin sign in"
+    },
+    "layout": {
+      "caregiver": "Caregiver dashboard",
+      "doctor": "Doctor dashboard",
+      "admin": "Admin"
+    },
+    "errors": {
+      "awaiting_approval": "Your account is awaiting verification.",
+      "credentials_not_verified": "Those details didn't match. Try again.",
+      "request_not_completed": "Something didn't work. Let's try again."
+    }
+  },
   "health": {
     "title": "Connection",
     "loading": "One moment…",
     "ok": "Backend OK",
     "unavailable": "Something didn't work. Let's try again."
+  },
+  "landing": {
+    "tagline": "Gentle support for every day.",
+    "chooseRole": "Choose how you use Smārana",
+    "patient": "Patient",
+    "caregiver": "Caregiver",
+    "doctor": "Doctor",
+    "admin": "Admin",
+    "settings": "Comfort settings",
+    "language": "Language",
+    "theme": "Change theme",
+    "textSize": "Change text size"
   },
   "preferences": {
     "title": "Make this comfortable",

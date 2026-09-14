@@ -4,11 +4,49 @@
     "title": "TODO: Smārana",
     "welcome": "TODO: A calm place for memories and daily support."
   },
+  "auth": {
+    "back": "TODO: Back",
+    "emailOrPhone": "TODO: Email or phone",
+    "password": "TODO: Password",
+    "signIn": "TODO: Sign in",
+    "signingIn": "TODO: Signing in…",
+    "logout": "TODO: Log out",
+    "navigation": "TODO: Navigation",
+    "dashboard": "TODO: Dashboard",
+    "roleMismatch": "TODO: Please use the sign-in page for your role.",
+    "loginTitle": {
+      "caregiver": "TODO: Caregiver sign in",
+      "doctor": "TODO: Doctor sign in",
+      "admin": "TODO: Admin sign in"
+    },
+    "layout": {
+      "caregiver": "TODO: Caregiver dashboard",
+      "doctor": "TODO: Doctor dashboard",
+      "admin": "TODO: Admin"
+    },
+    "errors": {
+      "awaiting_approval": "TODO: Your account is awaiting verification.",
+      "credentials_not_verified": "TODO: Those details didn't match. Try again.",
+      "request_not_completed": "TODO: Something didn't work. Let's try again."
+    }
+  },
   "health": {
     "title": "TODO: Connection",
     "loading": "TODO: One moment…",
     "ok": "TODO: Backend OK",
     "unavailable": "TODO: Something didn't work. Let's try again."
+  },
+  "landing": {
+    "tagline": "TODO: Gentle support for every day.",
+    "chooseRole": "TODO: Choose how you use Smārana",
+    "patient": "TODO: Patient",
+    "caregiver": "TODO: Caregiver",
+    "doctor": "TODO: Doctor",
+    "admin": "TODO: Admin",
+    "settings": "TODO: Comfort settings",
+    "language": "TODO: Language",
+    "theme": "TODO: Change theme",
+    "textSize": "TODO: Change text size"
   },
   "preferences": {
     "title": "TODO: Make this comfortable",
