@@ -22,6 +22,8 @@ test("switches the landing copy and document language using native language tile
 
   await user.click(screen.getByRole("button", { name: "বাংলা" }));
 
-  expect(screen.getByText("TODO: Gentle support for every day.")).toBeInTheDocument();
+  expect(
+    screen.getByText("TODO: Gentle support for every day."),
+  ).toBeInTheDocument();
   expect(document.documentElement).toHaveAttribute("lang", "bn");
 });

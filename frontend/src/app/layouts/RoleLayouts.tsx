@@ -60,6 +60,13 @@ export function PatientLayout() {
   const logout = useAuthStore((state) => state.logout);
   const { confirmPresence, isPromptOpen } = useIdlePrompt(30 * 60 * 1000);
   const navItems = ["home", "play", "wellness", "family", "settings"] as const;
+  const navRoutes = [
+    "/patient",
+    "/patient/games",
+    "/patient/calm",
+    "/patient/people",
+    "/patient/settings",
+  ] as const;
 
   const leave = (): void => {
     void logout().then(() => navigate("/", { replace: true }));
@@ -90,11 +97,12 @@ export function PatientLayout() {
         aria-label={t("patient.navigation")}
         className="fixed inset-x-0 bottom-0 z-10 mx-auto grid min-h-touch max-w-[720px] grid-cols-5 border-t border-primary/20 bg-surface"
       >
-        {navItems.map((item) => (
+        {navItems.map((item, index) => (
           <button
             className="min-h-touch px-1 text-sm font-bold"
             key={item}
             type="button"
+            onClick={() => navigate(navRoutes[index] ?? "/patient")}
           >
             <span aria-hidden="true" className="block text-2xl">
               {item === "home"

@@ -1,9 +1,11 @@
 """Assignment-scoped patient and nested-resource endpoints."""
 
+from datetime import timedelta
 from typing import Any
 
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
@@ -15,16 +17,28 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from apps.accounts.models import User
 from apps.patients import services
+from apps.patients.media import media_url
 from apps.patients.models import ConsentSettings, FamilyMember, PatientProfile
 from apps.patients.selectors import patients_for
 from apps.patients.serializers import (
     ConsentSettingsSerializer,
     FamilyMemberDoctorSerializer,
     FamilyMemberSerializer,
+    OrientationSerializer,
     PatientCardSerializer,
     PatientProfileCaregiverSerializer,
     PatientProfileDoctorSerializer,
+    ProgressSummarySerializer,
 )
+from apps.routines.models import Medication, Reminder
+from apps.routines.serializers import (
+    MedicationSerializer,
+    ReminderResponseInputSerializer,
+    ReminderResponseSerializer,
+    ReminderSerializer,
+    RoutineItemSerializer,
+)
+from apps.routines.services import record_response
 from apps.shared.permissions import IsRole
 
 
@@ -47,6 +61,130 @@ class PatientViewSet(ReadOnlyModelViewSet):
             caregiver=self.request.user, active=True, is_primary=True
         ).exists():
             raise PermissionDenied("Only the primary caregiver can make this change.")
+
+    @extend_schema(responses=OrientationSerializer)
+    @action(detail=True, methods=["get"], url_path="orientation")
+    def orientation(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        del request, args, kwargs
+        patient = self.get_object()
+        now = timezone.localtime()
+        if now.hour < 12:
+            greeting_key = "morning"
+        elif now.hour < 17:
+            greeting_key = "afternoon"
+        else:
+            greeting_key = "evening"
+
+        next_reminder = patient.routine_reminders.filter(
+            scheduled_at__date=now.date(),
+            scheduled_at__gte=now,
+            status__in=[Reminder.Status.PENDING, Reminder.Status.LATER],
+        ).select_related("routine_item").first()
+        members = list(patient.family_members.all())
+        member = members[now.date().toordinal() % len(members)] if members else None
+        family_member = None
+        if member is not None:
+            family_member = {
+                "id": str(member.id),
+                "name": member.name,
+                "relationship": member.relationship_label or member.get_relationship_display(),
+                "photo_url": media_url(member.photo),
+            }
+
+        payload = {
+            "greeting_key": greeting_key,
+            "day": now.strftime("%A"),
+            "date": now.strftime("%B %-d, %Y"),
+            "time": now.strftime("%-I:%M %p"),
+            "home_label": patient.home_label,
+            "next_activity": (
+                {
+                    "id": str(next_reminder.id),
+                    "title": next_reminder.routine_item.title,
+                    "scheduled_for": next_reminder.scheduled_at,
+                }
+                if next_reminder
+                else None
+            ),
+            "family_member": family_member,
+        }
+        return Response(OrientationSerializer(payload).data)
+
+    @extend_schema(responses=ProgressSummarySerializer)
+    @action(detail=True, methods=["get"], url_path="progress-summary")
+    def progress_summary(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        del request, args, kwargs
+        patient = self.get_object()
+        today = timezone.localdate()
+        completed = patient.routine_reminders.filter(
+            scheduled_at__date=today, status=Reminder.Status.TAKEN
+        ).count()
+        streak = 0
+        day = today
+        while patient.routine_reminders.filter(
+            scheduled_at__date=day, status=Reminder.Status.TAKEN
+        ).exists():
+            streak += 1
+            day -= timedelta(days=1)
+        upcoming = patient.routine_reminders.filter(
+            status__in=[Reminder.Status.PENDING, Reminder.Status.LATER],
+            scheduled_at__gte=timezone.now(),
+        )[:3]
+        payload = {
+            "completed_today": completed,
+            "points": completed * 10,
+            "streak_days": streak,
+            "favourite_games": [],
+            "upcoming": [
+                {
+                    "id": str(item.id),
+                    "title": item.routine_item.title,
+                    "scheduled_at": item.scheduled_at,
+                }
+                for item in upcoming
+            ],
+        }
+        return Response(ProgressSummarySerializer(payload).data)
+
+    @action(detail=True, methods=["get"], url_path="routine-items")
+    def routine_items(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        del request, args, kwargs
+        return Response(
+            RoutineItemSerializer(self.get_object().routine_items.all(), many=True).data
+        )
+
+    @extend_schema(parameters=[OpenApiParameter("date", OpenApiTypes.DATE)])
+    @action(detail=True, methods=["get"], url_path="reminders")
+    def reminders(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        del args, kwargs
+        queryset = self.get_object().routine_reminders.select_related("routine_item")
+        requested_date = request.query_params.get("date")
+        if requested_date:
+            queryset = queryset.filter(scheduled_at__date=requested_date)
+        return Response(ReminderSerializer(queryset, many=True).data)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path=r"reminders/(?P<reminder_id>[^/.]+)/respond",
+    )
+    def respond(self, request: Request, reminder_id: str, *args: Any, **kwargs: Any) -> Response:
+        del args, kwargs
+        patient = self.get_object()
+        if request.user.role != User.Role.PATIENT:
+            raise PermissionDenied("Only the patient can respond to reminders.")
+        reminder = get_object_or_404(patient.routine_reminders.all(), id=reminder_id)
+        serializer = ReminderResponseInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        response = record_response(reminder=reminder, **serializer.validated_data)
+        return Response(ReminderResponseSerializer(response).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["get"], url_path="medications")
+    def medications(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        del request, args, kwargs
+        patient = self.get_object()
+        queryset = Medication.objects.filter(patient=patient, active=True)
+        return Response(MedicationSerializer(queryset, many=True).data)
 
     @action(detail=True, methods=["patch"], url_path="profile")
     def profile(self, request: Request, *args: Any, **kwargs: Any) -> Response:

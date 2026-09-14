@@ -29,20 +29,23 @@ export function renderWithProviders(
 
   function Wrapper({ children }: PropsWithChildren) {
     return (
-    <LanguageProvider>
-      <I18nextProvider i18n={i18n}>
-        <QueryClientProvider client={queryClient}>
-          <AppContextProvider repos={repos} role={role}>
-            <MemoryRouter
-              initialEntries={[route]}
-              future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
-            >
-              <ThemeProvider>{children}</ThemeProvider>
-            </MemoryRouter>
-          </AppContextProvider>
-        </QueryClientProvider>
-      </I18nextProvider>
-    </LanguageProvider>
+      <LanguageProvider>
+        <I18nextProvider i18n={i18n}>
+          <QueryClientProvider client={queryClient}>
+            <AppContextProvider repos={repos} role={role}>
+              <MemoryRouter
+                initialEntries={[route]}
+                future={{
+                  v7_relativeSplatPath: true,
+                  v7_startTransition: true,
+                }}
+              >
+                <ThemeProvider>{children}</ThemeProvider>
+              </MemoryRouter>
+            </AppContextProvider>
+          </QueryClientProvider>
+        </I18nextProvider>
+      </LanguageProvider>
     );
   }
 

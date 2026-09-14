@@ -5,8 +5,13 @@ import { useAuthStore } from "../../features/auth/authStore";
 import { getMeta, setMeta } from "../../db/schema";
 import { i18n, supportedLanguages, type SupportedLanguage } from ".";
 
-function isSupportedLanguage(value: string | undefined): value is SupportedLanguage {
-  return value !== undefined && supportedLanguages.includes(value as SupportedLanguage);
+function isSupportedLanguage(
+  value: string | undefined,
+): value is SupportedLanguage {
+  return (
+    value !== undefined &&
+    supportedLanguages.includes(value as SupportedLanguage)
+  );
 }
 
 function applyLanguage(language: SupportedLanguage) {
@@ -34,15 +39,17 @@ export function LanguageProvider({ children }: PropsWithChildren) {
       applyLanguage(selectedLanguage);
       void setMeta("language", selectedLanguage).catch(() => undefined);
       if (useAuthStore.getState().accessToken) {
-        void v1AuthMePreferencesPartialUpdate({ language: selectedLanguage }).catch(
-          () => undefined,
-        );
+        void v1AuthMePreferencesPartialUpdate({
+          language: selectedLanguage,
+        }).catch(() => undefined);
       }
     };
 
     i18n.on("languageChanged", persistLanguage);
     applyLanguage(
-      (i18n.resolvedLanguage ?? i18n.language).split("-")[0] as SupportedLanguage,
+      (i18n.resolvedLanguage ?? i18n.language).split(
+        "-",
+      )[0] as SupportedLanguage,
     );
     return () => {
       active = false;

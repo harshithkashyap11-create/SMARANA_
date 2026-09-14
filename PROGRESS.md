@@ -25,6 +25,10 @@ Phase 2 — Patient core
 | T015 | 2026-09-14 | `feat(phase-1): complete T015 language preferences and T016 audit trail` | Native-language tiles, persisted en/as/bn selection, Bengali font bundle, and synchronized account preference support. |
 | T016 | 2026-09-14 | `feat(phase-1): complete T015 language preferences and T016 audit trail` | Append-only audit app covers login success/failure and preference updates, with read-only admin visibility. |
 | T020 | 2026-09-14 | `feat(patients): T020 add life-history, family, and consent APIs` | Full patient profile fields, role-scoped updates, family CRUD with signed media, consent controls, and audited changes. |
+| T021 | 2026-09-14 | `feat(patient-core): complete T021-T024 daily support experience` | Patient home, orientation card, fixed navigation, read-through patient repository, and accessible tile layout. |
+| T022 | 2026-09-14 | `feat(patient-core): complete T021-T024 daily support experience` | Encouraging progress summary API and cards with non-clinical completion, points, star streaks, and upcoming activities. |
+| T023 | 2026-09-14 | `feat(patient-core): complete T021-T024 daily support experience` | Deterministic routine reminders, responses, medicines, daily materialisation, missed-reminder processing, and permission coverage. |
+| T024 | 2026-09-14 | `feat(patient-core): complete T021-T024 daily support experience` | Patient routine and medicine screens with confirmation, snooze, help/call, undo feedback, and local-first response persistence. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
@@ -38,6 +42,7 @@ Phase 2 — Patient core
 - Replace the placeholder SVG PWA artwork with final install icons before release.
 - `renderWithProviders` currently accepts a generic repository map; tighten it to concrete repository interfaces as offline repositories are introduced.
 - T014's minimal Dexie `meta` store now also persists the language selection. IndexedDB is deliberately treated as optional during SSR and unit tests.
+- The local database may retain the removed pre-commit T021 prototype reminder table; it is unreferenced and fresh installations do not create it.
 
 ## Next up
-- T021 — Patient home tiles, bottom nav, and daily orientation card.
+- T023b — Calm Time: guided breathing with slow voice.

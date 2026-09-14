@@ -123,3 +123,23 @@ class ConsentSettingsSerializer(serializers.ModelSerializer):
             "share_mood_with_doctor",
             "share_audio_with_doctor",
         )
+
+
+class OrientationSerializer(serializers.Serializer):
+    greeting_key = serializers.ChoiceField(
+        choices=("morning", "afternoon", "evening")
+    )
+    day = serializers.CharField()
+    date = serializers.CharField()
+    time = serializers.CharField()
+    home_label = serializers.CharField(allow_blank=True)
+    next_activity = serializers.DictField(allow_null=True)
+    family_member = serializers.DictField(allow_null=True)
+
+
+class ProgressSummarySerializer(serializers.Serializer):
+    completed_today = serializers.IntegerField()
+    points = serializers.IntegerField()
+    streak_days = serializers.IntegerField()
+    favourite_games = serializers.ListField(child=serializers.CharField())
+    upcoming = serializers.ListField(child=serializers.DictField())

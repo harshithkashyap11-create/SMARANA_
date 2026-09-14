@@ -56,7 +56,11 @@ export function LandingPage() {
       >
         <div className="rounded-card bg-surface p-3 sm:col-span-3">
           <p className="mb-2">{t("landing.language")}</p>
-          <div aria-label={t("landing.language")} className="grid gap-2 sm:grid-cols-3" role="group">
+          <div
+            aria-label={t("landing.language")}
+            className="grid gap-2 sm:grid-cols-3"
+            role="group"
+          >
             {supportedLanguages.map((language) => (
               <button
                 aria-pressed={i18n.language.split("-")[0] === language}

@@ -1,5 +1,6 @@
 """Create the stable users and care-team assignments used by local demos."""
 
+from datetime import time
 from typing import Any
 
 from django.core.management.base import BaseCommand
@@ -7,6 +8,7 @@ from django.db import transaction
 
 from apps.accounts.models import PatientCredential, User
 from apps.patients.models import CareAssignment, DoctorAssignment, PatientProfile
+from apps.routines.models import Medication, RoutineItem
 
 PATIENT_LOGIN_ID = "RAO1234"
 PATIENT_PIN = "1234"
@@ -75,6 +77,35 @@ class Command(BaseCommand):
             doctor=doctor,
             defaults={"active": True},
         )
+        Medication.objects.update_or_create(
+            patient=profile,
+            name="Morning tablet",
+            defaults={
+                "dose": "1 tablet",
+                "times": ["08:00"],
+                "instructions": "Take with water after breakfast.",
+                "prescribed_by": doctor,
+                "active": True,
+                "start_date": profile.created_at.date(),
+            },
+        )
+        for title, category, hour in (
+            ("Morning tablet", RoutineItem.Category.MEDICINE, 8),
+            ("Drink a glass of water", RoutineItem.Category.WATER, 11),
+            ("Evening walk", RoutineItem.Category.WALK, 17),
+        ):
+            RoutineItem.objects.update_or_create(
+                patient=profile,
+                title=title,
+                defaults={
+                    "category": category,
+                    "time_of_day": time(hour),
+                    "days_of_week": list(range(7)),
+                    "start_date": profile.created_at.date(),
+                    "source": RoutineItem.Source.SYSTEM,
+                    "created_by": caregiver,
+                },
+            )
 
         self.stdout.write(self.style.SUCCESS("Demo users are ready:"))
         self.stdout.write(f"  Patient: {PATIENT_LOGIN_ID} / PIN {PATIENT_PIN}")

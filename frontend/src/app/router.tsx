@@ -9,6 +9,11 @@ import {
   RequireRole,
   RoleHome,
 } from "./layouts/RoleLayouts";
+import { PatientHomePage } from "../features/patient/home/PatientHomePage";
+import { PlaceholderPage } from "../features/patient/PlaceholderPage";
+import { RoutinePage } from "../features/patient/routine/RoutinePage";
+import { MedicinesPage } from "../features/patient/medicines/MedicinesPage";
+import { ProgressPage } from "../features/patient/progress/ProgressPage";
 
 export const router = createBrowserRouter([
   {
@@ -28,8 +33,12 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "/patient",
-        element: <RoleHome role="patient" />,
+        element: <PatientHomePage />,
       },
+      { path: "/patient/routine", element: <RoutinePage /> },
+      { path: "/patient/medicines", element: <MedicinesPage /> },
+      { path: "/patient/progress", element: <ProgressPage /> },
+      { path: "/patient/:section", element: <PlaceholderPage /> },
     ],
   },
   {

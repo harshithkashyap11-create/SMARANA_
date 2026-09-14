@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 PROJECT_ROOT = BASE_DIR.parent
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     "apps.accounts.apps.AccountsConfig",
     "apps.audit.apps.AuditConfig",
     "apps.patients.apps.PatientsConfig",
+    "apps.routines.apps.RoutinesConfig",
     "apps.alerts.apps.AlertsConfig",
 ]
 
@@ -141,3 +143,14 @@ SPECTACULAR_SETTINGS = {
 
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://redis:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_TIMEZONE = "Asia/Kolkata"
+CELERY_BEAT_SCHEDULE = {
+    "materialise-reminders-daily": {
+        "task": "apps.routines.tasks.materialise_all_reminders",
+        "schedule": crontab(hour=0, minute=5),
+    },
+    "mark-missed-reminders": {
+        "task": "apps.routines.tasks.mark_missed_reminders",
+        "schedule": 900.0,
+    },
+}

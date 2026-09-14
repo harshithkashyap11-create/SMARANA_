@@ -57,6 +57,57 @@
       "no": "No, finish for now"
     }
   },
+  "home": {
+    "greeting_morning": "Good morning, {{name}}",
+    "greeting_afternoon": "Good afternoon, {{name}}",
+    "greeting_evening": "Good evening, {{name}}",
+    "familyPhoto": "{{name}}, your {{relationship}}",
+    "nextActivity": "Next activity",
+    "noNextActivity": "Nothing planned right now. Enjoy your day.",
+    "choose": "What would you like to do?",
+    "placeholder": "This section will be ready soon.",
+    "tiles": {
+      "games": "Games",
+      "medicines": "Medicines",
+      "sleep": "Sleep",
+      "memories": "Memories",
+      "calm": "Calm",
+      "people": "My people",
+      "progress": "Progress",
+      "routine": "Today's routine",
+      "settings": "Settings"
+    }
+  },
+  "routine": {
+    "title": "Today's routine",
+    "empty": "Nothing is planned right now.",
+    "takenDone": "Marked as taken.",
+    "undo": "Undo",
+    "skipTitle": "Do you want to skip this medicine?",
+    "skipYes": "Yes, skip",
+    "cancel": "Go back",
+    "callCaregiver": "Call Priya",
+    "actions": {
+      "taken": "Taken",
+      "later": "Remind me later",
+      "skipped": "Skip",
+      "help": "I need help"
+    }
+  },
+  "medicines": {
+    "title": "My medicines",
+    "nextDose": "Next dose",
+    "askPriya": "Ask Priya"
+  },
+  "progress": {
+    "title": "My progress",
+    "loading": "One moment…",
+    "completed": "You completed {{count}} things today",
+    "points": "{{count}} points",
+    "streak": "Days going well",
+    "streakLabel": "{{count}} day streak",
+    "next": "What's next"
+  },
   "health": {
     "title": "Connection",
     "loading": "One moment…",

@@ -2,6 +2,7 @@
 
 import factory
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
 from factory.django import DjangoModelFactory
 
 from apps.accounts.models import PatientCredential, User
@@ -12,6 +13,7 @@ from apps.patients.models import (
     FamilyMember,
     PatientProfile,
 )
+from apps.routines.models import Reminder, RoutineItem
 
 
 class UserFactory(DjangoModelFactory):
@@ -87,3 +89,25 @@ class ConsentSettingsFactory(DjangoModelFactory):
         model = ConsentSettings
 
     patient = factory.SubFactory(PatientFactory)
+
+
+class RoutineItemFactory(DjangoModelFactory):
+    class Meta:
+        model = RoutineItem
+
+    patient = factory.SubFactory(PatientFactory)
+    title = "Tea with family"
+    category = RoutineItem.Category.CUSTOM
+    time_of_day = factory.LazyFunction(lambda: timezone.localtime().time())
+    days_of_week = factory.LazyFunction(list)
+    start_date = factory.LazyFunction(timezone.localdate)
+    source = RoutineItem.Source.SYSTEM
+
+
+class ReminderFactory(DjangoModelFactory):
+    class Meta:
+        model = Reminder
+
+    routine_item = factory.SubFactory(RoutineItemFactory)
+    patient = factory.SelfAttribute("routine_item.patient")
+    scheduled_at = factory.LazyFunction(timezone.now)

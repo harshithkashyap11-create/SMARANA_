@@ -57,6 +57,57 @@
       "no": "TODO: No, finish for now"
     }
   },
+  "home": {
+    "greeting_morning": "TODO: Good morning, {{name}}",
+    "greeting_afternoon": "TODO: Good afternoon, {{name}}",
+    "greeting_evening": "TODO: Good evening, {{name}}",
+    "familyPhoto": "TODO: {{name}}, your {{relationship}}",
+    "nextActivity": "TODO: Next activity",
+    "noNextActivity": "TODO: Nothing planned right now. Enjoy your day.",
+    "choose": "TODO: What would you like to do?",
+    "placeholder": "TODO: This section will be ready soon.",
+    "tiles": {
+      "games": "TODO: Games",
+      "medicines": "TODO: Medicines",
+      "sleep": "TODO: Sleep",
+      "memories": "TODO: Memories",
+      "calm": "TODO: Calm",
+      "people": "TODO: My people",
+      "progress": "TODO: Progress",
+      "routine": "TODO: Today's routine",
+      "settings": "TODO: Settings"
+    }
+  },
+  "routine": {
+    "title": "TODO: Today's routine",
+    "empty": "TODO: Nothing is planned right now.",
+    "takenDone": "TODO: Marked as taken.",
+    "undo": "TODO: Undo",
+    "skipTitle": "TODO: Do you want to skip this medicine?",
+    "skipYes": "TODO: Yes, skip",
+    "cancel": "TODO: Go back",
+    "callCaregiver": "TODO: Call Priya",
+    "actions": {
+      "taken": "TODO: Taken",
+      "later": "TODO: Remind me later",
+      "skipped": "TODO: Skip",
+      "help": "TODO: I need help"
+    }
+  },
+  "medicines": {
+    "title": "TODO: My medicines",
+    "nextDose": "TODO: Next dose",
+    "askPriya": "TODO: Ask Priya"
+  },
+  "progress": {
+    "title": "TODO: My progress",
+    "loading": "TODO: One moment…",
+    "completed": "TODO: You completed {{count}} things today",
+    "points": "TODO: {{count}} points",
+    "streak": "TODO: Days going well",
+    "streakLabel": "TODO: {{count}} day streak",
+    "next": "TODO: What's next"
+  },
   "health": {
     "title": "TODO: Connection",
     "loading": "TODO: One moment…",
