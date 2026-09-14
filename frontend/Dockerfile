@@ -9,8 +9,8 @@ RUN chown smarana:smarana /app
 
 USER smarana
 
-COPY --chown=smarana:smarana package.json ./
-RUN npm install
+COPY --chown=smarana:smarana package.json package-lock.json ./
+RUN npm ci
 
 COPY --chown=smarana:smarana . .
 

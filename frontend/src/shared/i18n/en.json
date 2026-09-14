@@ -1,0 +1,28 @@
+{
+  "app": {
+    "eyebrow": "Your gentle daily companion",
+    "title": "Smārana",
+    "welcome": "A calm place for memories and daily support."
+  },
+  "health": {
+    "title": "Connection",
+    "loading": "One moment…",
+    "ok": "Backend OK",
+    "unavailable": "Something didn't work. Let's try again."
+  },
+  "preferences": {
+    "title": "Make this comfortable",
+    "themeValue": "Theme: {{theme}}",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "fontScale": "Text size: {{scale}}",
+    "scales": {
+      "comfortable": "Comfortable",
+      "large": "Large",
+      "larger": "Larger",
+      "largest": "Largest"
+    }
+  }
+}

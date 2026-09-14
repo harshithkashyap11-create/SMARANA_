@@ -1,0 +1,28 @@
+{
+  "app": {
+    "eyebrow": "TODO: Your gentle daily companion",
+    "title": "TODO: Smārana",
+    "welcome": "TODO: A calm place for memories and daily support."
+  },
+  "health": {
+    "title": "TODO: Connection",
+    "loading": "TODO: One moment…",
+    "ok": "TODO: Backend OK",
+    "unavailable": "TODO: Something didn't work. Let's try again."
+  },
+  "preferences": {
+    "title": "TODO: Make this comfortable",
+    "themeValue": "TODO: Theme: {{theme}}",
+    "themes": {
+      "light": "TODO: Light",
+      "dark": "TODO: Dark"
+    },
+    "fontScale": "TODO: Text size: {{scale}}",
+    "scales": {
+      "comfortable": "TODO: Comfortable",
+      "large": "TODO: Large",
+      "larger": "TODO: Larger",
+      "largest": "TODO: Largest"
+    }
+  }
+}
