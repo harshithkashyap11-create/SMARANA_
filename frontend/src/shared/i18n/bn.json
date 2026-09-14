@@ -99,10 +99,41 @@
     "nextDose": "TODO: Next dose",
     "askPriya": "TODO: Ask Priya"
   },
-  "memories": { "title": "আমার স্মৃতি", "loading": "একটু অপেক্ষা করুন…", "empty": "এখানে এখনও কিছু নেই।", "read": "আমাকে পড়ে শোনান", "photos": "স্মৃতির ছবি" },
-  "quiz": { "start": "স্মৃতির প্রশ্ন", "correct": "হ্যাঁ! এটা {{label}}।", "saved_as": "এটি {{label}} হিসেবে রাখা আছে।", "enough": "আজকের মতো যথেষ্ট", "breakTitle": "একটু বিরতি নেবেন?", "breakYes": "হ্যাঁ, বিরতি নিন", "breakContinue": "চালিয়ে যান", "prompt": { "who": "এটি কে?", "when": "এটি কখন ছিল?", "where": "এটি কোথায় ছিল?", "occasion": "অনুষ্ঠানটি কী ছিল?" } },
-  "people": { "title": "আমার আপনজন", "call": "{{name}}-কে ফোন করবেন?", "yes": "হ্যাঁ, ফোন করুন", "no": "এখন নয়" },
-  "sos": { "label": "সাহায্য", "confirm": "আপনার কি জরুরি সাহায্য দরকার?", "yes": "হ্যাঁ, জানান", "no": "এখন নয়", "sent": "আপনার যত্নকারীকে জানানো হয়েছে। সাহায্য আসছে।" },
+  "memories": {
+    "title": "আমার স্মৃতি",
+    "loading": "একটু অপেক্ষা করুন…",
+    "empty": "এখানে এখনও কিছু নেই।",
+    "read": "আমাকে পড়ে শোনান",
+    "photos": "স্মৃতির ছবি"
+  },
+  "quiz": {
+    "start": "স্মৃতির প্রশ্ন",
+    "correct": "হ্যাঁ! এটা {{label}}।",
+    "saved_as": "এটি {{label}} হিসেবে রাখা আছে।",
+    "enough": "আজকের মতো যথেষ্ট",
+    "breakTitle": "একটু বিরতি নেবেন?",
+    "breakYes": "হ্যাঁ, বিরতি নিন",
+    "breakContinue": "চালিয়ে যান",
+    "prompt": {
+      "who": "এটি কে?",
+      "when": "এটি কখন ছিল?",
+      "where": "এটি কোথায় ছিল?",
+      "occasion": "অনুষ্ঠানটি কী ছিল?"
+    }
+  },
+  "people": {
+    "title": "আমার আপনজন",
+    "call": "{{name}}-কে ফোন করবেন?",
+    "yes": "হ্যাঁ, ফোন করুন",
+    "no": "এখন নয়"
+  },
+  "sos": {
+    "label": "সাহায্য",
+    "confirm": "আপনার কি জরুরি সাহায্য দরকার?",
+    "yes": "হ্যাঁ, জানান",
+    "no": "এখন নয়",
+    "sent": "আপনার যত্নকারীকে জানানো হয়েছে। সাহায্য আসছে।"
+  },
   "progress": {
     "title": "TODO: My progress",
     "loading": "TODO: One moment…",
@@ -111,6 +142,25 @@
     "streak": "TODO: Days going well",
     "streakLabel": "TODO: {{count}} day streak",
     "next": "TODO: What's next"
+  },
+  "games": {
+    "title": "TODO: Games",
+    "challenge": "TODO: Looking for a challenge today?",
+    "loading": "TODO: Getting the game ready…",
+    "round": "TODO: Round {{current}} of {{total}}",
+    "playAgain": "TODO: Play again",
+    "backHome": "TODO: Back home"
+  },
+  "dda": {
+    "harder_next_time": "TODO: Great job! Next time will be a little more interesting.",
+    "same_next_time": "TODO: Nice work. Same fun next time.",
+    "easier_next_time": "TODO: Today's game will be a bit easier so you can enjoy playing.",
+    "thanks_for_playing": "TODO: Thanks for playing. Rest whenever you like."
+  },
+  "game": {
+    "correct": "TODO: Yes!",
+    "its_here": "TODO: It's here",
+    "show_me": "TODO: Show me"
   },
   "health": {
     "title": "TODO: Connection",

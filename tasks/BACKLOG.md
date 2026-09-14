@@ -51,11 +51,11 @@ Ordered list of every task card. Work top to bottom unless the mentor reorders. 
 
 ## Phase 3 — Games & DDA
 
-- [ ] **T030** Game engine: session lifecycle, seeded RNG, metrics, persistence, resume — L (after T021, T023)
-- [ ] **T031** DDA pure function in Python + shared test vectors — M (after T030)
-- [ ] **T032** DDA TypeScript port + client-side end-of-session flow + supportive messages — M (after T031)
-- [ ] **T033** 'Looking for a challenge today?' toggle and level caps in the engine — S (after T032)
-- [ ] **T034** Game 1 & 2: Memory Match and Sequence Recall — L (after T032)
+- [x] **T030** Game engine: session lifecycle, seeded RNG, metrics, persistence, resume — L (after T021, T023)
+- [x] **T031** DDA pure function in Python + shared test vectors — M (after T030)
+- [x] **T032** DDA TypeScript port + client-side end-of-session flow + supportive messages — M (after T031)
+- [x] **T033** 'Looking for a challenge today?' toggle and level caps in the engine — S (after T032)
+- [x] **T034** Game 1 & 2: Memory Match and Sequence Recall — L (after T032)
 - [ ] **T035** Fatigue detection and Break Prompt in the engine — M (after T032)
 - [ ] **T036** Resume-where-you-left-off for games and quiz — S (after T030, T027)
 - [ ] **T037** Game 3 & 4: Object Sorting and Tea Garden Attention — L (after T034)

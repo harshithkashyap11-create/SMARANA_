@@ -19,6 +19,8 @@ import { MemoryDetailPage } from "../features/patient/memories/MemoryDetailPage"
 import { MemoryQuizPage } from "../features/patient/memories/quiz/MemoryQuizPage";
 import { PeoplePage } from "../features/patient/people/PeoplePage";
 import { CaregiverPortal } from "../features/caregiver/CaregiverPortal";
+import { GamesPage } from "../features/patient/games/GamesPage";
+import { GamePage } from "../features/patient/games/GamePage";
 
 export const router = createBrowserRouter([
   {
@@ -47,6 +49,8 @@ export const router = createBrowserRouter([
       { path: "/patient/memories/quiz", element: <MemoryQuizPage /> },
       { path: "/patient/memories/:memoryId", element: <MemoryDetailPage /> },
       { path: "/patient/people", element: <PeoplePage /> },
+      { path: "/patient/games", element: <GamesPage /> },
+      { path: "/patient/games/:gameKey", element: <GamePage /> },
       { path: "/patient/:section", element: <PlaceholderPage /> },
     ],
   },

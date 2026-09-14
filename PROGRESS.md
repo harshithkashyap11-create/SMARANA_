@@ -34,6 +34,11 @@ Phase 4 — Caregiver
 | T027 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Large-option memory quiz with supportive feedback, local-first attempts, and repeated-struggle break prompt. |
 | T028 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Emergency-first family cards with spoken call confirmation and one-tap telephone links. |
 | T029 | 2026-09-14 | `feat(patient-core): complete T025-T029 memories and emergency support` | Persistent long-press SOS, idempotent events, in-app caregiver recipients, scoped acknowledgement, and emergency call actions. |
+| T030 | 2026-09-14 | `feat(games): complete T030-T034 adaptive games foundation` | Seeded, resumable local-first session engine; metrics, persistence, backend catalog and session contracts. |
+| T031 | 2026-09-14 | `feat(games): complete T030-T034 adaptive games foundation` | Pure Python DDA with 20 shared vectors, persisted difficulty state/change history, and 100% branch coverage. |
+| T032 | 2026-09-14 | `feat(games): complete T030-T034 adaptive games foundation` | Matching TypeScript DDA, supportive end flow, offline prediction, and authoritative server reconciliation. |
+| T033 | 2026-09-14 | `feat(games): complete T030-T034 adaptive games foundation` | Day-scoped challenge toggle raises only the played level while respecting game and doctor caps. |
+| T034 | 2026-09-14 | `feat(games): complete T030-T034 adaptive games foundation` | Playable Memory Match and Sequence Recall with deterministic level knobs, hints, and default content assets. |
 | T040 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Assignment-scoped patient switcher, Today medicine statuses, response times, seven-day adherence, and device sync recency. |
 | T041 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Source ownership protection, before/after audit history, scoped history reads, and recoverable routine deletion. |
 | T042 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Schedule CRUD form with categories, day selection, validation, optimistic creation, and locked doctor items. |

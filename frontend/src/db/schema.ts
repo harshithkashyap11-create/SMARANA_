@@ -23,13 +23,33 @@ export interface CachedFamilyMember {
 }
 
 export interface CachedMemory {
-  id: string; patientId: string; title: string; occasion: string; occurredOn: string | null; place: string; summary: string;
+  id: string;
+  patientId: string;
+  title: string;
+  occasion: string;
+  occurredOn: string | null;
+  place: string;
+  summary: string;
   people: Array<{ id: string; name: string; relationship: string }>;
-  media: Array<{ id: string; kind: string; url: string | null; caption: string }>;
+  media: Array<{
+    id: string;
+    kind: string;
+    url: string | null;
+    caption: string;
+  }>;
 }
 
 export interface CachedQuizAttempt {
-  id: string; patientId: string; memoryId: string | null; questionType: string; expected: string; given: string; correct: boolean; attemptedAt: string; responseMs: number; idempotencyKey: string;
+  id: string;
+  patientId: string;
+  memoryId: string | null;
+  questionType: string;
+  expected: string;
+  given: string;
+  correct: boolean;
+  attemptedAt: string;
+  responseMs: number;
+  idempotencyKey: string;
 }
 
 export interface CachedRoutineItem {
@@ -64,6 +84,38 @@ export interface CachedMedication {
   instructions: string;
   active: boolean;
 }
+export interface CachedGameSession {
+  id: string;
+  patientId: string;
+  gameKey: string;
+  seed: string;
+  level: number;
+  metrics: Record<string, unknown>;
+  challengeMode: boolean;
+  startedAt: string;
+  endedAt: string;
+  synced: boolean;
+}
+export interface CachedDifficultyState {
+  id: string;
+  patientId: string;
+  gameKey: string;
+  level: number;
+  window: unknown[];
+  lockedByDoctor: boolean;
+  capLevel: number | null;
+  minLevel: number;
+  maxLevel: number;
+}
+export interface CachedDifficultyChange {
+  id: string;
+  stateId: string;
+  sessionId: string;
+  fromLevel: number;
+  toLevel: number;
+  reasonCode: string;
+  explanation: string;
+}
 
 class SmaranaDatabase extends Dexie {
   meta!: EntityTable<MetaEntry, "key">;
@@ -75,6 +127,9 @@ class SmaranaDatabase extends Dexie {
   medications!: EntityTable<CachedMedication, "id">;
   memories!: EntityTable<CachedMemory, "id">;
   quizAttempts!: EntityTable<CachedQuizAttempt, "id">;
+  gameSessions!: EntityTable<CachedGameSession, "id">;
+  difficultyStates!: EntityTable<CachedDifficultyState, "id">;
+  difficultyChanges!: EntityTable<CachedDifficultyChange, "id">;
 
   constructor() {
     super("smarana");
@@ -94,10 +149,29 @@ class SmaranaDatabase extends Dexie {
       medications: "&id, patientId",
     });
     this.version(4).stores({
-      meta: "&key", profile: "&id, refreshedAt", familyMembers: "&id, patientId",
-      routineItems: "&id, patientId", reminders: "&id, patientId, scheduled_at",
-      reminderResponses: "&id, reminderId", medications: "&id, patientId",
-      memories: "&id, patientId", quizAttempts: "&id, patientId, attemptedAt, idempotencyKey",
+      meta: "&key",
+      profile: "&id, refreshedAt",
+      familyMembers: "&id, patientId",
+      routineItems: "&id, patientId",
+      reminders: "&id, patientId, scheduled_at",
+      reminderResponses: "&id, reminderId",
+      medications: "&id, patientId",
+      memories: "&id, patientId",
+      quizAttempts: "&id, patientId, attemptedAt, idempotencyKey",
+    });
+    this.version(5).stores({
+      meta: "&key",
+      profile: "&id, refreshedAt",
+      familyMembers: "&id, patientId",
+      routineItems: "&id, patientId",
+      reminders: "&id, patientId, scheduled_at",
+      reminderResponses: "&id, reminderId",
+      medications: "&id, patientId",
+      memories: "&id, patientId",
+      quizAttempts: "&id, patientId, attemptedAt, idempotencyKey",
+      gameSessions: "&id, patientId, gameKey, synced",
+      difficultyStates: "&id, [patientId+gameKey]",
+      difficultyChanges: "&id, stateId, sessionId",
     });
   }
 }
