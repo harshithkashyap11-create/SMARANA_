@@ -9,7 +9,9 @@ import type {
   LoginResponse,
   Logout,
   Me,
+  PaginatedPatientCardList,
   PatchedPreference,
+  PatientCard,
   PatientLogin,
   PatientPinReset,
   Preference,
@@ -20,7 +22,8 @@ import type {
   SchemaRetrieve200One,
   SchemaRetrieve200Three,
   SchemaRetrieve200Two,
-  SchemaRetrieveParams
+  SchemaRetrieveParams,
+  V1PatientsListParams
 } from './models';
 
 import { apiClient } from '../client';
@@ -303,6 +306,55 @@ export const getHealthCheckUrl = () => {
 export const healthCheck = async ( options?: Parameters<typeof apiClient>[1]): Promise<HealthOk> => {
 
   return apiClient<HealthOk>(getHealthCheckUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+export const getV1PatientsListUrl = (params?: V1PatientsListParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/patients/?${stringifiedParams}` : `/api/v1/patients/`
+}
+
+export const v1PatientsList = async (params?: V1PatientsListParams, options?: Parameters<typeof apiClient>[1]): Promise<PaginatedPatientCardList> => {
+
+  return apiClient<PaginatedPatientCardList>(getV1PatientsListUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+export const getV1PatientsRetrieveUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/patients/${id}/`
+}
+
+export const v1PatientsRetrieve = async (id: string, options?: Parameters<typeof apiClient>[1]): Promise<PatientCard> => {
+
+  return apiClient<PatientCard>(getV1PatientsRetrieveUrl(id),
   {
     ...options,
     method: 'GET'

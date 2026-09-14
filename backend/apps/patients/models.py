@@ -46,7 +46,16 @@ class CareAssignment(UUIDModel, TimeStamped):
     )
     is_primary = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
+    assigned_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="care_assignments_created",
+        blank=True,
+        null=True,
+    )
     assigned_at = models.DateTimeField(default=timezone.now)
+    ended_at = models.DateTimeField(blank=True, null=True)
+    reason = models.TextField(blank=True)
 
     class Meta:
         ordering = ["-assigned_at", "id"]
@@ -88,7 +97,16 @@ class DoctorAssignment(UUIDModel, TimeStamped):
         related_name="doctor_assignments",
     )
     active = models.BooleanField(default=True)
+    assigned_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="doctor_assignments_created",
+        blank=True,
+        null=True,
+    )
     assigned_at = models.DateTimeField(default=timezone.now)
+    ended_at = models.DateTimeField(blank=True, null=True)
+    reason = models.TextField(blank=True)
 
     class Meta:
         ordering = ["-assigned_at", "id"]

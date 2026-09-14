@@ -19,12 +19,14 @@ Phase 1 — Auth, roles & assignments
 | T006 | 2026-09-14 | `feat(testing): T006 add reusable care scenario and demo seed` | Minimal patient assignment models, reusable role factories and fixtures, frozen time, and idempotent demo accounts. |
 | T010 | 2026-09-14 | `feat(auth): T010 add professional JWT authentication` | Approval-gated professional login, rotating device-bound refresh tokens, logout, self context, preferences, and generated API contracts. |
 | T011 | 2026-09-14 | `feat(auth): T011 add patient PIN login and lockout alerts` | Argon2 patient PIN login, 30-day device sessions, timed lockout with deduplicated caregiver alerts, and primary-caregiver PIN reset. |
+| T012 | 2026-09-14 | `feat(patients): T012 add assignment-scoped patient reads` | Completed assignment history fields, role-scoped patient selectors, and read-only patient list/detail API contracts. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
 - Assamese and Bengali catalogs mirror the English keys with `TODO:` values until translated content is supplied.
 - T010 persists the existing theme and font-scale preferences; T016 owns the remaining preference fields and persisted login/preference audit events, as its task card explicitly requires wiring those flows.
 - T011 keeps PIN mutations in account services so T016 can add the task-card-required login, lockout, and PIN-reset audit events when the append-only audit app is introduced.
+- T012 returns nullable patient-card age and language until T020 adds date of birth and the later preferences/content work establishes the persisted language source.
 
 ## Known issues / tech debt
 - Pin container and language dependency versions with lock files as the backend/frontend toolchains are completed in later foundation tasks.
@@ -35,4 +37,4 @@ Phase 1 — Auth, roles & assignments
 - Patient login, lockout, and PIN-reset audit rows are intentionally deferred to T016, whose scope explicitly wires the T011 flow.
 
 ## Next up
-- T012
+- T013
