@@ -2,12 +2,35 @@ import { createBrowserRouter } from "react-router-dom";
 
 import { LandingPage } from "../features/auth/LandingPage";
 import { ProfessionalLoginPage } from "../features/auth/ProfessionalLoginPage";
-import { ProLayout, RequireRole, RoleHome } from "./layouts/RoleLayouts";
+import { PatientLoginPage } from "../features/auth/PatientLoginPage";
+import {
+  PatientLayout,
+  ProLayout,
+  RequireRole,
+  RoleHome,
+} from "./layouts/RoleLayouts";
 
 export const router = createBrowserRouter([
   {
+    path: "/login/patient",
+    element: <PatientLoginPage />,
+  },
+  {
     path: "/",
     element: <LandingPage />,
+  },
+  {
+    element: (
+      <RequireRole allowed={["patient"]}>
+        <PatientLayout />
+      </RequireRole>
+    ),
+    children: [
+      {
+        path: "/patient",
+        element: <RoleHome role="patient" />,
+      },
+    ],
   },
   {
     path: "/login/caregiver",

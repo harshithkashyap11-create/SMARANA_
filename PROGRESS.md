@@ -6,7 +6,7 @@ Update this file at the end of every task (`/finish-task` does it). Keep it shor
 Phase 1 — Auth, roles & assignments
 
 ## In flight
-- T013 — Frontend auth: landing, professional login, role routing, and auth store
+- None.
 
 ## Done
 | Task | Date | Commit | Notes |
@@ -20,6 +20,8 @@ Phase 1 — Auth, roles & assignments
 | T010 | 2026-09-14 | `feat(auth): T010 add professional JWT authentication` | Approval-gated professional login, rotating device-bound refresh tokens, logout, self context, preferences, and generated API contracts. |
 | T011 | 2026-09-14 | `feat(auth): T011 add patient PIN login and lockout alerts` | Argon2 patient PIN login, 30-day device sessions, timed lockout with deduplicated caregiver alerts, and primary-caregiver PIN reset. |
 | T012 | 2026-09-14 | `feat(patients): T012 add assignment-scoped patient reads` | Completed assignment history fields, role-scoped patient selectors, and read-only patient list/detail API contracts. |
+| T013 | 2026-09-14 | `5c88b0c` | Landing page, professional login, role routing, auth store, and professional idle logout. |
+| T014 | 2026-09-14 | `feat(frontend): T014 add patient PIN login and idle prompt` | Remembered patient login ID, large keypad, gentle lock copy, patient shell, and 30-minute presence prompt. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
@@ -35,6 +37,7 @@ Phase 1 — Auth, roles & assignments
 - `renderWithProviders` currently accepts a generic repository map; tighten it to concrete repository interfaces as offline repositories are introduced.
 - Login and preference audit rows are intentionally deferred to T016, which introduces the append-only audit app and helper.
 - Patient login, lockout, and PIN-reset audit rows are intentionally deferred to T016, whose scope explicitly wires the T011 flow.
+- T014 introduces the minimal Dexie `meta` store required to remember the last successful patient login ID; T015 will reuse it for language persistence.
 
 ## Next up
-- T013
+- T015

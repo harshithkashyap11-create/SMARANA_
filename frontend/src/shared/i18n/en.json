@@ -10,6 +10,14 @@
     "password": "Password",
     "signIn": "Sign in",
     "signingIn": "Signing in…",
+    "patientPinTitle": "Enter your PIN",
+    "patientPinHelp": "Use the keypad below.",
+    "loginId": "Login ID",
+    "pinKeypad": "PIN keypad",
+    "backspace": "Backspace",
+    "pinEntered": "{{count}} of 4 PIN digits entered",
+    "pin_no_match": "That didn't match. Try again.",
+    "locked_caregiver_told": "Let's take a break. Your caregiver has been told.",
     "logout": "Log out",
     "navigation": "Navigation",
     "dashboard": "Dashboard",
@@ -22,12 +30,31 @@
     "layout": {
       "caregiver": "Caregiver dashboard",
       "doctor": "Doctor dashboard",
-      "admin": "Admin"
+      "admin": "Admin",
+      "patient": "Home"
     },
     "errors": {
       "awaiting_approval": "Your account is awaiting verification.",
       "credentials_not_verified": "Those details didn't match. Try again.",
       "request_not_completed": "Something didn't work. Let's try again."
+    }
+  },
+  "patient": {
+    "title": "Smārana",
+    "talk": "Talk",
+    "listen": "Listen",
+    "navigation": "Patient navigation",
+    "nav": {
+      "home": "Home",
+      "play": "Play",
+      "wellness": "Wellness",
+      "family": "Family",
+      "settings": "Settings"
+    },
+    "idle": {
+      "title": "Are you still there?",
+      "yes": "Yes, I'm here",
+      "no": "No, finish for now"
     }
   },
   "health": {

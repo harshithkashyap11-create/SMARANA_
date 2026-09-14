@@ -3,10 +3,12 @@ import { create } from "zustand";
 import {
   v1AuthLoginCreate,
   v1AuthLogoutCreate,
+  v1AuthPatientLoginCreate,
   v1AuthRefreshCreate,
 } from "../../api/generated/smarana";
 import type {
   LoginResponse,
+  PatientLogin,
   ProfessionalLogin,
   RoleEnum,
   UserSummary,
@@ -21,6 +23,7 @@ interface AuthState {
   user: UserSummary | null;
   role: RoleEnum | null;
   login: (credentials: ProfessionalLogin) => Promise<LoginResponse>;
+  patientLogin: (credentials: PatientLogin) => Promise<LoginResponse>;
   setSession: (session: LoginResponse) => void;
   clearSession: () => void;
   logout: () => Promise<void>;
@@ -77,6 +80,13 @@ export const useAuthStore = create<AuthState>(() => ({
   role: null,
   login: async (credentials) => {
     const session = await v1AuthLoginCreate(credentials, {
+      skipAuthRefresh: true,
+    });
+    applySession(session);
+    return session;
+  },
+  patientLogin: async (credentials) => {
+    const session = await v1AuthPatientLoginCreate(credentials, {
       skipAuthRefresh: true,
     });
     applySession(session);

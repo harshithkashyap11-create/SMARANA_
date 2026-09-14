@@ -10,6 +10,14 @@
     "password": "TODO: Password",
     "signIn": "TODO: Sign in",
     "signingIn": "TODO: Signing in…",
+    "patientPinTitle": "TODO: Enter your PIN",
+    "patientPinHelp": "TODO: Use the keypad below.",
+    "loginId": "TODO: Login ID",
+    "pinKeypad": "TODO: PIN keypad",
+    "backspace": "TODO: Backspace",
+    "pinEntered": "TODO: {{count}} of 4 PIN digits entered",
+    "pin_no_match": "TODO: That didn't match. Try again.",
+    "locked_caregiver_told": "TODO: Let's take a break. Your caregiver has been told.",
     "logout": "TODO: Log out",
     "navigation": "TODO: Navigation",
     "dashboard": "TODO: Dashboard",
@@ -22,12 +30,31 @@
     "layout": {
       "caregiver": "TODO: Caregiver dashboard",
       "doctor": "TODO: Doctor dashboard",
-      "admin": "TODO: Admin"
+      "admin": "TODO: Admin",
+      "patient": "TODO: Home"
     },
     "errors": {
       "awaiting_approval": "TODO: Your account is awaiting verification.",
       "credentials_not_verified": "TODO: Those details didn't match. Try again.",
       "request_not_completed": "TODO: Something didn't work. Let's try again."
+    }
+  },
+  "patient": {
+    "title": "TODO: Smārana",
+    "talk": "TODO: Talk",
+    "listen": "TODO: Listen",
+    "navigation": "TODO: Patient navigation",
+    "nav": {
+      "home": "TODO: Home",
+      "play": "TODO: Play",
+      "wellness": "TODO: Wellness",
+      "family": "TODO: Family",
+      "settings": "TODO: Settings"
+    },
+    "idle": {
+      "title": "TODO: Are you still there?",
+      "yes": "TODO: Yes, I'm here",
+      "no": "TODO: No, finish for now"
     }
   },
   "health": {
