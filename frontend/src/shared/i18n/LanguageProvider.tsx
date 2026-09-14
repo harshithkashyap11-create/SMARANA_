@@ -41,7 +41,9 @@ export function LanguageProvider({ children }: PropsWithChildren) {
     };
 
     i18n.on("languageChanged", persistLanguage);
-    persistLanguage(i18n.resolvedLanguage ?? i18n.language);
+    applyLanguage(
+      (i18n.resolvedLanguage ?? i18n.language).split("-")[0] as SupportedLanguage,
+    );
     return () => {
       active = false;
       i18n.off("languageChanged", persistLanguage);
