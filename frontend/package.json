@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -12,7 +15,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit --pretty false",
     "test": "vitest",
-    "i18n:check": "node scripts/check-i18n.mjs"
+    "i18n:check": "node scripts/check-i18n.mjs",
+    "api:gen": "orval --config orval.config.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.66.0",
@@ -38,6 +42,7 @@
     "eslint-plugin-react-refresh": "^0.5.6",
     "globals": "^15.14.0",
     "jsdom": "^25.0.1",
+    "orval": "^8.33.0",
     "postcss": "^8.5.1",
     "prettier": "^3.4.2",
     "tailwindcss": "^3.4.17",

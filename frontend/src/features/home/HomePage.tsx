@@ -1,15 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
+import { healthCheck } from "../../api/generated/smarana";
 import { BigButton } from "../../shared/ui/BigButton";
 import { Card } from "../../shared/ui/Card";
 import { IconTile } from "../../shared/ui/IconTile";
 import { useThemeStore } from "../../shared/theme/store";
-
-interface HealthResponse {
-  status: "ok";
-  db: "ok";
-}
 
 const scaleNames = {
   1: "comfortable",
@@ -17,22 +13,6 @@ const scaleNames = {
   1.4: "larger",
   1.6: "largest",
 } as const;
-
-async function fetchHealth(): Promise<HealthResponse> {
-  const response = await fetch("/api/v1/health/");
-
-  if (!response.ok) {
-    throw new Error("Health request was unavailable");
-  }
-
-  const data = (await response.json()) as Partial<HealthResponse>;
-
-  if (data.status !== "ok" || data.db !== "ok") {
-    throw new Error("Health response was not ready");
-  }
-
-  return data as HealthResponse;
-}
 
 function MoonIcon() {
   return <span aria-hidden="true">☾</span>;
@@ -44,7 +24,10 @@ export function HomePage() {
   const fontScale = useThemeStore((state) => state.fontScale);
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
   const cycleFontScale = useThemeStore((state) => state.cycleFontScale);
-  const health = useQuery({ queryKey: ["health"], queryFn: fetchHealth });
+  const health = useQuery({
+    queryKey: ["health"],
+    queryFn: () => healthCheck(),
+  });
 
   const healthMessage = health.isPending
     ? t("health.loading")

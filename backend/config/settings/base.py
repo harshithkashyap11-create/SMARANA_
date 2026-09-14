@@ -109,6 +109,7 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "Smārana API",
     "VERSION": "1.0.0",
+    "SERVERS": [{"url": "/", "description": "Current host"}],
 }
 
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://redis:6379/0")
