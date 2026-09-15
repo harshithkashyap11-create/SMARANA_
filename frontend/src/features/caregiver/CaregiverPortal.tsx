@@ -5,6 +5,7 @@ import { caregiverApi } from "./api";
 import { ScheduleTab } from "./schedule/ScheduleTab";
 import { MemoryUploadTab } from "./memories/MemoryUploadTab";
 import { AlertsTab } from "./alerts/AlertsTab";
+import { ProgressTab } from "./progress/ProgressTab";
 
 const tabs = [
   "today",
@@ -166,6 +167,8 @@ export function CaregiverPortal() {
         <MemoryUploadTab patientId={patientId} />
       ) : tab === "alerts" ? (
         <AlertsTab patientId={patientId} />
+      ) : tab === "progress" ? (
+        <ProgressTab patientId={patientId} />
       ) : (
         <section className="rounded-card bg-surface p-6">
           <h2 className="text-xl font-bold">Coming in this phase</h2>

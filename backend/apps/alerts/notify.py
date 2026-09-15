@@ -11,7 +11,8 @@ from apps.alerts.models import Alert
 
 
 class Channel(Protocol):
-    name: str
+    @property
+    def name(self) -> str: ...
 
     def send(self, alert: Alert, recipient: User) -> bool: ...
 

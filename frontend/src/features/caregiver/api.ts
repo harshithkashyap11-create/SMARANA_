@@ -51,6 +51,36 @@ export type CareAlert = {
   notes: string;
   can_forward: boolean;
 };
+export type GameSessionRow = {
+  id: string;
+  game_key: string;
+  game_name: string;
+  level: number;
+  metrics: {
+    accuracy?: number;
+    mean_reaction_ms?: number;
+    completed?: boolean;
+  };
+  started_at: string;
+  ended_at: string;
+};
+export type DifficultyChangeRow = {
+  id: string;
+  game_name: string;
+  from_level: number;
+  to_level: number;
+  reason_code: string;
+  explanation: string;
+  created_at: string;
+};
+export type CareNote = {
+  id: string;
+  author_name: string;
+  category: string;
+  visibility: string;
+  text: string;
+  created_at: string;
+};
 
 const base = "/api/v1/patients";
 export const caregiverApi = {
@@ -110,5 +140,26 @@ export const caregiverApi = {
   forwardAlert: (alertId: string) =>
     apiClient<CareAlert>(`/api/v1/alerts/${alertId}/forward/`, {
       method: "POST",
+    }),
+  gameSessions: (patientId: string) =>
+    apiClient<GameSessionRow[]>(`${base}/${patientId}/game-sessions/`, {
+      method: "GET",
+    }),
+  difficultyChanges: (patientId: string) =>
+    apiClient<DifficultyChangeRow[]>(
+      `${base}/${patientId}/difficulty-changes/`,
+      { method: "GET" },
+    ),
+  notes: (patientId: string) =>
+    apiClient<CareNote[]>(`${base}/${patientId}/notes/`, { method: "GET" }),
+  createNote: (patientId: string, text: string) =>
+    apiClient<CareNote>(`${base}/${patientId}/notes/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        category: "caregiver_feedback",
+        visibility: "care_team",
+      }),
     }),
 };

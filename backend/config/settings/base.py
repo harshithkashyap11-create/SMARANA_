@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "apps.alerts.apps.AlertsConfig",
     "apps.memories.apps.MemoriesConfig",
     "apps.games.apps.GamesConfig",
+    "apps.clinical.apps.ClinicalConfig",
 ]
 
 MIDDLEWARE = [
