@@ -7,7 +7,9 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
+from apps.accounts.models import User
 from apps.alerts.models import Alert, SosEvent
+from apps.audit.services import audit
 from apps.patients.models import PatientProfile
 
 
@@ -19,6 +21,8 @@ def raise_alert(
     title: str,
     explanation: str,
     evidence: Mapping[str, Any] | None = None,
+    triggered_at: Any | None = None,
+    update_existing: bool = False,
 ) -> Alert:
     """Create an open alert unless the same patient/rule already has one."""
 
@@ -31,9 +35,62 @@ def raise_alert(
             "title": title,
             "explanation": explanation,
             "evidence": dict(evidence or {}),
-            "triggered_at": timezone.now(),
+            "triggered_at": triggered_at or timezone.now(),
         },
     )
+    if not _ and update_existing:
+        alert.severity = severity
+        alert.title = title
+        alert.explanation = explanation
+        alert.evidence = dict(evidence or {})
+        alert.triggered_at = triggered_at or timezone.now()
+        alert.save(
+            update_fields=[
+                "severity",
+                "title",
+                "explanation",
+                "evidence",
+                "triggered_at",
+                "updated_at",
+            ]
+        )
+    return alert
+
+
+@transaction.atomic
+def acknowledge_alert(alert: Alert, actor: User, note: str = "") -> Alert:
+    alert.status = Alert.Status.ACKNOWLEDGED
+    alert.acknowledged_by = actor
+    alert.acknowledged_at = timezone.now()
+    alert.notes = note
+    alert.save(
+        update_fields=["status", "acknowledged_by", "acknowledged_at", "notes", "updated_at"]
+    )
+    audit(actor, "alert.acknowledged", alert, patient=alert.patient, changes={"note": note})
+    return alert
+
+
+@transaction.atomic
+def forward_alert(alert: Alert, actor: User, doctor: User) -> Alert:
+    alert.status = Alert.Status.FORWARDED
+    alert.forwarded_to = doctor
+    alert.save(update_fields=["status", "forwarded_to", "updated_at"])
+    audit(
+        actor,
+        "alert.forwarded",
+        alert,
+        patient=alert.patient,
+        changes={"doctor_id": str(doctor.id)},
+    )
+    return alert
+
+
+@transaction.atomic
+def dismiss_alert(alert: Alert, actor: User, note: str = "") -> Alert:
+    alert.status = Alert.Status.DISMISSED
+    alert.notes = note
+    alert.save(update_fields=["status", "notes", "updated_at"])
+    audit(actor, "alert.dismissed", alert, patient=alert.patient, changes={"note": note})
     return alert
 
 

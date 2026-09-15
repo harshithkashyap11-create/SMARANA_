@@ -48,6 +48,7 @@ Phase 4 — Caregiver
 | T041 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Source ownership protection, before/after audit history, scoped history reads, and recoverable routine deletion. |
 | T042 | 2026-09-14 | `feat(caregiver): complete T040-T042 portal and routine editor` | Schedule CRUD form with categories, day selection, validation, optimistic creation, and locked doctor items. |
 | T043 | 2026-09-15 | `feat(caregiver): add memory upload and people tagging` | Scoped audited multipart creation, validated image uploads, quiz visibility, family tagging, client-side 1600px compression, and upload progress. |
+| T044 | 2026-09-15 | `feat(alerts): add nightly caregiver alert rules` | Three boundary-tested rules, evidence refresh deduplication, 02:00 IST evaluation, scoped actions, assigned-doctor forwarding, and audited state changes. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
@@ -65,4 +66,4 @@ Phase 4 — Caregiver
 - The local database may retain the removed pre-commit T021 prototype reminder table; it is unreferenced and fresh installations do not create it.
 
 ## Next up
-- T044 — Alert rules engine with three MVP rules and explanations.
+- T045 — Caregiver alerts tab and high-severity email delivery.

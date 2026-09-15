@@ -155,4 +155,8 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.routines.tasks.mark_missed_reminders",
         "schedule": 900.0,
     },
+    "evaluate-alert-rules-nightly": {
+        "task": "apps.alerts.tasks.evaluate_alert_rules",
+        "schedule": crontab(hour=2, minute=0),
+    },
 }
