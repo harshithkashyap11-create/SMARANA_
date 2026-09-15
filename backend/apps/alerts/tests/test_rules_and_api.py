@@ -134,6 +134,12 @@ def test_alert_actions_are_scoped_forwarded_and_audited() -> None:
     response = client.get(f"/api/v1/alerts/?patient={patient.id}&status=open")
     assert [row["id"] for row in response.data] == [str(alert.id)]
     assert client.post(f"/api/v1/alerts/{other_alert.id}/acknowledge/").status_code == 404
+    acknowledged = client.post(
+        f"/api/v1/alerts/{alert.id}/acknowledge/", {"note": "Called the patient"}
+    )
+    assert acknowledged.status_code == 200
+    assert acknowledged.data["status"] == "acknowledged"
+    assert AuditEvent.objects.filter(action="alert.acknowledged", target_id=alert.id).exists()
     forwarded = client.post(f"/api/v1/alerts/{alert.id}/forward/")
     assert forwarded.status_code == 200
     assert str(forwarded.data["forwarded_to"]) == str(doctor.id)

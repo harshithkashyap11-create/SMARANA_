@@ -54,6 +54,10 @@ def raise_alert(
                 "updated_at",
             ]
         )
+    if _:
+        from apps.alerts.notify import notify_alert
+
+        notify_alert(alert)
     return alert
 
 

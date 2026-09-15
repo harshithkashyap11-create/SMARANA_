@@ -44,6 +44,7 @@ class Alert(UUIDModel, TimeStamped):
     title = models.CharField(max_length=200)
     explanation = models.TextField()
     evidence = models.JSONField(default=dict, blank=True)
+    notified = models.JSONField(default=list, blank=True)
     triggered_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
     acknowledged_by = models.ForeignKey(

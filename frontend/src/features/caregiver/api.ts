@@ -39,6 +39,18 @@ export type Adherence = {
 };
 export type FamilyMember = { id: string; name: string; relationship: string };
 export type MemoryRecord = { id: string; title: string };
+export type CareAlert = {
+  id: string;
+  rule_key: string;
+  severity: "info" | "attention" | "high";
+  title: string;
+  explanation: string;
+  evidence: Record<string, unknown>;
+  triggered_at: string;
+  status: "open" | "acknowledged" | "forwarded" | "dismissed";
+  notes: string;
+  can_forward: boolean;
+};
 
 const base = "/api/v1/patients";
 export const caregiverApi = {
@@ -84,5 +96,19 @@ export const caregiverApi = {
     apiClient(`${base}/${patientId}/memories/${memoryId}/media/`, {
       method: "POST",
       body: payload,
+    }),
+  alerts: (patientId: string) =>
+    apiClient<CareAlert[]>(`/api/v1/alerts/?patient=${patientId}`, {
+      method: "GET",
+    }),
+  acknowledgeAlert: (alertId: string, note: string) =>
+    apiClient<CareAlert>(`/api/v1/alerts/${alertId}/acknowledge/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ note }),
+    }),
+  forwardAlert: (alertId: string) =>
+    apiClient<CareAlert>(`/api/v1/alerts/${alertId}/forward/`, {
+      method: "POST",
     }),
 };

@@ -4,6 +4,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { caregiverApi } from "./api";
 import { ScheduleTab } from "./schedule/ScheduleTab";
 import { MemoryUploadTab } from "./memories/MemoryUploadTab";
+import { AlertsTab } from "./alerts/AlertsTab";
 
 const tabs = [
   "today",
@@ -163,6 +164,8 @@ export function CaregiverPortal() {
         <ScheduleTab patientId={patientId} />
       ) : tab === "memories" ? (
         <MemoryUploadTab patientId={patientId} />
+      ) : tab === "alerts" ? (
+        <AlertsTab patientId={patientId} />
       ) : (
         <section className="rounded-card bg-surface p-6">
           <h2 className="text-xl font-bold">Coming in this phase</h2>
