@@ -3,6 +3,13 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { ApiError } from "../../api/client";
+import {
+  clearOfflineFailures,
+  offlineLockedUntil,
+  recordOfflineFailure,
+  storeOfflineSecrets,
+  unlockOffline,
+} from "../../db/crypto";
 import { getMeta, setMeta } from "../../db/schema";
 import { Keypad } from "../../shared/ui";
 import { useAuthStore } from "./authStore";
@@ -34,6 +41,10 @@ export function PatientLoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const patientLogin = useAuthStore((state) => state.patientLogin);
+  const resumeOfflineSession = useAuthStore(
+    (state) => state.resumeOfflineSession,
+  );
+  const refreshSession = useAuthStore((state) => state.refreshSession);
   const [loginId, setLoginId] = useState("");
   const [pin, setPin] = useState("");
   const [messageKey, setMessageKey] = useState<string | null>(null);
@@ -48,22 +59,43 @@ export function PatientLoginPage() {
     setSubmitting(true);
     setMessageKey(null);
     try {
-      await patientLogin({
+      const session = await patientLogin({
         login_id: loginId.trim(),
         pin: nextPin,
         device_id: deviceId(),
       });
+      await storeOfflineSecrets(nextPin, session.refresh, session.user);
       await setMeta(LOGIN_ID_KEY, loginId.trim());
       navigate("/patient", { replace: true });
     } catch (error) {
       const code = errorCode(error);
-      setMessageKey(
-        code === "locked"
-          ? "auth.locked_caregiver_told"
-          : code === "pin_not_verified"
-            ? "auth.pin_no_match"
-            : "auth.errors.request_not_completed",
-      );
+      if (code === "request_not_completed") {
+        const lockedUntil = await offlineLockedUntil();
+        if (lockedUntil) {
+          setMessageKey("auth.locked_caregiver_told");
+        } else {
+          const unlocked = await unlockOffline(nextPin);
+          if (unlocked) {
+            await clearOfflineFailures();
+            resumeOfflineSession(unlocked.refreshToken, unlocked.user);
+            window.addEventListener("online", () => void refreshSession(), {
+              once: true,
+            });
+            navigate("/patient", { replace: true });
+            return;
+          }
+          const newLock = await recordOfflineFailure();
+          setMessageKey(
+            newLock ? "auth.locked_caregiver_told" : "auth.pin_no_match",
+          );
+        }
+      } else {
+        setMessageKey(
+          code === "locked"
+            ? "auth.locked_caregiver_told"
+            : "auth.pin_no_match",
+        );
+      }
       setPin("");
     } finally {
       setSubmitting(false);

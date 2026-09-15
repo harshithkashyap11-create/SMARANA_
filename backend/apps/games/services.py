@@ -48,7 +48,9 @@ def save_session(
     state, _ = DifficultyState.objects.select_for_update().get_or_create(
         patient=patient, game=game, defaults={"level": game.min_level}
     )
+    session_fields = {"id": data["id"]} if data.get("id") else {}
     session = GameSession.objects.create(
+        **session_fields,
         patient=patient,
         game=game,
         seed=data["seed"],

@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       manifest: {
         name: "Smārana",
         short_name: "Smārana",
@@ -32,8 +32,12 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{html,js,css}"],
-        runtimeCaching: [],
+        globPatterns: ["**/*.{html,js,css,woff2}"],
+        runtimeCaching: [
+          { urlPattern: /\/media\//, handler: "CacheFirst", options: { cacheName: "smarana-media", expiration: { maxEntries: 500, maxAgeSeconds: 2592000 } } },
+          { urlPattern: /\/api\/v1\/content\/pack/, handler: "StaleWhileRevalidate", options: { cacheName: "smarana-content" } },
+          { urlPattern: /\/api\/v1\/patients\//, handler: "NetworkOnly" },
+        ],
       },
     }),
   ],

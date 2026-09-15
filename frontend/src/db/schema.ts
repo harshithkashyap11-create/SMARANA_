@@ -5,6 +5,11 @@ export interface MetaEntry {
   value: string;
 }
 
+export type SyncModel = "reminder_response" | "game_session" | "difficulty_state" | "difficulty_change" | "memory_quiz_attempt" | "sleep_log" | "mood_log" | "sos_event" | "routine_item";
+export interface OutboxEntry { id: string; model: SyncModel; objectId: string; patientId: string; payload: Record<string, unknown>; idempotencyKey: string; createdAt: string; attempts: number; nextAttemptAt: string; lastError?: string; }
+export interface DeadLetterEntry extends OutboxEntry { rejectedAt: string; code: string; }
+export interface CachedGenericRecord { id: string; patientId: string; deviceUpdatedAt: string; [key: string]: unknown; }
+
 export interface CachedPatientProfile {
   id: string;
   name: string;
@@ -130,6 +135,13 @@ class SmaranaDatabase extends Dexie {
   gameSessions!: EntityTable<CachedGameSession, "id">;
   difficultyStates!: EntityTable<CachedDifficultyState, "id">;
   difficultyChanges!: EntityTable<CachedDifficultyChange, "id">;
+  memoryMedia!: EntityTable<CachedGenericRecord, "id">;
+  sleepLogs!: EntityTable<CachedGenericRecord, "id">;
+  moodLogs!: EntityTable<CachedGenericRecord, "id">;
+  sosEvents!: EntityTable<CachedGenericRecord, "id">;
+  contentPacks!: EntityTable<CachedGenericRecord, "id">;
+  outbox!: EntityTable<OutboxEntry, "id">;
+  outboxDead!: EntityTable<DeadLetterEntry, "id">;
 
   constructor() {
     super("smarana");
@@ -172,6 +184,18 @@ class SmaranaDatabase extends Dexie {
       gameSessions: "&id, patientId, gameKey, synced",
       difficultyStates: "&id, [patientId+gameKey]",
       difficultyChanges: "&id, stateId, sessionId",
+    });
+    this.version(6).stores({
+      meta: "&key", profile: "&id, refreshedAt", familyMembers: "&id, patientId",
+      routineItems: "&id, patientId", reminders: "&id, patientId, scheduled_at",
+      reminderResponses: "&id, reminderId", medications: "&id, patientId",
+      memories: "&id, patientId", memoryMedia: "&id, patientId",
+      quizAttempts: "&id, patientId, attemptedAt, idempotencyKey",
+      gameSessions: "&id, patientId, gameKey, synced",
+      difficultyStates: "&id, [patientId+gameKey]", difficultyChanges: "&id, stateId, sessionId",
+      sleepLogs: "&id, patientId, deviceUpdatedAt", moodLogs: "&id, patientId, deviceUpdatedAt",
+      sosEvents: "&id, patientId, deviceUpdatedAt", contentPacks: "&id, patientId",
+      outbox: "&id, createdAt, nextAttemptAt, model, objectId", outboxDead: "&id, rejectedAt, model",
     });
   }
 }

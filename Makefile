@@ -7,7 +7,7 @@ down:
 	docker compose down
 
 test:
-	docker compose run --build --rm backend pytest -q
+	docker compose run --build --rm -e DJANGO_SETTINGS_MODULE=config.settings.test backend pytest -q
 	docker compose run --build --rm --no-deps frontend npm test
 
 lint:

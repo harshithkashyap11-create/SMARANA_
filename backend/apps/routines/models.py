@@ -23,6 +23,7 @@ class RoutineItem(UUIDModel, TimeStamped, SoftDelete):
         CAREGIVER = "caregiver", "Caregiver"
         DOCTOR = "doctor", "Doctor"
         SYSTEM = "system", "System"
+        PATIENT = "patient", "Patient"
 
     patient = models.ForeignKey(
         PatientProfile, on_delete=models.CASCADE, related_name="routine_items"

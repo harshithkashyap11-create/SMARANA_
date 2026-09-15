@@ -48,7 +48,10 @@ INSTALLED_APPS = [
     "apps.memories.apps.MemoriesConfig",
     "apps.games.apps.GamesConfig",
     "apps.clinical.apps.ClinicalConfig",
+    "apps.sync.apps.SyncConfig",
+    "apps.voice.apps.VoiceConfig",
 ]
+VOICE_LLM_FALLBACK = env.bool("VOICE_LLM_FALLBACK", default=False)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

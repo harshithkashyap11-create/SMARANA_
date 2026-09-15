@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
 
 import { ApiError } from "../../api/client";
+import { storeOfflineSecrets, unlockOffline } from "../../db/crypto";
 import { renderWithProviders } from "../../test/utils";
 import { useAuthStore } from "./authStore";
 import { PatientLoginPage } from "./PatientLoginPage";
@@ -10,6 +11,14 @@ import { PatientLoginPage } from "./PatientLoginPage";
 vi.mock("../../db/schema", () => ({
   getMeta: vi.fn().mockResolvedValue("RAO1234"),
   setMeta: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("../../db/crypto", () => ({
+  clearOfflineFailures: vi.fn().mockResolvedValue(undefined),
+  offlineLockedUntil: vi.fn().mockResolvedValue(null),
+  recordOfflineFailure: vi.fn().mockResolvedValue(null),
+  storeOfflineSecrets: vi.fn().mockResolvedValue(undefined),
+  unlockOffline: vi.fn().mockResolvedValue(null),
 }));
 
 const session = {
@@ -25,6 +34,7 @@ const session = {
 };
 
 beforeEach(() => {
+  vi.clearAllMocks();
   window.localStorage.clear();
   useAuthStore.setState({
     accessToken: null,
@@ -47,6 +57,37 @@ test("auto-submits after four digits with the remembered login id", async () => 
   await waitFor(() =>
     expect(patientLogin).toHaveBeenCalledWith(
       expect.objectContaining({ login_id: "RAO1234", pin: "1234" }),
+    ),
+  );
+  expect(storeOfflineSecrets).toHaveBeenCalledWith(
+    "1234",
+    "refresh",
+    session.user,
+  );
+});
+
+test("unlocks from encrypted local credentials when the network is unavailable", async () => {
+  const user = userEvent.setup();
+  const resumeOfflineSession = vi.fn();
+  useAuthStore.setState({
+    patientLogin: vi.fn().mockRejectedValue(new TypeError("offline")),
+    resumeOfflineSession,
+  });
+  vi.mocked(unlockOffline).mockResolvedValueOnce({
+    refreshToken: "saved-refresh",
+    user: session.user,
+  });
+  renderWithProviders(<PatientLoginPage />);
+
+  await screen.findByDisplayValue("RAO1234");
+  for (const digit of ["1", "2", "3", "4"]) {
+    await user.click(screen.getByRole("button", { name: digit }));
+  }
+
+  await waitFor(() =>
+    expect(resumeOfflineSession).toHaveBeenCalledWith(
+      "saved-refresh",
+      session.user,
     ),
   );
 });

@@ -1,0 +1,4 @@
+from django.db import migrations, models
+class Migration(migrations.Migration):
+    dependencies = [("alerts", "0004_alter_alert_rule_key")]
+    operations = [migrations.AlterField(model_name="alert", name="rule_key", field=models.CharField(choices=[("no_login_2d", "No login for two days"), ("missed_meds_3in7", "Three missed medicines in seven days"), ("level_drop_x3", "Three difficulty level drops"), ("reaction_time_worsening", "Reaction time worsening"), ("engagement_drop", "Engagement drop"), ("low_mood_3d", "Low mood for three days"), ("sos", "SOS"), ("pin_lockout", "Patient PIN locked"), ("device_offline_3d", "Device offline for three days"), ("prescription_updated", "Prescription updated"), ("pin_reset_request", "PIN reset request"), ("sync_error", "Device sharing error")], max_length=32))]

@@ -8,6 +8,8 @@ import { useIdleLogout } from "../../shared/hooks/useIdleLogout";
 import { useIdlePrompt } from "../../shared/hooks/useIdlePrompt";
 import { ConfirmDialog } from "../../shared/ui";
 import { SosButton } from "../../features/patient/sos/SosButton";
+import { TalkButton } from "../../shared/ui/TalkButton";
+import { OfflineChip } from "../../shared/ui/OfflineChip";
 
 export function RequireRole({
   allowed,
@@ -84,12 +86,7 @@ export function PatientLayout() {
           ← {t("auth.back")}
         </button>
         <strong className="text-center">{t("patient.title")}</strong>
-        <button
-          className="min-h-touch justify-self-end px-2 font-bold"
-          type="button"
-        >
-          ◖)) {t("patient.talk")}
-        </button>
+        <div className="flex items-center"><OfflineChip /><TalkButton /></div>
       </header>
       <main className="flex-1 p-4 pb-24">
         <Outlet />

@@ -24,6 +24,7 @@ class Alert(UUIDModel, TimeStamped):
         DEVICE_OFFLINE_3D = "device_offline_3d", "Device offline for three days"
         PRESCRIPTION_UPDATED = "prescription_updated", "Prescription updated"
         PIN_RESET_REQUEST = "pin_reset_request", "PIN reset request"
+        SYNC_ERROR = "sync_error", "Device sharing error"
 
     class Severity(models.TextChoices):
         INFO = "info", "Info"

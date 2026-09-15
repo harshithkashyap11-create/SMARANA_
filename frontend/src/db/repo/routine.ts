@@ -5,6 +5,7 @@ import {
   type CachedReminder,
   type CachedReminderResponse,
 } from "../schema";
+import { createOutboxEntry } from "../outbox";
 
 export type ReminderAction = "taken" | "later" | "skipped" | "help";
 export type Reminder = Omit<CachedReminder, "patientId">;
@@ -21,6 +22,8 @@ export interface RoutineRepository {
 }
 
 async function patientId(): Promise<string> {
+  const cached = await db.profile.orderBy("refreshedAt").last();
+  if (cached) return cached.id;
   const patients = await apiClient<PatientList>("/api/v1/patients/", {
     method: "GET",
   });
@@ -64,7 +67,8 @@ export class DexieRoutineRepository implements RoutineRepository {
       action,
       respondedAt,
     };
-    await db.transaction("rw", db.reminders, db.reminderResponses, async () => {
+    const payload = { id: responseId, patient_id: id, reminder_id: reminderId, action, responded_at: respondedAt, device_updated_at: respondedAt };
+    await db.transaction("rw", db.reminders, db.reminderResponses, db.outbox, async () => {
       await db.reminderResponses.put(local);
       await db.reminders.update(reminderId, {
         status: action,
@@ -73,14 +77,7 @@ export class DexieRoutineRepository implements RoutineRepository {
             ? new Date(Date.now() + 15 * 60_000).toISOString()
             : null,
       });
-    });
-    await apiClient(`/api/v1/patients/${id}/reminders/${reminderId}/respond/`, {
-      method: "POST",
-      body: JSON.stringify({
-        action,
-        responded_at: respondedAt,
-        idempotency_key: responseId,
-      }),
+      await db.outbox.put(createOutboxEntry("reminder_response", responseId, id, payload));
     });
   }
 }

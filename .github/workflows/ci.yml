@@ -111,3 +111,9 @@ jobs:
 
       - name: Check locale catalogs
         run: npm run i18n:check
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Test offline app shell
+        run: npx playwright test e2e/offline.spec.ts

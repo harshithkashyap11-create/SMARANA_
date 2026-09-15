@@ -26,6 +26,8 @@ interface AuthState {
   patientLogin: (credentials: PatientLogin) => Promise<LoginResponse>;
   setSession: (session: LoginResponse) => void;
   clearSession: () => void;
+  resumeOfflineSession: (refresh: string, user: UserSummary) => void;
+  refreshSession: () => Promise<string | null>;
   logout: () => Promise<void>;
 }
 
@@ -94,10 +96,18 @@ export const useAuthStore = create<AuthState>(() => ({
   },
   setSession: applySession,
   clearSession,
+  resumeOfflineSession: (refresh, user) => {
+    refreshToken = refresh;
+    setApiAccessToken(null);
+    useAuthStore.setState({ accessToken: null, user, role: "patient" });
+  },
+  refreshSession: refreshAccessToken,
   logout: async () => {
     const token = refreshToken;
     const access = useAuthStore.getState().accessToken;
     clearSession();
+    const { clearOfflineSecrets } = await import("../../db/crypto");
+    await clearOfflineSecrets();
     if (!token || !access) return;
 
     try {

@@ -6,6 +6,7 @@ import type {
 } from "../../games/dda";
 import { db, getMeta, setMeta, type CachedGameSession } from "../schema";
 import type { FatigueReason } from "../../games/engine/fatigue";
+import { createOutboxEntry } from "../outbox";
 
 export interface GameDefinitionDto {
   key: string;
@@ -149,6 +150,7 @@ export async function persistLocalResult(
     db.gameSessions,
     db.difficultyStates,
     db.difficultyChanges,
+    db.outbox,
     async () => {
       await db.gameSessions.put(session);
       await db.difficultyStates.put({
@@ -171,6 +173,9 @@ export async function persistLocalResult(
         reasonCode: result.change.reasonCode,
         explanation: result.change.explanation,
       });
+      const updatedAt = session.endedAt;
+      await db.outbox.put(createOutboxEntry("game_session", session.id, patientId, { id: session.id, patient_id: patientId, game_key: session.gameKey, seed: session.seed, level: session.level, metrics: session.metrics, challenge_mode: session.challengeMode, started_at: session.startedAt, ended_at: session.endedAt, device_updated_at: updatedAt }));
+      await db.outbox.put(createOutboxEntry("difficulty_state", stateId, patientId, { id: stateId, patient_id: patientId, game_key: game.key, level: result.state.level, window: result.state.window, device_updated_at: updatedAt }));
     },
   );
 }

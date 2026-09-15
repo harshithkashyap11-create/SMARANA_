@@ -3,10 +3,10 @@
 Update this file at the end of every task (`/finish-task` does it). Keep it short. This is the memory Claude Code reads at the start of each session.
 
 ## Current phase
-Phase 6 — Admin
+Phase 7–8 — Offline PWA and voice
 
 ## In flight
-- None.
+- T070–T076 and T080–T084 acceptance review: core local outbox, sync API, caching, encrypted offline secrets, device alerts, voice wrappers/router/actions/settings/fallback implemented. Remaining: full round-trip browser coverage, database-backed backend verification, and login-lifecycle wiring for offline PIN secrets.
 
 ## Done
 | Task | Date | Commit | Notes |
@@ -80,4 +80,4 @@ Phase 6 — Admin
 - The local database may retain the removed pre-commit T021 prototype reminder table; it is unreferenced and fresh installations do not create it.
 
 ## Next up
-- T070 — Dexie schema, outbox, and repository migration for patient data.
+- Complete remaining Phase 7/8 acceptance work before T090.

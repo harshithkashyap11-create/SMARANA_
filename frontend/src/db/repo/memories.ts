@@ -1,5 +1,6 @@
 import { apiClient } from "../../api/client";
 import { db, type CachedMemory, type CachedQuizAttempt } from "../schema";
+import { createOutboxEntry } from "../outbox";
 
 interface PatientList { results: Array<{ id: string }> }
 export interface QuizQuestion { memory_id: string | null; question_type: string; prompt: string; options: string[]; expected_label: string; media_url: string | null }
@@ -33,9 +34,7 @@ export const memoriesRepository = {
   },
   async saveAttempt(attempt: Omit<CachedQuizAttempt, "patientId">): Promise<void> {
     const id = await patientId();
-    await db.quizAttempts.put({ ...attempt, patientId: id });
-    try {
-      await apiClient(`/api/v1/patients/${id}/memory-quiz/attempts/`, { method: "POST", body: JSON.stringify({ id: attempt.id, memory_id: attempt.memoryId, question_type: attempt.questionType, expected: attempt.expected, given: attempt.given, correct: attempt.correct, attempted_at: attempt.attemptedAt, response_ms: attempt.responseMs, device_updated_at: attempt.attemptedAt, idempotency_key: attempt.idempotencyKey }) });
-    } catch { /* The local attempt remains ready for the sync phase. */ }
+    const payload = { id: attempt.id, patient_id: id, memory_id: attempt.memoryId, question_type: attempt.questionType, expected: attempt.expected, given: attempt.given, correct: attempt.correct, attempted_at: attempt.attemptedAt, response_ms: attempt.responseMs, device_updated_at: attempt.attemptedAt };
+    await db.transaction("rw", db.quizAttempts, db.outbox, async () => { await db.quizAttempts.put({ ...attempt, patientId: id }); await db.outbox.put(createOutboxEntry("memory_quiz_attempt", attempt.id, id, payload)); });
   },
 };
