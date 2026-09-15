@@ -44,6 +44,31 @@ class MemorySerializer(serializers.ModelSerializer[Memory]):
         ]
 
 
+class MemoryCreateSerializer(serializers.Serializer[dict[str, object]]):
+    title = serializers.CharField(max_length=255)
+    occasion = serializers.ChoiceField(choices=Memory.Occasion.choices)
+    occurred_on = serializers.DateField(required=False, allow_null=True)
+    place = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    summary = serializers.CharField()
+    visibility = serializers.ChoiceField(choices=Memory.Visibility.choices)
+    people = serializers.ListField(child=serializers.UUIDField(), required=False)
+
+
+class MemoryMediaInputSerializer(serializers.Serializer[dict[str, object]]):
+    file = serializers.ImageField()
+    caption = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    order = serializers.IntegerField(min_value=0, max_value=32767, required=False)
+
+    def validate_file(self, value: object) -> object:
+        content_type = getattr(value, "content_type", "")
+        size = getattr(value, "size", 0)
+        if not isinstance(content_type, str) or not content_type.startswith("image/"):
+            raise serializers.ValidationError("Please choose an image file.")
+        if not isinstance(size, int) or size > 8 * 1024 * 1024:
+            raise serializers.ValidationError("Each image must be 8 MB or smaller.")
+        return value
+
+
 class AttemptInputSerializer(serializers.Serializer[dict[str, object]]):
     id = serializers.UUIDField(required=False)
     memory_id = serializers.UUIDField(required=False, allow_null=True)

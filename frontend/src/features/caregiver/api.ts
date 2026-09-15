@@ -37,26 +37,52 @@ export type Adherence = {
   }>;
   summary: Record<string, number>;
 };
+export type FamilyMember = { id: string; name: string; relationship: string };
+export type MemoryRecord = { id: string; title: string };
 
 const base = "/api/v1/patients";
 export const caregiverApi = {
   patients: () => apiClient<PatientCard[]>(`${base}/`, { method: "GET" }),
   adherence: (patientId: string) =>
-    apiClient<Adherence>(`${base}/${patientId}/adherence/?days=7`, { method: "GET" }),
+    apiClient<Adherence>(`${base}/${patientId}/adherence/?days=7`, {
+      method: "GET",
+    }),
   routine: (patientId: string) =>
-    apiClient<RoutineItem[]>(`${base}/${patientId}/routine-items/`, { method: "GET" }),
+    apiClient<RoutineItem[]>(`${base}/${patientId}/routine-items/`, {
+      method: "GET",
+    }),
   createRoutine: (patientId: string, payload: RoutinePayload) =>
     apiClient<RoutineItem>(`${base}/${patientId}/routine-items/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }),
-  updateRoutine: (patientId: string, itemId: string, payload: Partial<RoutinePayload>) =>
+  updateRoutine: (
+    patientId: string,
+    itemId: string,
+    payload: Partial<RoutinePayload>,
+  ) =>
     apiClient<RoutineItem>(`${base}/${patientId}/routine-items/${itemId}/`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }),
   deleteRoutine: (patientId: string, itemId: string) =>
-    apiClient<void>(`${base}/${patientId}/routine-items/${itemId}/`, { method: "DELETE" }),
+    apiClient<void>(`${base}/${patientId}/routine-items/${itemId}/`, {
+      method: "DELETE",
+    }),
+  family: (patientId: string) =>
+    apiClient<FamilyMember[]>(`${base}/${patientId}/family/`, {
+      method: "GET",
+    }),
+  createMemory: (patientId: string, payload: FormData) =>
+    apiClient<MemoryRecord>(`${base}/${patientId}/memories/`, {
+      method: "POST",
+      body: payload,
+    }),
+  addMemoryPhoto: (patientId: string, memoryId: string, payload: FormData) =>
+    apiClient(`${base}/${patientId}/memories/${memoryId}/media/`, {
+      method: "POST",
+      body: payload,
+    }),
 };

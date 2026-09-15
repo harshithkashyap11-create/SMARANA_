@@ -1,7 +1,11 @@
+import base64
+
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from rest_framework.test import APIClient
 
+from apps.audit.models import AuditEvent
 from apps.memories.models import Memory, MemoryQuizAttempt
 from apps.shared.tests.factories import (
     CareAssignmentFactory,
@@ -14,6 +18,10 @@ from apps.shared.tests.factories import (
 )
 
 pytestmark = pytest.mark.django_db
+
+PNG_1X1 = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+)
 
 
 def client_for(user: object) -> APIClient:
@@ -104,3 +112,59 @@ def test_consent_off_uses_family_only() -> None:
     result = client_for(patient.user).get(f"/api/v1/patients/{patient.id}/memory-quiz/next/").json()
     assert result["memory_id"] is None
     assert result["expected_label"] == "Priya"
+
+
+def test_caregiver_creates_quiz_memory_with_tagged_person_and_photo() -> None:
+    patient = PatientFactory()
+    caregiver = CaregiverFactory()
+    CareAssignmentFactory(patient=patient, caregiver=caregiver)
+    ConsentSettingsFactory(patient=patient, use_memories_in_quiz=True)
+    person = FamilyMemberFactory(patient=patient, name="Priya")
+    photo = SimpleUploadedFile("birthday.png", PNG_1X1, content_type="image/png")
+    response = client_for(caregiver).post(
+        f"/api/v1/patients/{patient.id}/memories/",
+        {
+            "title": "Birthday tea",
+            "occasion": "birthday",
+            "summary": "A warm family afternoon.",
+            "visibility": "quiz",
+            "people": [str(person.id)],
+            "photos": [photo],
+        },
+        format="multipart",
+    )
+    assert response.status_code == 201
+    memory = Memory.objects.get(id=response.data["id"])
+    assert list(memory.people.values_list("id", flat=True)) == [person.id]
+    assert memory.media.count() == 1
+    question = client_for(patient.user).get(f"/api/v1/patients/{patient.id}/memory-quiz/next/")
+    assert question.data["memory_id"] == str(memory.id)
+    assert AuditEvent.objects.filter(action="memory.created", target_id=memory.id).exists()
+
+
+def test_memory_upload_rejects_non_image_and_other_patient() -> None:
+    patient = PatientFactory()
+    other = PatientFactory()
+    caregiver = CaregiverFactory()
+    CareAssignmentFactory(patient=patient, caregiver=caregiver)
+    payload = {
+        "title": "Notes",
+        "occasion": "daily",
+        "summary": "A day.",
+        "visibility": "private",
+        "photos": [SimpleUploadedFile("notes.txt", b"no", content_type="text/plain")],
+    }
+    client = client_for(caregiver)
+    assert (
+        client.post(
+            f"/api/v1/patients/{patient.id}/memories/", payload, format="multipart"
+        ).status_code
+        == 400
+    )
+    payload["photos"] = [SimpleUploadedFile("photo.png", PNG_1X1, content_type="image/png")]
+    assert (
+        client.post(
+            f"/api/v1/patients/{other.id}/memories/", payload, format="multipart"
+        ).status_code
+        == 404
+    )

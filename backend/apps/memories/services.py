@@ -7,7 +7,9 @@ from django.db import transaction
 from django.db.models import Max
 from rest_framework.exceptions import ValidationError
 
-from apps.memories.models import Memory, MemoryQuizAttempt
+from apps.accounts.models import User
+from apps.audit.services import audit
+from apps.memories.models import Memory, MemoryMedia, MemoryQuizAttempt
 from apps.patients.models import PatientProfile
 
 
@@ -133,3 +135,38 @@ def record_attempt(
         defaults={"patient": patient, "memory_id": memory_id, **data},
     )
     return attempt, created
+
+
+@transaction.atomic
+def create_memory(*, patient: PatientProfile, actor: User, data: dict[str, Any]) -> Memory:
+    people_ids = data.pop("people", [])
+    people = list(patient.family_members.filter(id__in=people_ids))
+    if len(people) != len(set(people_ids)):
+        raise ValidationError({"people": "One or more people are not in this patient's family."})
+    memory = Memory.objects.create(patient=patient, uploaded_by=actor, **data)
+    memory.people.set(people)
+    audit(
+        actor,
+        "memory.created",
+        memory,
+        patient=patient,
+        changes={
+            "title": memory.title,
+            "visibility": memory.visibility,
+            "people": [str(item.id) for item in people],
+        },
+    )
+    return memory
+
+
+@transaction.atomic
+def add_memory_media(*, memory: Memory, actor: User, data: dict[str, Any]) -> MemoryMedia:
+    media = MemoryMedia.objects.create(memory=memory, kind=MemoryMedia.Kind.PHOTO, **data)
+    audit(
+        actor,
+        "memory.media_added",
+        media,
+        patient=memory.patient,
+        changes={"memory_id": str(memory.id)},
+    )
+    return media
