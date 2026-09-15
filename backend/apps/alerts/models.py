@@ -22,6 +22,8 @@ class Alert(UUIDModel, TimeStamped):
         SOS = "sos", "SOS"
         PIN_LOCKOUT = "pin_lockout", "Patient PIN locked"
         DEVICE_OFFLINE_3D = "device_offline_3d", "Device offline for three days"
+        PRESCRIPTION_UPDATED = "prescription_updated", "Prescription updated"
+        PIN_RESET_REQUEST = "pin_reset_request", "PIN reset request"
 
     class Severity(models.TextChoices):
         INFO = "info", "Info"

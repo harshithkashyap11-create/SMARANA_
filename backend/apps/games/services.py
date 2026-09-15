@@ -76,7 +76,11 @@ def save_session(
             level=state.level,
             window=state.window,
             lockedByDoctor=state.locked_by_doctor,
-            capLevel=state.cap_level,
+            capLevel=min(
+                value
+                for value in (state.cap_level, patient.max_difficulty_level, game.max_level)
+                if value is not None
+            ),
             minLevel=game.min_level,
             maxLevel=game.max_level,
             lockedByName=state.locked_by_name,

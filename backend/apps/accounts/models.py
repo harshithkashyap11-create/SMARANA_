@@ -106,3 +106,28 @@ class DeviceSession(UUIDModel, TimeStamped):
 
     def __str__(self) -> str:
         return f"{self.user} on {self.device_id}"
+
+
+class DoctorProfile(UUIDModel, TimeStamped):
+    class VerificationStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        DEMO_VERIFIED = "demo_verified", "Demo verified"
+        VERIFIED = "verified", "Verified"
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="doctor_profile")
+    verification_status = models.CharField(
+        max_length=24,
+        choices=VerificationStatus.choices,
+        default=VerificationStatus.DEMO_VERIFIED,
+    )
+    verification_note = models.TextField(blank=True)
+
+    def clean(self) -> None:
+        super().clean()
+        if self.user_id and self.user.role != User.Role.DOCTOR:
+            raise ValidationError({"user": "Doctor profiles require a doctor user."})
+        if (
+            self.verification_status == self.VerificationStatus.VERIFIED
+            and not self.verification_note
+        ):
+            raise ValidationError({"verification_note": "A note is required for verified status."})

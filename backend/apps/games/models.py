@@ -13,6 +13,7 @@ class GameDefinition(UUIDModel, TimeStamped):
     min_level = models.PositiveSmallIntegerField(default=1)
     max_level = models.PositiveSmallIntegerField(default=10)
     is_regional = models.BooleanField(default=False)
+    regions = models.JSONField(default=list, blank=True)
     metrics_schema = models.JSONField(default=dict)
     active = models.BooleanField(default=True)
 

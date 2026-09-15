@@ -46,6 +46,7 @@ from apps.routines.services import (
     delete_routine_item,
     record_response,
     update_routine_item,
+    upsert_medication,
 )
 from apps.shared.permissions import IsRole
 
@@ -286,10 +287,23 @@ class PatientViewSet(ReadOnlyModelViewSet):
         response = record_response(reminder=reminder, **serializer.validated_data)
         return Response(ReminderResponseSerializer(response).data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=["get"], url_path="medications")
+    @action(detail=True, methods=["get", "post"], url_path="medications")
     def medications(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        del request, args, kwargs
+        del args, kwargs
         patient = self.get_object()
+        if request.method == "POST":
+            if request.user.role != User.Role.DOCTOR:
+                raise PermissionDenied("Only doctors can prescribe medications.")
+            serializer = MedicationSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            medication = upsert_medication(
+                actor=request.user,
+                patient=patient,
+                fields=dict(serializer.validated_data),
+            )
+            return Response(
+                MedicationSerializer(medication).data, status=status.HTTP_201_CREATED
+            )
         queryset = Medication.objects.filter(patient=patient, active=True)
         return Response(MedicationSerializer(queryset, many=True).data)
 

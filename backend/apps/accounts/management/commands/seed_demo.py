@@ -5,6 +5,7 @@ from typing import Any
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import PatientCredential, User
 from apps.patients.models import CareAssignment, DoctorAssignment, PatientProfile
@@ -55,6 +56,9 @@ class Command(BaseCommand):
         )
         admin.set_password(DEMO_PASSWORD)
         admin.save(update_fields=["password"])
+        otp_device, _ = TOTPDevice.objects.get_or_create(
+            user=admin, name="demo", defaults={"confirmed": True}
+        )
 
         profile, _ = PatientProfile.objects.get_or_create(user=patient)
         credential, _ = PatientCredential.objects.update_or_create(
@@ -112,6 +116,7 @@ class Command(BaseCommand):
         self.stdout.write(f"  Caregiver: priya@example.com / {DEMO_PASSWORD}")
         self.stdout.write(f"  Doctor: deka@example.com / {DEMO_PASSWORD}")
         self.stdout.write(f"  Admin: admin / {DEMO_PASSWORD}")
+        self.stdout.write(f"  Admin TOTP setup: {otp_device.config_url}")
 
     def _professional_user(self, *, email: str, display_name: str, role: str) -> User:
         user, _ = User.objects.update_or_create(

@@ -3,7 +3,7 @@
 Update this file at the end of every task (`/finish-task` does it). Keep it short. This is the memory Claude Code reads at the start of each session.
 
 ## Current phase
-Phase 4 — Caregiver
+Phase 6 — Admin
 
 ## In flight
 - None.
@@ -51,6 +51,18 @@ Phase 4 — Caregiver
 | T044 | 2026-09-15 | `feat(alerts): add nightly caregiver alert rules` | Three boundary-tested rules, evidence refresh deduplication, 02:00 IST evaluation, scoped actions, assigned-doctor forwarding, and audited state changes. |
 | T045 | 2026-09-15 | `feat(alerts): add caregiver alerts and urgent email delivery` | Polling caregiver alert groups, SOS banner, evidence links, audited acknowledgement/forwarding, and deduplicated high-severity caregiver email. |
 | T046 | 2026-09-15 | `feat(caregiver): add progress trends and care-team notes` | Scoped session/change feeds, 7/30-day accuracy and response-time charts, explanations, disclaimer, and audited caregiver-feedback notes. |
+| T050 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Assignment-scoped dashboard, attention flags, engagement status, patient cards, and seven-tab doctor detail shell. |
+| T051 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Descriptive 7/30/90-day domain metrics, session table, trend charts, guest exclusion, and non-diagnosis boundary. |
+| T052 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Audited doctor prescriptions synchronize per-dose routine items and create caregiver information alerts. |
+| T053 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Reasoned level overrides, locks, unlocks and caps with history, audit records, and global-cap enforcement. |
+| T054 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Exercise assignments materialize patient routine items, initialize difficulty, track weekly completion, and populate reviews due. |
+| T055 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Structured visibility-scoped clinical notes, author-only updates, reply support, and doctor-entered baseline records. |
+| T056 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Twelve-character password minimum, verified professional idle security, and Phase 5 mentor demo script. |
+| T060 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Audited professional approval and soft deactivation actions with doctor verification status and hidden credential hashes. |
+| T061 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Assignment-history inlines, end reasons, transfer action, actor attribution, audit trail, and immediate revocation through active scoping. |
+| T062 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Live admin counts, catalog controls and regional scope, read-only patient difficulty, force logout, account lock, and PIN-reset actions. |
+| T063 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Immutable searchable/filterable audit browser and audited export action. |
+| T064 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | TOTP-gated admin site, idempotent demo authenticator enrollment, setup documentation, and Phase 6 demo script. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
@@ -68,4 +80,4 @@ Phase 4 — Caregiver
 - The local database may retain the removed pre-commit T021 prototype reminder table; it is unreferenced and fresh installations do not create it.
 
 ## Next up
-- T050 — Doctor dashboard and patient cards.
+- T070 — Dexie schema, outbox, and repository migration for patient data.

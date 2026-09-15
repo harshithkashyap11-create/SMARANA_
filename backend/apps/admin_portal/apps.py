@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class RoutinesConfig(AppConfig):
+class AdminPortalConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.routines"
+    name = "apps.admin_portal"

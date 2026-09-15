@@ -6,7 +6,7 @@ from apps.games.models import GameDefinition
 class GameDefinitionSerializer(serializers.ModelSerializer):
     class Meta:
         model = GameDefinition
-        fields = ["key", "name", "cognitive_domains", "min_level", "max_level", "is_regional"]
+        fields = ["id", "key", "name", "cognitive_domains", "min_level", "max_level", "is_regional"]
 
 
 class GameSessionInputSerializer(serializers.Serializer):

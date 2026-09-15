@@ -1,14 +1,20 @@
 """Root URL configuration."""
 
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
+from django_otp.admin import OTPAdminSite
 from drf_spectacular.views import SpectacularAPIView
 from rest_framework.permissions import AllowAny
 
 from config.views import health_check
 
+otp_admin_site = OTPAdminSite(name="otp_admin")
+otp_admin_site._registry = admin.site._registry
+otp_admin_site.site_header = "Smārana administration"
+
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("admin/", otp_admin_site.urls if settings.REQUIRE_ADMIN_OTP else admin.site.urls),
     path(
         "api/schema/",
         SpectacularAPIView.as_view(permission_classes=[AllowAny]),

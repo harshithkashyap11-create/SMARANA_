@@ -7,9 +7,10 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.alerts.services import raise_alert
 from apps.audit.services import audit
 from apps.patients.models import PatientProfile
-from apps.routines.models import Reminder, ReminderResponse, RoutineItem
+from apps.routines.models import Medication, Reminder, ReminderResponse, RoutineItem
 from apps.shared.exceptions import UserFacingError
 
 SMARANA_NS = UUID("c64f5d1d-63d5-4b1f-9852-5e6437b78a30")
@@ -73,6 +74,89 @@ def delete_routine_item(*, actor: User, item: RoutineItem) -> None:
     snapshot = _snapshot(item)
     audit(actor, "routine_item.deleted", item, patient=item.patient, changes={"before": snapshot})
     item.delete()
+
+
+@transaction.atomic
+def upsert_medication(
+    *,
+    actor: User,
+    patient: PatientProfile,
+    fields: dict[str, object],
+    medication: Medication | None = None,
+) -> Medication:
+    """Create/update a prescription and keep one doctor routine item per dose time."""
+    if actor.role != User.Role.DOCTOR:
+        raise UserFacingError("doctor_required", status_code=403)
+    before = _medication_snapshot(medication) if medication else None
+    if medication is None:
+        medication = Medication.objects.create(
+            patient=patient, prescribed_by=actor, **fields
+        )
+    else:
+        for field, value in fields.items():
+            setattr(medication, field, value)
+        medication.save(update_fields=[*fields, "updated_at"])
+
+    existing = {
+        item.time_of_day.strftime("%H:%M"): item
+        for item in RoutineItem.all_objects.filter(
+            patient=patient,
+            source=RoutineItem.Source.DOCTOR,
+            source_ref=medication.id,
+        )
+    }
+    wanted = set(medication.times if medication.active else [])
+    for dose_time in wanted:
+        hours, minutes = (int(part) for part in dose_time.split(":"))
+        defaults = {
+            "title": f"{medication.name} — {medication.dose}",
+            "category": RoutineItem.Category.MEDICINE,
+            "time_of_day": datetime.min.replace(hour=hours, minute=minutes).time(),
+            "days_of_week": list(range(7)),
+            "start_date": medication.start_date,
+            "end_date": medication.end_date,
+            "note": medication.instructions,
+            "source": RoutineItem.Source.DOCTOR,
+            "created_by": actor,
+            "deleted_at": None,
+        }
+        RoutineItem.all_objects.update_or_create(
+            patient=patient,
+            source=RoutineItem.Source.DOCTOR,
+            source_ref=medication.id,
+            time_of_day=defaults["time_of_day"],
+            defaults=defaults,
+        )
+    for key, item in existing.items():
+        if key not in wanted and item.deleted_at is None:
+            item.delete()
+    raise_alert(
+        patient=patient,
+        rule_key="prescription_updated",
+        severity="info",
+        title="Prescription updated",
+        explanation=f"Dr. {actor.display_name or actor.username} updated {medication.name}.",
+        evidence={"medication_id": str(medication.id)},
+    )
+    audit(
+        actor,
+        "medication.updated" if before else "medication.created",
+        medication,
+        patient=patient,
+        changes={"before": before, "after": _medication_snapshot(medication)},
+    )
+    return medication
+
+
+def _medication_snapshot(medication: Medication | None) -> dict[str, object] | None:
+    if medication is None:
+        return None
+    return {
+        "name": medication.name,
+        "dose": medication.dose,
+        "times": medication.times,
+        "active": medication.active,
+    }
 
 
 def reminder_id_for(routine_item_id: UUID, day: date) -> UUID:

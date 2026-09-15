@@ -36,6 +36,10 @@ The first build downloads container images and language packages, so it can take
 | MinIO API | http://localhost:9000 |
 | MinIO console | http://localhost:9001 |
 
+The Django admin requires a time-based one-time password. Run `make seed`, then scan
+the printed `Admin TOTP setup` URI with an authenticator app. Sign in with the admin
+password and the current six-digit code.
+
 PostgreSQL and Redis are available to the application containers on the internal Compose network. Every host port and credential used by Docker Compose is documented in `.env.example`.
 
 ## Common commands

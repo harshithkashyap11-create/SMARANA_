@@ -7,7 +7,6 @@ import {
   PatientLayout,
   ProLayout,
   RequireRole,
-  RoleHome,
 } from "./layouts/RoleLayouts";
 import { PatientHomePage } from "../features/patient/home/PatientHomePage";
 import { PlaceholderPage } from "../features/patient/PlaceholderPage";
@@ -21,6 +20,8 @@ import { PeoplePage } from "../features/patient/people/PeoplePage";
 import { CaregiverPortal } from "../features/caregiver/CaregiverPortal";
 import { GamesPage } from "../features/patient/games/GamesPage";
 import { GamePage } from "../features/patient/games/GamePage";
+import { DoctorDashboard } from "../features/doctor/DoctorDashboard";
+import { DoctorPatientPage } from "../features/doctor/DoctorPatientPage";
 
 export const router = createBrowserRouter([
   {
@@ -79,7 +80,15 @@ export const router = createBrowserRouter([
         path: "/doctor",
         element: (
           <RequireRole allowed={["doctor"]}>
-            <RoleHome role="doctor" />
+            <DoctorDashboard />
+          </RequireRole>
+        ),
+      },
+      {
+        path: "/doctor/patients/:patientId/:tab?",
+        element: (
+          <RequireRole allowed={["doctor"]}>
+            <DoctorPatientPage />
           </RequireRole>
         ),
       },
