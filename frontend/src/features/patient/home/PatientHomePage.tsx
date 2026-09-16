@@ -1,3 +1,4 @@
+import { CheckInCard } from "./CheckInCard";
 import { SuggestionCard } from "./SuggestionCard";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -48,6 +49,7 @@ export function PatientHomePage() {
       <h1 className="text-3xl font-bold leading-tight">
         {t(`home.greeting_${orientation.data.greeting_key}`, { name })}
       </h1>
+      <CheckInCard />
       <SuggestionCard />
       <OrientationCard orientation={orientation.data} />
       {interrupted.data ? (

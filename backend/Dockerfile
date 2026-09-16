@@ -3,6 +3,9 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+RUN apt-get update && apt-get install -y --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0 fonts-dejavu-core fonts-noto-core \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN addgroup --system smarana \
     && adduser --system --ingroup smarana --home /home/smarana smarana
 

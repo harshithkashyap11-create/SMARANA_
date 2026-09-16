@@ -1,3 +1,4 @@
+import "../../shared/i18n";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { defaultPack } from "../../content/packs";

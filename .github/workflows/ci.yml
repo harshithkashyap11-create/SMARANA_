@@ -65,6 +65,9 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
 
+      - name: Install PDF system libraries
+        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 fonts-dejavu-core fonts-noto-core
+
       - name: Install backend dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
 
@@ -121,8 +124,8 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Test offline roundtrip
-        run: npx playwright test e2e/offline.spec.ts
+      - name: Test patient accessibility and offline roundtrip
+        run: npx playwright test e2e/a11y.spec.ts e2e/offline.spec.ts
 
   offline-real:
     name: Real offline backend roundtrip
@@ -170,6 +173,8 @@ jobs:
           cd frontend
           npm ci
           npx playwright install --with-deps chromium
+      - name: Install PDF system libraries
+        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 fonts-dejavu-core fonts-noto-core
       - name: Prepare dedicated demo backend
         working-directory: backend
         run: |
@@ -184,7 +189,7 @@ jobs:
           exit 1
       - name: Complete and upload an offline game and reminder
         working-directory: frontend
-        run: npx playwright test e2e/offline-real.spec.ts
+        run: npx playwright test e2e/offline-real.spec.ts e2e/reports-real.spec.ts
       - name: Show backend logs on failure
         if: failure()
         run: cat /tmp/smarana-backend.log

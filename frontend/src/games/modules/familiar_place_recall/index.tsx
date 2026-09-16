@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 /* eslint-disable react-refresh/only-export-components */
 import type { ContentPack } from "../../../content/packs";
 import { defaultPack } from "../../../content/packs";
@@ -46,16 +47,24 @@ export function buildPlaceRound(
 }
 
 function PlaceRoundView({ round, onAnswer, onHint }: RoundProps<PlaceRound>) {
+  const { t } = useTranslation();
   return (
     <section>
       {round.imageUrl ? (
         <img
-          alt=""
+          alt={t("newGames.scene")}
           src={round.imageUrl}
           className="mb-4 h-56 w-full rounded-card object-contain"
         />
       ) : null}
-      <p className="mb-4 text-xl font-bold">{round.prompt}</p>
+      <p className="mb-4 text-xl font-bold">
+        {t(
+          round.imageUrl
+            ? "gameInstructions.place"
+            : "gameInstructions.findPlace",
+          { place: round.answer },
+        )}
+      </p>
       <div className="grid gap-3">
         {round.choices.map((choice) => (
           <button
@@ -73,7 +82,7 @@ function PlaceRoundView({ round, onAnswer, onHint }: RoundProps<PlaceRound>) {
         type="button"
         onClick={onHint}
       >
-        💡 Show me
+        {t("gameInstructions.showMe")}
       </button>
     </section>
   );

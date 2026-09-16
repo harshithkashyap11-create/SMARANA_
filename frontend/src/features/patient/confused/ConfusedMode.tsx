@@ -47,10 +47,11 @@ export function ConfusedMode() {
   return (
     <>
       <button
-        className="fixed bottom-24 left-4 z-20 min-h-touch max-w-[60%] rounded-card bg-calm p-4"
+        aria-label={t("confused.button")}
+        className="patient-break-button fixed bottom-24 left-4 z-20 rounded-card bg-calm p-3"
         onClick={() => setCalmMode(true)}
       >
-        {t("confused.button")}
+        {t("confused.shortButton")}
       </button>
       {calmMode &&
         createPortal(

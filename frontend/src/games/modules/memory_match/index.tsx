@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- a game module intentionally colocates its renderer and pure rules. */
+import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 import type { ContentItem } from "../../../content/packs";
 import type {
@@ -51,6 +52,7 @@ export function MemoryMatchRound({
   onAnswer,
   onHint,
 }: RoundProps<MemoryRound>) {
+  const { t } = useTranslation();
   const timers = useRef<number[]>([]);
   useEffect(
     () => () => timers.current.forEach((timer) => window.clearTimeout(timer)),
@@ -95,7 +97,9 @@ export function MemoryMatchRound({
             revealed.includes(card.cardId) || matched.includes(card.id);
           return (
             <button
-              aria-label={faceUp ? card.title : "Hidden card"}
+              aria-label={
+                faceUp ? card.title : t("gameInstructions.hiddenCard")
+              }
               className="min-h-touch rounded-card border-2 border-primary bg-surface p-2"
               key={card.cardId}
               type="button"
@@ -119,7 +123,7 @@ export function MemoryMatchRound({
         type="button"
         onClick={hint}
       >
-        💡 Show me
+        {t("gameInstructions.showMe")}
       </button>
     </section>
   );

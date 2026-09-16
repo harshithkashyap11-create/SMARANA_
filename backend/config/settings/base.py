@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "apps.sync.apps.SyncConfig",
     "apps.voice.apps.VoiceConfig",
     "apps.content.apps.ContentConfig",
+    "apps.reports.apps.ReportsConfig",
 ]
 VOICE_ROUTER_ENDPOINT = env("VOICE_ROUTER_ENDPOINT", default="")
 VOICE_ROUTER_TOKEN = env("VOICE_ROUTER_TOKEN", default="")

@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 from django.utils import timezone
 
 from apps.accounts.models import User
-from apps.alerts.models import Alert
+from apps.alerts.models import Alert, NotificationPreference
 
 
 class Channel(Protocol):
@@ -55,6 +55,11 @@ def notify_alert(alert: Alert) -> Alert:
     already = {(row.get("user_id"), row.get("channel")) for row in sent}
     for recipient in recipients:
         for channel in channels:
+            preference = NotificationPreference.objects.filter(
+                user=recipient, channel=channel.name, rule_key=alert.rule_key
+            ).first()
+            if preference is not None and not preference.enabled:
+                continue
             key = (str(recipient.id), channel.name)
             if key in already or not channel.send(alert, recipient):
                 continue

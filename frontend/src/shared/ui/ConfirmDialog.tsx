@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
+import { useDialogFocus } from "../hooks/useDialogFocus";
 import { BigButton } from "./BigButton";
 import { useTts } from "../hooks/useTts";
 
@@ -25,10 +26,13 @@ export function ConfirmDialog({
   yesLabel,
 }: ConfirmDialogProps) {
   const speak = useTts();
+  const root = useRef<HTMLDivElement>(null);
+  useDialogFocus(root, open, onNo);
   if (!open) return null;
 
   return (
     <div
+      ref={root}
       aria-labelledby="confirm-dialog-title"
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-text/50 p-4"

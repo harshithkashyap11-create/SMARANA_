@@ -5,6 +5,7 @@ type RefreshAccessToken = () => Promise<string | null>;
 
 export type ApiClientOptions = RequestInit & {
   skipAuthRefresh?: boolean;
+  responseType?: "blob";
 };
 
 let accessToken: string | null = null;
@@ -46,6 +47,7 @@ async function request<T>(
 ): Promise<T> {
   const fetchOptions = { ...options };
   delete fetchOptions.skipAuthRefresh;
+  delete fetchOptions.responseType;
   const headers = new Headers(fetchOptions.headers);
   headers.set("Accept", "application/json");
   if (typeof fetchOptions.body === "string" && !headers.has("Content-Type")) {
@@ -66,7 +68,10 @@ async function request<T>(
     }
   }
 
-  const body = await parseResponse(response);
+  const body =
+    response.ok && options.responseType === "blob"
+      ? await response.blob()
+      : await parseResponse(response);
   if (!response.ok) {
     throw new ApiError(response.status, body);
   }

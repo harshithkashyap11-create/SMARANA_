@@ -14,6 +14,7 @@ it("shows once and can replay instructions", async () => {
   const view = render(<SectionHeader section="memories" />);
   await screen.findByRole("dialog");
   fireEvent.click(screen.getByText("walkthrough.gotIt"));
+  expect(screen.queryByRole("dialog")).toBeNull();
   view.unmount();
   render(<SectionHeader section="memories" />);
   await waitFor(() =>

@@ -84,6 +84,9 @@
 }
 
 @layer utilities {
+  .min-w-touch {
+    min-width: 64px;
+  }
   .min-h-touch {
     min-height: calc(64px * var(--scale));
   }
@@ -100,5 +103,154 @@
   }
 }
 
-.calm-mode main { filter: brightness(0.85); }
-.calm-mode *, .calm-mode *::before, .calm-mode *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+.calm-mode main {
+  filter: brightness(0.85);
+}
+.calm-mode *,
+.calm-mode *::before,
+.calm-mode *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+@media print {
+  :root,
+  [data-theme="dark"] {
+    --bg: #fff;
+    --surface: #fff;
+    --text: #000;
+    --muted: #333;
+    --primary: #24634b;
+    --primary-text: #fff;
+    --scale: 1;
+  }
+  .pro-layout > header,
+  nav,
+  button,
+  select,
+  input,
+  textarea,
+  summary {
+    display: none !important;
+  }
+  .pro-layout > div {
+    display: block !important;
+    max-width: none;
+    padding: 0;
+  }
+  main {
+    width: 100%;
+    max-width: none;
+    padding: 0 !important;
+  }
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+  article,
+  tr {
+    break-inside: avoid;
+  }
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+}
+
+/* Keep patient screens usable with large text and the fixed navigation. */
+.patient-layout {
+  overflow-wrap: anywhere;
+}
+.patient-layout main {
+  min-width: 0;
+}
+.patient-layout nav {
+  align-items: stretch;
+}
+.patient-layout nav button {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.patient-layout header > div {
+  justify-self: end;
+}
+.patient-layout input,
+.patient-layout select {
+  max-width: 100%;
+  color: var(--text);
+  background: var(--surface);
+}
+.patient-layout input[type="checkbox"] {
+  flex-shrink: 0;
+}
+.patient-layout .grid-cols-4 {
+  grid-template-columns: repeat(2, minmax(64px, 1fr));
+}
+[data-font-scale="1.4"] .patient-layout .grid-cols-2,
+[data-font-scale="1.6"] .patient-layout .grid-cols-2,
+[data-font-scale="1.4"] .patient-layout .sm\:grid-cols-2,
+[data-font-scale="1.6"] .patient-layout .sm\:grid-cols-2 {
+  grid-template-columns: minmax(0, 1fr);
+}
+.patient-layout [role="dialog"] section {
+  min-width: 0;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+/* Persistent controls retain 64px targets without covering enlarged content. */
+.patient-layout > header {
+  min-height: 64px;
+  font-size: 20px;
+}
+.patient-layout > header button {
+  min-height: 64px;
+  font-size: 20px;
+}
+.patient-layout > nav {
+  min-height: 64px;
+}
+.patient-layout > nav button {
+  min-height: 64px;
+  font-size: 16px;
+  overflow-wrap: normal;
+}
+.patient-layout > nav button span {
+  font-size: 28px;
+}
+.patient-layout .bottom-24 {
+  bottom: 76px;
+}
+.patient-layout .patient-break-button {
+  min-height: 64px;
+  max-width: calc(100vw - 128px);
+  font-size: 20px;
+  font-weight: 700;
+}
+.patient-layout .patient-sos-button {
+  height: 64px;
+  width: 64px;
+  font-size: 20px;
+}
+.patient-layout main {
+  padding-bottom: 160px;
+}
+.patient-layout main button,
+.patient-layout main a {
+  scroll-margin-top: 80px;
+  scroll-margin-bottom: 152px;
+}
+
+@media (max-width: 430px) {
+  .patient-layout .attention-scene {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(64px, 1fr));
+    gap: 12px;
+    min-height: 0;
+    padding: 12px;
+  }
+  .patient-layout .attention-scene button {
+    position: static;
+    min-width: 64px;
+  }
+}

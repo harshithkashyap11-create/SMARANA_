@@ -40,7 +40,7 @@ export function ProLayout() {
   useIdleLogout();
 
   return (
-    <div className="min-h-screen bg-bg text-text">
+    <div className="pro-layout min-h-screen bg-bg text-text">
       <header className="flex min-h-[64px] items-center justify-between bg-surface px-5">
         <strong>{user?.display_name}</strong>
         <button
@@ -88,7 +88,7 @@ export function PatientLayout() {
 
   return (
     <div
-      className={`mx-auto flex min-h-screen max-w-[720px] flex-col bg-bg text-text ${calmMode ? "calm-mode" : ""}`}
+      className={`mx-auto flex min-h-screen max-w-[720px] flex-col patient-layout bg-bg text-text ${calmMode ? "calm-mode" : ""}`}
     >
       <header className="sticky top-0 z-10 grid min-h-touch grid-cols-[1fr_auto_1fr] items-center gap-2 bg-surface px-3 shadow-card">
         <button
@@ -100,9 +100,9 @@ export function PatientLayout() {
         </button>
         <strong className="text-center">{t("patient.title")}</strong>
         <div className="flex items-center">
-          <OfflineChip />
           <TalkButton />
         </div>
+        <OfflineChip />
       </header>
       <main className="flex-1 p-4 pb-24">
         <SectionHeader key={section} section={section} />

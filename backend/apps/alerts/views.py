@@ -125,3 +125,93 @@ class AlertForwardView(AlertActionView):
 
 class AlertDismissView(AlertActionView):
     action = "dismiss"
+
+
+class NotificationPreferenceListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from apps.alerts.models import NotificationPreference
+        from apps.alerts.serializers import NotificationPreferenceSerializer
+
+        return Response(
+            NotificationPreferenceSerializer(
+                NotificationPreference.objects.filter(user=request.user), many=True
+            ).data
+        )
+
+    def post(self, request):
+        from apps.alerts.serializers import NotificationPreferenceSerializer
+
+        serializer = NotificationPreferenceSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        from apps.alerts.services import save_notification_preference
+
+        row = save_notification_preference(request.user, serializer.validated_data)
+        return Response(NotificationPreferenceSerializer(row).data, status=201)
+
+
+class NotificationPreferenceDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, preference_id):
+        from apps.alerts.models import NotificationPreference
+        from apps.alerts.serializers import NotificationPreferenceSerializer
+
+        row = get_object_or_404(NotificationPreference, id=preference_id, user=request.user)
+        return Response(NotificationPreferenceSerializer(row).data)
+
+    def patch(self, request, preference_id):
+        from apps.alerts.models import NotificationPreference
+        from apps.alerts.serializers import NotificationPreferenceSerializer
+
+        row = get_object_or_404(NotificationPreference, id=preference_id, user=request.user)
+        serializer = NotificationPreferenceSerializer(row, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        from apps.audit.services import audit
+
+        audit(request.user, "notification.preference", row, changes=serializer.validated_data)
+        return Response(serializer.data)
+
+    def delete(self, request, preference_id):
+        from apps.alerts.models import NotificationPreference
+
+        row = get_object_or_404(NotificationPreference, id=preference_id, user=request.user)
+        # Keep preference history; deleting disables this channel/rule.
+        row.enabled = False
+        row.save(update_fields=["enabled", "updated_at"])
+        from apps.audit.services import audit
+
+        audit(request.user, "notification.preference", row, changes={"enabled": False})
+        return Response(status=204)
+
+
+class CheckInView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, patient_id):
+        from apps.alerts.models import CheckIn
+
+        patient = get_object_or_404(patients_for(request.user), id=patient_id)
+        return Response(
+            [
+                {
+                    "id": str(x.id),
+                    "requested_by": x.requested_by.display_name,
+                    "answer": getattr(getattr(x, "response", None), "answer", None),
+                }
+                for x in CheckIn.objects.filter(patient=patient)
+                .select_related("requested_by", "response")
+                .order_by("-created_at")
+            ]
+        )
+
+    def post(self, request, patient_id):
+        from apps.alerts.services import request_checkin
+
+        if request.user.role != User.Role.CAREGIVER:
+            return Response(status=404)
+        patient = get_object_or_404(patients_for(request.user), id=patient_id)
+        row = request_checkin(patient, request.user)
+        return Response({"id": str(row.id)}, status=201)

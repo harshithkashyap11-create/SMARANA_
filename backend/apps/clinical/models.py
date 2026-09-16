@@ -47,6 +47,7 @@ class ClinicalBaseline(UUIDModel, TimeStamped):
     patient = models.OneToOneField(
         PatientProfile, on_delete=models.CASCADE, related_name="clinical_baseline"
     )
+    allergies = models.TextField(blank=True)
     diagnoses = models.TextField(blank=True)
     assessment_scores = models.JSONField(default=list, blank=True)
     visual_limits = models.TextField(blank=True)

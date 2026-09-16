@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- a game module intentionally colocates its renderer and pure rules. */
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import type { ContentItem } from "../../../content/packs";
 import type {
@@ -39,6 +40,7 @@ export function SequenceRecallRound({
   onAnswer,
   onHint,
 }: RoundProps<SequenceRound>) {
+  const { t } = useTranslation();
   const [showing, setShowing] = useState(true);
   const [position, setPosition] = useState(0);
   const [picked, setPicked] = useState<string[]>([]);
@@ -102,7 +104,7 @@ export function SequenceRecallRound({
           replay();
         }}
       >
-        💡 Show me
+        {t("gameInstructions.showMe")}
       </button>
     </section>
   );

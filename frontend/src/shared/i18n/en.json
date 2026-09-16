@@ -297,7 +297,8 @@
     "settings": "Choose the text size and voice that feel comfortable.",
     "replay": "Replay instructions",
     "gotIt": "Got it",
-    "instructions": "Instructions"
+    "instructions": "Instructions",
+    "sleep": "Choose your sleep times and how you feel."
   },
   "confused": {
     "button": "I feel confused / I need a break",
@@ -306,7 +307,8 @@
     "routine": "My routine",
     "calm": "Calm time",
     "call": "Call my caregiver",
-    "resume": "I am ready"
+    "resume": "I am ready",
+    "shortButton": "I need a break"
   },
   "wellness": {
     "title": "Sleep and mood",
@@ -323,5 +325,28 @@
     "quality": "Sleep quality",
     "mood": "How do you feel?",
     "retry": "We could not save that. Please try again."
+  },
+  "checkin": {
+    "question": "{{name}} asks: Are you okay?",
+    "okay": "I am okay",
+    "help": "I need help"
+  },
+  "gameInstructions": {
+    "hiddenCard": "Hidden card",
+    "showMe": "💡 Show me",
+    "watch": "Watch and remember",
+    "choose": "Choose in the same order",
+    "sort": "Choose an item, then its group",
+    "listen": "Listen and remember",
+    "replay": "Hear it again",
+    "tap": "Tap the tea leaves",
+    "finish": "All done",
+    "find": "Find: {{items}}",
+    "timeRemaining": "Time remaining",
+    "yourTurn": "Your turn",
+    "tapRhythm": "Tap the rhythm",
+    "place": "Which place do you recognise?",
+    "findPlace": "Find {{place}}.",
+    "noGroup": "Does not belong"
   }
 }

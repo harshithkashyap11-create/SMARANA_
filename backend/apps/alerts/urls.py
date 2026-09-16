@@ -5,6 +5,9 @@ from apps.alerts.views import (
     AlertDismissView,
     AlertForwardView,
     AlertListView,
+    CheckInView,
+    NotificationPreferenceDetailView,
+    NotificationPreferenceListView,
     PatientSosView,
     SosAcknowledgeView,
 )
@@ -16,4 +19,13 @@ urlpatterns = [
     path("alerts/<uuid:alert_id>/acknowledge/", AlertAcknowledgeView.as_view()),
     path("alerts/<uuid:alert_id>/forward/", AlertForwardView.as_view()),
     path("alerts/<uuid:alert_id>/dismiss/", AlertDismissView.as_view()),
+]
+
+
+urlpatterns += [
+    path("notification-preferences/", NotificationPreferenceListView.as_view()),
+    path(
+        "notification-preferences/<uuid:preference_id>/", NotificationPreferenceDetailView.as_view()
+    ),
+    path("patients/<uuid:patient_id>/checkins/", CheckInView.as_view()),
 ]

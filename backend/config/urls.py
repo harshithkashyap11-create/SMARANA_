@@ -30,6 +30,7 @@ urlpatterns = [
     path("api/v1/sync/", include("apps.sync.urls")),
     path("api/v1/voice/", include("apps.voice.urls")),
     path("api/v1/", include("apps.content.urls")),
+    path("api/v1/", include("apps.reports.urls")),
 ]
 
 

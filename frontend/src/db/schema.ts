@@ -15,6 +15,7 @@ export type SyncModel =
   | "memory_quiz_attempt"
   | "sleep_log"
   | "mood_log"
+  | "checkin_response"
   | "sos_event"
   | "routine_item";
 export interface OutboxEntry {
@@ -261,6 +262,7 @@ class SmaranaDatabase extends Dexie {
 export const db = new SmaranaDatabase();
 
 const scopedKeys = new Set([
+  "checkins",
   "memoryEngagement",
   "exerciseAssignments",
   "favourites",

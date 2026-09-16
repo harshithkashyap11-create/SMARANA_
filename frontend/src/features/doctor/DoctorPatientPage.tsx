@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { WellnessTab } from "../caregiver/WellnessTab";
+import { ReportsTab } from "../caregiver/ReportsTab";
 import { doctorApi } from "./api";
 import { DifficultyTab, MetricsTab, NotesTab, OverviewTab, RoutineTab } from "./PatientTabs";
 
@@ -66,7 +67,7 @@ export function DoctorPatientPage() {
           {tab === "routine-medicines" && <RoutineTab patientId={patientId} />}
           {tab === "notes" && <NotesTab patientId={patientId} />}
           {tab === "alerts" && <p>Open patient alerts are shown on the doctor dashboard.</p>}
-          {tab === "report" && <p>Clinical reports will be available in the reporting phase.</p>}
+          {tab === "report" && <ReportsTab key={patientId} patientId={patientId} clinical />}
         </div>
       </div>
     </section>

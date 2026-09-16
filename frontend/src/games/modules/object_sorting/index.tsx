@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import type { ContentPack } from "../../../content/packs";
 import type {
@@ -48,6 +49,7 @@ export function ObjectSortingRound({
   onAnswer,
   onHint,
 }: RoundProps<SortingRound>) {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<SortingItem | null>(null);
   const [placed, setPlaced] = useState<string[]>([]);
   const [mistakes, setMistakes] = useState(0);
@@ -108,9 +110,13 @@ export function ObjectSortingRound({
             : []),
         ].map((category) => (
           <button
-            key={category}
+            key={
+              category === "Does not belong"
+                ? t("gameInstructions.noGroup")
+                : category
+            }
             type="button"
-            className="min-h-touch rounded-card bg-primary p-4 text-white"
+            className="min-h-touch rounded-card bg-primary p-4 text-primary-text"
             onClick={() => place(category)}
             onDragOver={(event) => event.preventDefault()}
             onDrop={(event) => {
@@ -124,7 +130,9 @@ export function ObjectSortingRound({
                 );
             }}
           >
-            {category}
+            {category === "Does not belong"
+              ? t("gameInstructions.noGroup")
+              : category}
           </button>
         ))}
       </div>
@@ -133,7 +141,7 @@ export function ObjectSortingRound({
         type="button"
         onClick={onHint}
       >
-        💡 Show me
+        {t("gameInstructions.showMe")}
       </button>
     </section>
   );

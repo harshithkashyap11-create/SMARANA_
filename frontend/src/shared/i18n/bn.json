@@ -297,7 +297,8 @@
     "settings": "TODO: Choose the text size and voice that feel comfortable.",
     "replay": "TODO: Replay instructions",
     "gotIt": "TODO: Got it",
-    "instructions": "TODO: Instructions"
+    "instructions": "TODO: Instructions",
+    "sleep": "Choose your sleep times and how you feel."
   },
   "confused": {
     "button": "আমি বিভ্রান্ত বোধ করছি / একটু বিরতি চাই",
@@ -306,7 +307,8 @@
     "routine": "আমার দৈনন্দিন কাজ",
     "calm": "শান্ত সময়",
     "call": "আমার পরিচর্যাকারীকে ফোন করুন",
-    "resume": "আমি প্রস্তুত"
+    "resume": "আমি প্রস্তুত",
+    "shortButton": "I need a break"
   },
   "wellness": {
     "title": "ঘুম ও মনের অবস্থা",
@@ -323,5 +325,28 @@
     "quality": "ঘুম কেমন হয়েছে",
     "mood": "আপনার কেমন লাগছে?",
     "retry": "রাখতে পারিনি। আবার চেষ্টা করুন।"
+  },
+  "checkin": {
+    "question": "{{name}} asks: Are you okay?",
+    "okay": "I am okay",
+    "help": "I need help"
+  },
+  "gameInstructions": {
+    "hiddenCard": "Hidden card",
+    "showMe": "💡 Show me",
+    "watch": "Watch and remember",
+    "choose": "Choose in the same order",
+    "sort": "Choose an item, then its group",
+    "listen": "Listen and remember",
+    "replay": "Hear it again",
+    "tap": "Tap the tea leaves",
+    "finish": "All done",
+    "find": "Find: {{items}}",
+    "timeRemaining": "Time remaining",
+    "yourTurn": "Your turn",
+    "tapRhythm": "Tap the rhythm",
+    "place": "Which place do you recognise?",
+    "findPlace": "Find {{place}}.",
+    "noGroup": "Does not belong"
   }
 }

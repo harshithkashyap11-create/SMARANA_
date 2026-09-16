@@ -14,7 +14,7 @@ export function OfflineChip() {
   }, []);
   return online ? null : (
     <span
-      className="rounded-full bg-calm px-3 py-2 text-sm font-bold"
+      className="col-span-3 rounded-full bg-calm px-3 py-2 text-sm font-bold"
       role="status"
     >
       ☁ {t("offline.working")}

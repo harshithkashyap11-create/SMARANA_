@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import type { ContentPack } from "../../../content/packs";
 import type {
@@ -32,6 +33,7 @@ export function DailyLifeSequencingRound({
   onAnswer,
   onHint,
 }: RoundProps<DailySequenceRound>) {
+  const { t } = useTranslation();
   const [picked, setPicked] = useState<string[]>([]);
   const choose = (id: string) => {
     if (picked.includes(id)) return;
@@ -75,7 +77,7 @@ export function DailyLifeSequencingRound({
         type="button"
         onClick={onHint}
       >
-        💡 Show me
+        {t("gameInstructions.showMe")}
       </button>
     </section>
   );

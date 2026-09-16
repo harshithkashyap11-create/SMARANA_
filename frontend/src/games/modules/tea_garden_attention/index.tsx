@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import type { ContentPack } from "../../../content/packs";
 import type {
@@ -55,14 +56,17 @@ export function TeaGardenAttentionRound({
   onAnswer,
   onHint,
 }: RoundProps<AttentionRound>) {
+  const { t } = useTranslation();
   const [found, setFound] = useState<string[]>([]);
   const [mistakes, setMistakes] = useState(0);
   return (
     <section>
-      <p className="mb-3 text-xl">Find: {round.targets.join(", ")}</p>
+      <p className="mb-3 text-xl">
+        {t("gameInstructions.find", { items: round.targets.join(", ") })}
+      </p>
       {round.timeLimitMs && (
         <div
-          aria-label="Time remaining"
+          aria-label={t("gameInstructions.timeRemaining")}
           className="mb-3 h-2 rounded bg-primary/30"
         >
           <div className="h-2 w-3/4 rounded bg-primary" />
@@ -70,7 +74,7 @@ export function TeaGardenAttentionRound({
       )}
       <div
         aria-label={round.sceneTitle}
-        className="relative min-h-96 overflow-hidden rounded-card bg-success/20"
+        className="attention-scene relative min-h-96 overflow-hidden rounded-card bg-success/20"
       >
         {round.objects.map((object) => (
           <button
@@ -100,7 +104,7 @@ export function TeaGardenAttentionRound({
         type="button"
         onClick={onHint}
       >
-        💡 Show me
+        {t("gameInstructions.showMe")}
       </button>
     </section>
   );

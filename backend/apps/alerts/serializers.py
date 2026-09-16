@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.alerts.models import Alert
+from apps.alerts.models import Alert, CheckInResponse, NotificationPreference
 
 
 class AlertSerializer(serializers.ModelSerializer[Alert]):
@@ -28,3 +28,35 @@ class AlertSerializer(serializers.ModelSerializer[Alert]):
             "notes",
             "can_forward",
         ]
+
+
+class NotificationPreferenceSerializer(serializers.ModelSerializer):
+    enabled = serializers.BooleanField(default=True)
+
+    class Meta:
+        model = NotificationPreference
+        fields = ["id", "channel", "rule_key", "enabled"]
+        read_only_fields = ["id"]
+
+    def validate(self, attrs):
+        channel = attrs.get("channel", getattr(self.instance, "channel", None))
+        enabled = attrs.get("enabled", getattr(self.instance, "enabled", True))
+        if channel in {"push", "sms"} and enabled:
+            raise serializers.ValidationError("Push and SMS are not available yet.")
+        if self.instance is not None:
+            duplicate = NotificationPreference.objects.filter(
+                user=self.instance.user,
+                channel=channel,
+                rule_key=attrs.get("rule_key", self.instance.rule_key),
+            )
+            if duplicate.exclude(id=self.instance.id).exists():
+                raise serializers.ValidationError("A preference for this channel and rule exists.")
+        return attrs
+
+
+class CheckInResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CheckInResponse
+        fields = ["id", "checkin", "answer", "responded_at", "device_updated_at"]
+        extra_kwargs = {"id": {"read_only": False, "required": True}, "checkin": {"validators": []}}
+        validators = []

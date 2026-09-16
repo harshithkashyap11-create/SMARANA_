@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
+import { CheckInPanel } from "./alerts/CheckInPanel";
+import { NotificationPreferences } from "./alerts/NotificationPreferences";
+import { ReportsTab } from "./ReportsTab";
 import { caregiverApi } from "./api";
 import { ScheduleTab } from "./schedule/ScheduleTab";
 import { MemoryUploadTab } from "./memories/MemoryUploadTab";
@@ -183,7 +186,7 @@ export function CaregiverPortal() {
       ) : tab === "memories" ? (
         <MemoryUploadTab patientId={patientId} />
       ) : tab === "alerts" ? (
-        <AlertsTab patientId={patientId} />
+        <><CheckInPanel patientId={patientId} /><NotificationPreferences /><AlertsTab patientId={patientId} /></>
       ) : tab === "progress" ? (
         <ProgressTab patientId={patientId} />
       ) : tab === "timeline" ? (
@@ -192,6 +195,8 @@ export function CaregiverPortal() {
         <CareTeamTab patientId={patientId} />
       ) : tab === "wellness" ? (
         <WellnessTab key={patientId} patientId={patientId} />
+      ) : tab === "reports" ? (
+        <ReportsTab key={patientId} patientId={patientId} />
       ) : tab === "profile" ? (
         <ProfileTab patientId={patientId} />
       ) : (

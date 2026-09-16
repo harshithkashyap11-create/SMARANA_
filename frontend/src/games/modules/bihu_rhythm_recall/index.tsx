@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import type { ContentPack } from "../../../content/packs";
 import type {
@@ -51,6 +52,7 @@ export function BihuRhythmRound({
   onHint,
   audio = browserRhythmAudio,
 }: RoundProps<RhythmRound> & { audio?: RhythmAudio }) {
+  const { t } = useTranslation();
   const [playing, setPlaying] = useState(true);
   const [position, setPosition] = useState(0);
   const [taps, setTaps] = useState<number[]>([]);
@@ -86,15 +88,19 @@ export function BihuRhythmRound({
         aria-live="polite"
         className="mb-5 flex min-h-24 items-center justify-center rounded-card bg-success/20 text-4xl"
       >
-        {playing && round.visual ? "●" : playing ? "Listen" : "Your turn"}
+        {playing && round.visual
+          ? "●"
+          : playing
+            ? t("gameInstructions.listen")
+            : t("gameInstructions.yourTurn")}
       </div>
       <button
         disabled={playing}
-        className="min-h-touch w-full rounded-card bg-primary p-5 text-2xl text-white"
+        className="min-h-touch w-full rounded-card bg-primary p-5 text-2xl text-primary-text"
         type="button"
         onClick={tap}
       >
-        Tap the rhythm
+        {t("gameInstructions.tapRhythm")}
       </button>
       <button
         className="mt-4 min-h-touch rounded-card border-2 border-primary px-5"
@@ -105,7 +111,7 @@ export function BihuRhythmRound({
           setPlaying(true);
         }}
       >
-        💡 Show me
+        {t("gameInstructions.showMe")}
       </button>
     </section>
   );

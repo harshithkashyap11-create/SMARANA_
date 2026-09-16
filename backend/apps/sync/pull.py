@@ -69,6 +69,11 @@ def pull_records(patient, since, server_time):
         # Profile is tiny; return it on every pull so user and consent updates
         # cannot be lost merely because they don't update PatientProfile.
         "profile": [profile],
+        "checkins": [
+            {"id": str(row.id), "requested_by": row.requested_by.display_name,
+             "answer": getattr(getattr(row, "response", None), "answer", None)}
+            for row in changed(patient.checkins.all()).select_related("requested_by", "response")
+        ],
         "sleep_logs": SleepLogSerializer(changed(patient.sleep_logs.all()), many=True).data,
         "mood_logs": MoodLogSerializer(changed(patient.mood_logs.all()), many=True).data,
         "exercise_assignments": [

@@ -19,7 +19,7 @@ One-page emergency card: essentials, medications, allergies (field added to base
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] PDF contains contacts and medications.
+- [x] PDF contains contacts and medications.
 
 ## Verification
 ```
@@ -27,5 +27,7 @@ cd backend && ruff check . && pytest -q
 ```
 
 ## Done checklist
-- [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/review-task` verdict READY
+- [x] `/finish-task` run (PROGRESS.md updated, committed)
+
+Evidence and review: `docs/reviews/T109-T112.md`.

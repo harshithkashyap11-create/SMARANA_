@@ -77,3 +77,30 @@ test("refreshes once and retries an unauthorized request", async () => {
     "Bearer refreshed-token",
   );
 });
+
+test("downloads PDFs as blobs and retains authorization after refresh", async () => {
+  const pdf = "%PDF-1.7 binary report";
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValueOnce(new Response(null, { status: 401 }))
+    .mockResolvedValueOnce(
+      new Response(pdf, {
+        status: 200,
+        headers: { "Content-Type": "application/pdf" },
+      }),
+    );
+  vi.stubGlobal("fetch", fetchMock);
+  setApiAccessToken("expired");
+  setApiRefreshHandler(vi.fn().mockResolvedValue("fresh"));
+  const result = await apiClient<Blob>("/api/v1/patients/p/report/", {
+    method: "GET",
+    responseType: "blob",
+  });
+  expect(result.type).toBe("application/pdf");
+  expect(await result.text()).toBe(pdf);
+  const options = fetchMock.mock.calls[1]?.[1] as RequestInit;
+  expect(new Headers(options.headers).get("Authorization")).toBe(
+    "Bearer fresh",
+  );
+  expect(options).not.toHaveProperty("responseType");
+});

@@ -88,7 +88,7 @@ export function GamesPage() {
           .map((game) => (
             <div key={game.key}>
               <Link
-                className="min-h-touch rounded-card border-2 border-primary bg-surface p-5 text-xl font-bold"
+                className="block min-h-touch rounded-card border-2 border-primary bg-surface p-5 text-xl font-bold"
                 key={game.key}
                 to={`/patient/games/${game.key}`}
               >
@@ -99,7 +99,7 @@ export function GamesPage() {
                   </span>
                 )}
               </Link>
-              <Link className="min-h-touch p-3" to={`/patient/games/${game.key}?practice=true`}>{t("games.practice")}</Link>
+              <Link className="inline-flex min-h-touch items-center p-3" to={`/patient/games/${game.key}?practice=true`}>{t("games.practice")}</Link>
               <FavouriteButton kind="game" id={game.key} />
             </div>
           ))}

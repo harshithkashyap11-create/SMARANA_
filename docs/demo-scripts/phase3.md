@@ -5,16 +5,16 @@ Run this demo as the Rao patient. Keep the browser database inspector and Django
 ## Prepare
 
 1. Seed the demo scenario and sign in as Rao.
-2. Open **Games**, confirm all six game tiles show the regional badge, and leave **Looking for a challenge today?** off.
+2. Open **Games**, confirm all twelve game tiles are available and regional tiles show the regional badge, and leave **Looking for a challenge today?** off.
 3. Choose **Sequence Recall**. In `games_difficultystate`, note Rao's current `level` and empty or existing `window`.
 
 ## Demonstrate a level decrease
 
-1. Complete four sessions with deliberately poor recall. Do not choose **Take a break** unless the fatigue prompt is being demonstrated separately.
+1. At a level above the minimum, complete three sessions with deliberately poor recall (accuracy below 60%). Keep the first two response times similar and let the third mean response time be at least 30% longer. Do not choose **Take a break** unless the fatigue prompt is being demonstrated separately.
 2. After each session, confirm one `games_gamesession` row has `completed=true`, its seed, level, timestamps, and metrics.
-3. After the fourth qualifying session, confirm one `games_difficultychange` row with `reason_code=demote`, `from_level` one above `to_level`, and the exact stored explanation. Confirm the state window contains the sessions used by DDA.
+3. After the third qualifying session, confirm one `games_difficultychange` row with `reason_code=demote`, `from_level` one above `to_level`, and the exact stored explanation. Confirm the state window contains the sessions used by DDA.
 
-Expected: one-level decrease only. A single poor session must not decrease the level.
+Expected: one-level decrease only after three qualifying sessions with slower responses. The first two sessions and a single poor session must not decrease the level. Constant response times alone do not satisfy this rule.
 
 ## Demonstrate a level increase
 

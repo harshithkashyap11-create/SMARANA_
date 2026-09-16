@@ -18,7 +18,7 @@
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] Rule tests; preference respected in notify.
+- [x] Rule tests; preference respected in notify.
 
 ## Verification
 ```
@@ -27,5 +27,7 @@ cd frontend && npm run lint && npm run typecheck && npm test -- --run
 ```
 
 ## Done checklist
-- [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/review-task` verdict READY
+- [x] `/finish-task` run (PROGRESS.md updated, committed)
+
+Evidence and review: `docs/reviews/T109-T112.md`.

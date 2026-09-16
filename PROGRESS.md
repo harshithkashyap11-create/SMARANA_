@@ -6,7 +6,7 @@ Update this file at the end of every task (`/finish-task` does it). Keep it shor
 Phase 10 — Reports and polish
 
 ## In flight
-- None. T070–T094 follow-up fixes and T100–T108 are complete; T109 is next.
+- None. T109–T112 are complete; Phase 10 implementation is finished.
 
 ## Done
 | Task | Date | Commit | Notes |
@@ -72,9 +72,27 @@ Phase 10 — Reports and polish
 | T107 | 2026-09-16 | `feat(care): complete T100-T108 and offline content hardening` | Persistent calming break overlay with familiar photo, paused game rendering/timers, dimmed visuals, reduced motion and slow speech; caregiver contact requires explicit confirmation. |
 | T108 | 2026-09-16 | `feat(care): complete T100-T108 and offline content hardening` | Date-filtered caregiver timeline, routine conflict preflight/confirmation, and active care-team call/email contacts. |
 
+| T109 | 2026-09-16 | `feat(care): complete T109-T112 alerts reports and accessibility` | Boundary-tested response-time/engagement rules, audited channel preferences, caregiver check-ins and idempotent offline patient replies. |
+| T110 | 2026-09-16 | `feat(care): complete T109-T112 alerts reports and accessibility` | Scoped clinical/caregiver PDF reports with domain charts, shared-note filtering, descriptive disclaimer and export audit. |
+| T111 | 2026-09-16 | `feat(care): complete T109-T112 alerts reports and accessibility` | Emergency PDF with current medications, baseline allergies and contacts; caregiver print styles. |
+| T112 | 2026-09-16 | `feat(care): complete T109-T112 alerts reports and accessibility` | 360px / 1.6 font / both-theme axe sweep across all patient routes and twelve games; keyboard dialogs and demo replays. |
+
 T105–T108 verification: backend Ruff and 137 PostgreSQL tests passed; migrations clean. Frontend lint, typecheck and 189 tests passed; locale and patient-copy checks passed; production PWA build passed. Existing bundler chunk warnings remain. All completed work through T108 is recorded in the implementation commit above.
 
+T109–T112 verification: backend Ruff and 146 PostgreSQL tests passed; migrations clean. Frontend lint, typecheck and 193 tests passed; 272 locale keys and patient-copy checks passed; production PWA build passed. Browser checks cover both-theme patient accessibility, role guards, mocked and real offline replay, check-in delivery/reply, PDF downloads in both portals, and caregiver print visibility. PDF extraction and visual rendering confirmed readable report pages and a one-page emergency card for the representative fixture. Review evidence: `docs/reviews/T109-T112.md`.
+
+T112 fixes found during the screen/demo sweep:
+- Walkthrough dismissal now closes immediately; dialogs trap keyboard focus, close with Escape and restore focus.
+- Keyboard/screen-reader SOS uses explicit confirmation; pointer long-press remains available.
+- Primary buttons use matching theme text colors; patient game instructions and action hints use locale keys; family/place image alternatives are meaningful.
+- Large-font narrow screens use one-column cards and two-column game boards; Tea Garden targets remain visible; fixed navigation and floating help buttons have physical 64px targets with reserved space.
+- Offline status occupies its own header row, keeping Back/Talk usable; break text fits the small screen.
+- Patient orientation reads include the metadata store in the transaction, preserving cached orientation.
+- Caregiver patient pagination is normalized across pages, fixing the real portal's false empty state. Role-guard tests now use the current portal headings and realistic API fixtures.
+- Phase 3 demo instructions now describe the actual three-session / response-time threshold; phase 3/5/6 outcomes are replayed by existing domain suites and new demo tests, including assignment revocation and TOTP enforcement.
+
 ## Assumptions made (review with mentor)
+- T109 compares adjacent seven-day windows: response time needs three completed non-guest sessions per game in each window and a 30% increase; engagement needs at least four prior sessions and a fall of at least half. Email retains urgent-only delivery.
 - T106 uses the existing `share_mood_with_doctor` consent flag for both sleep and mood; there is no separate sleep-sharing flag in the specified data model.
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
 - Assamese and Bengali catalogs mirror the English keys with `TODO:` values until translated content is supplied.
@@ -83,6 +101,9 @@ T105–T108 verification: backend Ruff and 137 PostgreSQL tests passed; migratio
 - SOS uses one open patient alert whose evidence lists every active caregiver recipient; each emergency event remains separately idempotent and auditable.
 
 ## Known issues / tech debt
+- Strict backend mypy is not clean: the repository lacks Django/DRF typing stubs and contains existing untyped endpoint/service code. Required task verification passes; typing cleanup remains separate.
+- Very large medication/contact records can expand an emergency card beyond one page; representative records fit one readable page without truncating essentials.
+- WeasyPrint currently warns about its legacy dictionary URL-fetcher response; generated embedded charts and PDFs pass verification.
 - Pin container and language dependency versions with lock files as the backend/frontend toolchains are completed in later foundation tasks.
 - React Router remains on the project-mandated v6 line; npm reports two moderate advisories whose available fix upgrades to v7, so migration should be handled as a separate compatibility task.
 - Replace the placeholder SVG PWA artwork with final install icons before release.
@@ -91,5 +112,5 @@ T105–T108 verification: backend Ruff and 137 PostgreSQL tests passed; migratio
 - The local database may retain the removed pre-commit T021 prototype reminder table; it is unreferenced and fresh installations do not create it.
 
 ## Next up
-- T109: remaining alert rules and notification preferences; then T110–T112.
+- All Phase 10 cards through T112 are complete. Mentor acceptance and publication readiness are next; older backlog entries remain as recorded before this task.
 - Run the local website with `make local`. Authentic regional content and native-language editorial review remain publication requirements.

@@ -1,8 +1,38 @@
 import { expect, test, type Page } from "@playwright/test";
 
+test.use({ serviceWorkers: "block" });
+
 const DEMO_PASSWORD = "SmaranaDemo123!";
 
 async function useSeededAuth(page: Page): Promise<void> {
+  await page.route("**/api/v1/patients/", (route) =>
+    route.fulfill({
+      json: {
+        results: [
+          {
+            id: "test-patient",
+            name: "Rao",
+            is_primary: true,
+            last_active_at: null,
+            pending_on_device: false,
+          },
+        ],
+      },
+    }),
+  );
+  await page.route("**/adherence/?days=7", (route) =>
+    route.fulfill({ json: { days: [], summary: {} } }),
+  );
+  await page.route("**/api/v1/doctor/dashboard/", (route) =>
+    route.fulfill({
+      json: {
+        patients: [],
+        needs_attention: [],
+        reviews_due: [],
+        recent_completed: [],
+      },
+    }),
+  );
   await page.route("**/api/v1/auth/login/", async (route) => {
     const body = route.request().postDataJSON() as {
       email_or_phone: string;
@@ -56,9 +86,9 @@ test("seeded caregiver logs in and cannot open the doctor layout", async ({
 }) => {
   await login(page, "caregiver", "priya@example.com");
 
-  await expect(page).toHaveURL(/\/caregiver$/);
+  await expect(page).toHaveURL(/\/caregiver\/test-patient\/today$/);
   await expect(
-    page.getByRole("heading", { name: "Caregiver dashboard" }),
+    page.getByRole("heading", { name: "Rao", exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Priya")).toBeVisible();
 
@@ -75,7 +105,7 @@ test("seeded doctor logs in and sees the doctor layout", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/doctor$/);
   await expect(
-    page.getByRole("heading", { name: "Doctor dashboard" }),
+    page.getByRole("heading", { name: "Patients", exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Dr. Deka")).toBeVisible();
 });

@@ -92,7 +92,7 @@ export class DexiePatientRepository implements PatientRepository {
             { method: "GET" },
           ),
         );
-        await db.transaction("rw", db.profile, db.familyMembers, async () => {
+        await db.transaction("rw", db.profile, db.familyMembers, db.meta, async () => {
           await db.profile.put({
             id: patient.id,
             name: patient.name,

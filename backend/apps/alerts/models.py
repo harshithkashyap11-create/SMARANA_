@@ -24,6 +24,7 @@ class Alert(UUIDModel, TimeStamped):
         DEVICE_OFFLINE_3D = "device_offline_3d", "Device offline for three days"
         PRESCRIPTION_UPDATED = "prescription_updated", "Prescription updated"
         PIN_RESET_REQUEST = "pin_reset_request", "PIN reset request"
+        CHECKIN_HELP = "checkin_help", "Check-in help requested"
         SYNC_ERROR = "sync_error", "Device sharing error"
 
     class Severity(models.TextChoices):
@@ -101,3 +102,30 @@ class SosEvent(OfflineCapable):
 
     class Meta:
         ordering = ["-triggered_at", "id"]
+
+
+class NotificationPreference(UUIDModel, TimeStamped):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    channel = models.CharField(
+        max_length=16, choices=[(x, x) for x in ["in_app", "email", "push", "sms"]]
+    )
+    rule_key = models.CharField(max_length=32, choices=Alert.RuleKey.choices)
+    enabled = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "channel", "rule_key"], name="unique_user_channel_rule_preference"
+            )
+        ]
+
+
+class CheckIn(UUIDModel, TimeStamped):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="checkins")
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+
+
+class CheckInResponse(OfflineCapable):
+    checkin = models.OneToOneField(CheckIn, on_delete=models.CASCADE, related_name="response")
+    answer = models.CharField(max_length=16, choices=[("okay", "Okay"), ("need_help", "Need help")])
+    responded_at = models.DateTimeField()

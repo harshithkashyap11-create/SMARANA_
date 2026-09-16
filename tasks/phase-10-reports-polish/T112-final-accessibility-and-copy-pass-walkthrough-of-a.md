@@ -19,7 +19,7 @@ Run the checklist on every patient screen at 360px and font scale 1.6 in both th
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] axe passes with no serious violations; all demo scripts pass.
+- [x] axe passes with no serious violations; all demo scripts pass.
 
 ## Verification
 ```
@@ -27,5 +27,7 @@ cd frontend && npx playwright test e2e/a11y.spec.ts
 ```
 
 ## Done checklist
-- [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/review-task` verdict READY
+- [x] `/finish-task` run (PROGRESS.md updated, committed)
+
+Evidence and review: `docs/reviews/T109-T112.md`.

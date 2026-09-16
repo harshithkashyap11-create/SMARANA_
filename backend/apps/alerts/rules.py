@@ -169,3 +169,77 @@ RULES = (no_login_2d, missed_meds_3in7, level_drop_x3, device_offline_3d, sync_e
 
 def evaluate(patient: PatientProfile, now: datetime) -> list[AlertDraft]:
     return [draft for rule in RULES if (draft := rule(patient, now)) is not None]
+
+
+def reaction_time_worsening(patient: PatientProfile, now: datetime) -> AlertDraft | None:
+    """Compare same-game completed samples in two adjacent seven-day windows."""
+    from statistics import mean
+
+    from apps.games.models import GameSession
+
+    start, split = now - timedelta(days=14), now - timedelta(days=7)
+    grouped = {}
+    for row in GameSession.objects.filter(
+        patient=patient, guest_mode=False, ended_at__gte=start, ended_at__lte=now
+    ).select_related("game"):
+        value = row.metrics.get("mean_reaction_ms")
+        if not row.metrics.get("completed") or not isinstance(value, (int, float)) or value <= 0:
+            continue
+        old, recent = grouped.setdefault(row.game_id, ([], []))
+        (old if row.ended_at < split else recent).append(row)
+    evidence = []
+    for old, recent in grouped.values():
+        if len(old) < 3 or len(recent) < 3:
+            continue
+        baseline = mean(x.metrics["mean_reaction_ms"] for x in old)
+        current = mean(x.metrics["mean_reaction_ms"] for x in recent)
+        if current >= baseline * 1.3:
+            evidence.append(
+                {
+                    "game": recent[0].game.name,
+                    "baseline_ms": baseline,
+                    "recent_ms": current,
+                    "session_ids": [str(x.id) for x in old + recent],
+                }
+            )
+    if not evidence:
+        return None
+    return AlertDraft(
+        Alert.RuleKey.REACTION_TIME_WORSENING,
+        Alert.Severity.ATTENTION,
+        "Responses took longer this week",
+        "Mean response time increased by at least 30% for the same game across two "
+        "seven-day periods, with at least three completed sessions in each. "
+        "This is engagement and tracking support, not a diagnosis.",
+        {"games": evidence},
+    )
+
+
+def engagement_drop(patient: PatientProfile, now: datetime) -> AlertDraft | None:
+    from apps.games.models import GameSession
+
+    rows = GameSession.objects.filter(
+        patient=patient, guest_mode=False, ended_at__gte=now - timedelta(days=14), ended_at__lte=now
+    )
+    split = now - timedelta(days=7)
+    old = rows.filter(ended_at__lt=split).count()
+    recent = rows.filter(ended_at__gte=split).count()
+    if old < 4 or recent > old / 2:
+        return None
+    return AlertDraft(
+        Alert.RuleKey.ENGAGEMENT_DROP,
+        Alert.Severity.ATTENTION,
+        "Fewer activities this week",
+        f"There were {recent} game sessions in the last seven days compared with {old} "
+        "in the preceding seven days: a drop of at least 50%, from at least four sessions. "
+        "Practice sessions are excluded.",
+        {
+            "previous_sessions": old,
+            "recent_sessions": recent,
+            "from": (now - timedelta(days=14)).isoformat(),
+            "to": now.isoformat(),
+        },
+    )
+
+
+RULES = (*RULES, reaction_time_worsening, engagement_drop)

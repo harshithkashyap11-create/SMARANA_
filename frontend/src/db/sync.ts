@@ -65,6 +65,22 @@ export async function applyPull(
               deviceUpdatedAt: String(row.device_updated_at),
             });
       }
+      const checkins = JSON.parse((await getMeta("checkins")) ?? "[]") as Array<
+        Record<string, unknown>
+      >;
+      for (const row of records.checkins ?? []) {
+        const index = checkins.findIndex((x) => x.id === row.id);
+        if (index < 0) checkins.push(row);
+        else {
+          const pending = await db.outbox
+            .where("model")
+            .equals("checkin_response")
+            .filter((x) => x.payload.checkin === row.id)
+            .first();
+          if (!pending) checkins[index] = row;
+        }
+      }
+      await setMeta("checkins", JSON.stringify(checkins));
       const pendingReminderIds = new Set(
         (
           await db.outbox.where("model").equals("reminder_response").toArray()

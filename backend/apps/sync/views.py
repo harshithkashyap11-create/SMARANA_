@@ -27,6 +27,7 @@ SYNC_MODELS = {
     "sos_event",
     "sleep_log",
     "mood_log",
+    "checkin_response",
 }
 
 
@@ -145,7 +146,11 @@ class PushView(APIView):
                     raise ValueError("Object belongs to another patient")
                 # Append-only replay must never recompute DDA or replace server records.
                 return
-        if model in ("sleep_log", "mood_log"):
+        if model == "checkin_response":
+            from apps.alerts.services import respond_checkin
+
+            respond_checkin(patient, user, p)
+        elif model in ("sleep_log", "mood_log"):
             from apps.routines.models import MoodLog, SleepLog
             from apps.routines.serializers import MoodLogSerializer, SleepLogSerializer
             from apps.routines.wellness import save_log

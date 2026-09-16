@@ -19,7 +19,7 @@ Downloadable PDF covering profile, period, sessions, domain trends (rendered cha
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] Tests: PDF generated with expected sections (text extraction); caregiver variant lacks doctor_only text; audit row.
+- [x] Tests: PDF generated with expected sections (text extraction); caregiver variant lacks doctor_only text; audit row.
 
 ## Verification
 ```
@@ -27,5 +27,7 @@ cd backend && ruff check . && pytest -q
 ```
 
 ## Done checklist
-- [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/review-task` verdict READY
+- [x] `/finish-task` run (PROGRESS.md updated, committed)
+
+Evidence and review: `docs/reviews/T109-T112.md`.

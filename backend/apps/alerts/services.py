@@ -10,7 +10,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from apps.accounts.models import User
-from apps.alerts.models import Alert, SosEvent
+from apps.alerts.models import Alert, CheckIn, CheckInResponse, NotificationPreference, SosEvent
 from apps.audit.services import audit
 from apps.patients.models import PatientProfile
 
@@ -146,3 +146,55 @@ def create_sos(
     event.notified.append({"alert_id": str(alert.id)})
     event.save(update_fields=["notified", "updated_at"])
     return event, True
+
+
+@transaction.atomic
+def respond_checkin(
+    patient: PatientProfile, actor: User, payload: dict[str, Any]
+) -> CheckInResponse:
+    from apps.alerts.serializers import CheckInResponseSerializer
+
+    serializer = CheckInResponseSerializer(data=payload)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+    checkin = CheckIn.objects.select_for_update().get(id=data["checkin"].id, patient=patient)
+    existing = CheckInResponse.objects.filter(id=data["id"]).first()
+    if existing and existing.checkin_id != checkin.id:
+        raise ValidationError("That response belongs to another check-in.")
+    if CheckInResponse.objects.filter(checkin=checkin).exists():
+        return CheckInResponse.objects.get(checkin=checkin)
+    response = serializer.save(idempotency_key=str(data["id"]))
+    checkin.save(update_fields=["updated_at"])
+    audit(actor, "checkin.response", response, patient=patient, changes={"answer": response.answer})
+    if response.answer == "need_help":
+        raise_alert(
+            patient=patient,
+            rule_key=Alert.RuleKey.CHECKIN_HELP,
+            severity=Alert.Severity.ATTENTION,
+            title="Help requested after check-in",
+            explanation="The patient selected ‘I need help’ in a caregiver check-in.",
+            evidence={"checkin_id": str(checkin.id)},
+        )
+    return response
+
+
+@transaction.atomic
+def request_checkin(patient: PatientProfile, actor: User) -> CheckIn:
+    patient = PatientProfile.objects.select_for_update().get(id=patient.id)
+    existing = CheckIn.objects.filter(patient=patient, response__isnull=True).first()
+    if existing is not None:
+        return existing
+    row = CheckIn.objects.create(patient=patient, requested_by=actor)
+    audit(actor, "checkin.request", row, patient=patient)
+    return row
+
+
+def save_notification_preference(actor: User, data: dict[str, Any]) -> NotificationPreference:
+    row, _ = NotificationPreference.objects.update_or_create(
+        user=actor,
+        channel=data["channel"],
+        rule_key=data["rule_key"],
+        defaults={"enabled": data.get("enabled", True)},
+    )
+    audit(actor, "notification.preference", row, changes=data)
+    return row

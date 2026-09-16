@@ -21,7 +21,7 @@ class ClinicalBaselineSerializer(serializers.ModelSerializer[ClinicalBaseline]):
     class Meta:
         model = ClinicalBaseline
         fields = [
-            "id", "diagnoses", "assessment_scores", "visual_limits", "motor_limits",
+            "id", "allergies", "diagnoses", "assessment_scores", "visual_limits", "motor_limits",
             "ideal_session_minutes", "max_difficulty_level", "recorded_by_name", "updated_at",
         ]
         read_only_fields = ["id", "recorded_by_name", "updated_at"]

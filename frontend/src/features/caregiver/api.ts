@@ -7,7 +7,11 @@ export type PatientCard = {
   last_active_at: string | null;
   pending_on_device: boolean;
 };
-export type PatientProfile = { region: string; cultural_notes: string; language: string };
+export type PatientProfile = {
+  region: string;
+  cultural_notes: string;
+  language: string;
+};
 
 export type RoutineItem = {
   id: string;
@@ -86,7 +90,22 @@ export type CareNote = {
 
 const base = "/api/v1/patients";
 export const caregiverApi = {
-  patients: () => apiClient<PatientCard[]>(`${base}/`, { method: "GET" }),
+  patients: async (): Promise<PatientCard[]> => {
+    const patients: PatientCard[] = [];
+    let path: string | null = `${base}/`;
+    while (path) {
+      const page:
+        PatientCard[] | { results: PatientCard[]; next: string | null } =
+        await apiClient(path, { method: "GET" });
+      if (Array.isArray(page)) return [...patients, ...page];
+      patients.push(...page.results);
+      const next: URL | null = page.next
+        ? new URL(page.next, window.location.origin)
+        : null;
+      path = next ? `${next.pathname}${next.search}` : null;
+    }
+    return patients;
+  },
   adherence: (patientId: string) =>
     apiClient<Adherence>(`${base}/${patientId}/adherence/?days=7`, {
       method: "GET",
@@ -152,8 +171,16 @@ export const caregiverApi = {
       `${base}/${patientId}/difficulty-changes/`,
       { method: "GET" },
     ),
-  profile: (patientId: string) => apiClient<PatientProfile>(`${base}/${patientId}/profile/`, { method: "GET" }),
-  updateProfile: (patientId: string, payload: PatientProfile) => apiClient<PatientProfile>(`${base}/${patientId}/profile/`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
+  profile: (patientId: string) =>
+    apiClient<PatientProfile>(`${base}/${patientId}/profile/`, {
+      method: "GET",
+    }),
+  updateProfile: (patientId: string, payload: PatientProfile) =>
+    apiClient<PatientProfile>(`${base}/${patientId}/profile/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
   notes: (patientId: string) =>
     apiClient<CareNote[]>(`${base}/${patientId}/notes/`, { method: "GET" }),
   createNote: (patientId: string, text: string) =>
