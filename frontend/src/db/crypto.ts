@@ -15,6 +15,8 @@ interface StoredSecrets {
   user: UserSummary;
 }
 
+let activeOfflineKey: CryptoKey | null = null;
+
 export interface OfflineUnlock {
   refreshToken: string;
   user: UserSummary;
@@ -59,6 +61,7 @@ export async function storeOfflineSecrets(
   const verifierIv = crypto.getRandomValues(new Uint8Array(12));
   const tokenIv = crypto.getRandomValues(new Uint8Array(12));
   const key = await deriveKey(pin, salt);
+  activeOfflineKey = key;
   const verifier = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: verifierIv },
     key,
@@ -101,10 +104,30 @@ export async function unlockOffline(
       key,
       bytes(encrypted) as BufferSource,
     );
+    activeOfflineKey = key;
     return { refreshToken: decoder.decode(token), user: data.user };
   } catch {
     return null;
   }
+}
+
+export async function updateEncryptedRefreshToken(
+  refreshToken: string,
+): Promise<void> {
+  const raw = await getMeta("pinVerifier");
+  if (!raw || !activeOfflineKey) return;
+  const data = JSON.parse(raw) as StoredSecrets;
+  const tokenIv = crypto.getRandomValues(new Uint8Array(12));
+  const encryptedToken = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: tokenIv },
+    activeOfflineKey,
+    encoder.encode(refreshToken),
+  );
+  await setMeta(
+    "pinVerifier",
+    JSON.stringify({ ...data, tokenIv: b64(tokenIv) }),
+  );
+  await setMeta("refreshTokenEncrypted", b64(encryptedToken));
 }
 
 export async function offlineLockedUntil(
@@ -135,6 +158,7 @@ export async function clearOfflineFailures(): Promise<void> {
 }
 
 export async function clearOfflineSecrets(): Promise<void> {
+  activeOfflineKey = null;
   await db.meta.bulkDelete([
     "pinVerifier",
     "refreshTokenEncrypted",

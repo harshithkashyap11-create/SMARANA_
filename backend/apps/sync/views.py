@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import DeviceSession, User
+from apps.games.models import DifficultyState
 from apps.games.services import save_session
 from apps.memories.models import Memory, MemoryQuizAttempt
 from apps.routines.models import Reminder, ReminderResponse, RoutineItem
@@ -86,6 +87,13 @@ class PushView(APIView):
                     self._save(model, payload, patient, request.user)
                 except Exception:
                     record.delete()
+                    SyncRejection.objects.create(
+                        user=request.user,
+                        patient_id=patient.id,
+                        model=model,
+                        code="validation",
+                        detail="Rejected client item",
+                    )
                     rejected.append(
                         {
                             "outbox_id": outbox_id,
@@ -95,22 +103,30 @@ class PushView(APIView):
                     )
                     continue
             accepted.append({"outbox_id": outbox_id, "object_id": str(record.object_id)})
-        DeviceSession.objects.filter(user=request.user).update(last_seen_at=timezone.now())
+        DeviceSession.objects.filter(user=request.user).update(
+            last_seen_at=timezone.now(),
+            last_push_had_rejections=bool(rejected),
+        )
         return Response(
             {"accepted": accepted, "rejected": rejected, "server_time": timezone.now().isoformat()}
         )
 
     def _save(self, model, p, patient, user):
         if model == "reminder_response":
+            reminder = Reminder.objects.get(id=p["reminder_id"], patient=patient)
             ReminderResponse.objects.get_or_create(
                 id=p["id"],
                 defaults={
-                    "reminder": Reminder.objects.get(id=p["reminder_id"], patient=patient),
+                    "reminder": reminder,
                     "action": p["action"],
                     "responded_at": parse_datetime(p["responded_at"]),
                     "idempotency_key": p["id"],
                 },
             )
+            latest = reminder.responses.order_by("-responded_at", "-created_at").first()
+            if latest is not None and reminder.status != latest.action:
+                reminder.status = latest.action
+                reminder.save(update_fields=["status", "updated_at"])
         elif model == "game_session":
             save_session(
                 patient,
@@ -152,6 +168,20 @@ class PushView(APIView):
                     "created_by": user,
                 },
             )
+        elif model == "difficulty_state":
+            state = DifficultyState.objects.filter(
+                patient=patient, game__key=p["game_key"]
+            ).first()
+            if state is not None and state.level != p.get("level"):
+                import logging
+
+                logging.getLogger(__name__).warning(
+                    "dda_mismatch patient=%s game=%s client=%s server=%s",
+                    patient.id,
+                    p["game_key"],
+                    p.get("level"),
+                    state.level,
+                )
 
 
 class PullView(APIView):
@@ -162,9 +192,41 @@ class PullView(APIView):
             return Response({"detail": "Patient device required."}, status=403)
         patient = request.user.patient_profile
         until = timezone.now() + timedelta(days=3)
-        reminders = Reminder.objects.filter(patient=patient, scheduled_at__lte=until).values(
-            "id", "scheduled_at", "status", "snoozed_until"
-        )
+        reminders = Reminder.objects.filter(
+            patient=patient, scheduled_at__lte=until
+        ).select_related("routine_item")
+        difficulty_states = DifficultyState.objects.filter(patient=patient).select_related("game")
+        reminder_records = [
+            {
+                "id": row.id,
+                "title": row.routine_item.title,
+                "category": row.routine_item.category,
+                "note": row.routine_item.note,
+                "scheduled_at": row.scheduled_at,
+                "status": row.status,
+                "snoozed_until": row.snoozed_until,
+            }
+            for row in reminders
+        ]
+        difficulty_records = [
+            {
+                "id": f"{patient.id}:{row.game.key}",
+                "game_key": row.game.key,
+                "level": row.level,
+                "window": row.window,
+                "locked_by_doctor": row.locked_by_doctor,
+                "cap_level": row.cap_level,
+                "min_level": row.game.min_level,
+                "max_level": row.game.max_level,
+            }
+            for row in difficulty_states
+        ]
         return Response(
-            {"server_time": timezone.now().isoformat(), "records": {"reminders": list(reminders)}}
+            {
+                "server_time": timezone.now().isoformat(),
+                "records": {
+                    "reminders": reminder_records,
+                    "difficulty_states": difficulty_records,
+                },
+            }
         )

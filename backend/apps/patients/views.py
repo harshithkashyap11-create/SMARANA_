@@ -301,16 +301,20 @@ class PatientViewSet(ReadOnlyModelViewSet):
                 patient=patient,
                 fields=dict(serializer.validated_data),
             )
-            return Response(
-                MedicationSerializer(medication).data, status=status.HTTP_201_CREATED
-            )
+            return Response(MedicationSerializer(medication).data, status=status.HTTP_201_CREATED)
         queryset = Medication.objects.filter(patient=patient, active=True)
         return Response(MedicationSerializer(queryset, many=True).data)
 
-    @action(detail=True, methods=["patch"], url_path="profile")
+    @action(detail=True, methods=["get", "patch"], url_path="profile")
     def profile(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         del args, kwargs
         patient = self.get_object()
+        if request.method == "GET":
+            if request.user.role == User.Role.CAREGIVER:
+                self._require_primary_caregiver(patient)
+            elif request.user.role != User.Role.PATIENT:
+                raise PermissionDenied("This profile cannot be viewed by this role.")
+            return Response(PatientProfileCaregiverSerializer(patient).data)
         if request.user.role == User.Role.CAREGIVER:
             self._require_primary_caregiver(patient)
             serializer_class = PatientProfileCaregiverSerializer

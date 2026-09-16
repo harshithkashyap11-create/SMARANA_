@@ -16,8 +16,9 @@ export function GamePage() {
     content: ContentPack;
   } | null>(null);
   useEffect(() => {
-    void Promise.all([listGames(), currentPatient(), loadContentPack()]).then(
-      ([items, patient, content]) => {
+    void Promise.all([listGames(), currentPatient()]).then(
+      async ([items, patient]) => {
+        const content = await loadContentPack(patient.region, patient.language);
         const game = items.find((item) => item.key === gameKey);
         if (game)
           setData({

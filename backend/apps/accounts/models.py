@@ -94,6 +94,7 @@ class DeviceSession(UUIDModel, TimeStamped):
     device_id = models.CharField(max_length=255)
     refresh_token_jti = models.CharField(max_length=255, unique=True)
     last_seen_at = models.DateTimeField()
+    last_push_had_rejections = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-last_seen_at", "id"]

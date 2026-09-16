@@ -14,6 +14,10 @@ import type {
   UserSummary,
 } from "../../api/generated/models";
 import { setApiAccessToken, setApiRefreshHandler } from "../../api/client";
+import {
+  clearOfflineSecrets,
+  updateEncryptedRefreshToken,
+} from "../../db/crypto";
 
 let refreshToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
@@ -62,11 +66,15 @@ async function refreshAccessToken(): Promise<string | null> {
       );
       if (refreshToken !== token) return null;
       refreshToken = rotated.refresh;
+      await updateEncryptedRefreshToken(rotated.refresh);
       setApiAccessToken(rotated.access);
       useAuthStore.setState({ accessToken: rotated.access });
       return rotated.access;
     } catch {
-      if (refreshToken === token) clearSession();
+      if (refreshToken === token) {
+        clearSession();
+        await clearOfflineSecrets();
+      }
       return null;
     } finally {
       refreshPromise = null;
@@ -106,7 +114,6 @@ export const useAuthStore = create<AuthState>(() => ({
     const token = refreshToken;
     const access = useAuthStore.getState().accessToken;
     clearSession();
-    const { clearOfflineSecrets } = await import("../../db/crypto");
     await clearOfflineSecrets();
     if (!token || !access) return;
 

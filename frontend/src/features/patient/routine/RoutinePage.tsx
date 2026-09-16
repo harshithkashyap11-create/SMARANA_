@@ -17,10 +17,12 @@ export function RoutinePage({
   const { t } = useTranslation();
   const [items, setItems] = useState<Reminder[]>([]);
   const [undo, setUndo] = useState<Reminder | null>(null);
+  const [saved, setSaved] = useState(false);
   useEffect(() => {
     void repo.getToday().then(setItems);
   }, [repo]);
   const respond = (item: Reminder, action: ReminderAction) => {
+    setSaved(true);
     if (action === "taken") {
       setUndo(item);
       window.setTimeout(() => setUndo(null), 8000);
@@ -51,7 +53,7 @@ export function RoutinePage({
           role="status"
           className="fixed bottom-24 left-4 right-4 mx-auto flex max-w-md items-center justify-between rounded-card bg-text p-4 text-surface"
         >
-          <span>{t("routine.takenDone")}</span>
+          <span>{t("routine.savedOnDevice")}</span>
           <button
             className="min-h-touch px-4 font-bold"
             onClick={() => {
@@ -63,6 +65,11 @@ export function RoutinePage({
           </button>
         </div>
       )}
+      {saved && !undo ? (
+        <p className="text-center text-sm text-muted" role="status">
+          {t("routine.savedOnDevice")}
+        </p>
+      ) : null}
     </section>
   );
 }

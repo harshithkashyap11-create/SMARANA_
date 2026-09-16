@@ -110,11 +110,11 @@ Ordered list of every task card. Work top to bottom unless the mentor reorders. 
 
 ## Phase 9 — Regional content
 
-- [ ] **T090** Region, Language, ContentItem models + Django Admin curation with review workflow — M (after T060)
-- [ ] **T091** Content pack endpoint (versioned, cacheable) and client loader — M (after T090, T072)
-- [ ] **T092** Games consume regional packs; Familiar Place Recall uses known_places — M (after T091, T038)
-- [ ] **T093** Patient setup: region, language, cultural background selection (caregiver + first-run) — S (after T091, T020)
-- [ ] **T094** Seed two complete state packs (Assam, Meghalaya) and scaffolds for six — M (after T090)
+- [x] **T090** Region, Language, ContentItem models + Django Admin curation with review workflow — M (after T060)
+- [x] **T091** Content pack endpoint (versioned, cacheable) and client loader — M (after T090, T072)
+- [x] **T092** Games consume regional packs; Familiar Place Recall uses known_places — M (after T091, T038)
+- [x] **T093** Patient setup: region, language, cultural background selection (caregiver + first-run) — S (after T091, T020)
+- [x] **T094** Seed two complete state packs (Assam, Meghalaya) and scaffolds for six — M (after T090)
 
 ## Phase 10 — Reports, polish, remaining games
 

@@ -112,8 +112,14 @@ jobs:
       - name: Check locale catalogs
         run: npm run i18n:check
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package-lock.json') }}
+
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Test offline app shell
+      - name: Test offline roundtrip
         run: npx playwright test e2e/offline.spec.ts

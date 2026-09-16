@@ -37,6 +37,17 @@ provider: VoiceProvider = DisabledProvider()
 
 def safe_route(utterance: str, language: str) -> ProviderResult | None:
     result = provider.route(utterance[:500], language)
-    if result is None or result.intent not in ALLOWED_INTENTS or result.confidence < 0.7:
+    if (
+        result is None
+        or result.intent not in ALLOWED_INTENTS
+        or not isinstance(result.confidence, (int, float))
+        or result.confidence < 0.7
+        or result.confidence > 1
+        or not isinstance(result.slots, dict)
+        or not all(
+            isinstance(key, str) and isinstance(value, str)
+            for key, value in result.slots.items()
+        )
+    ):
         return None
     return result

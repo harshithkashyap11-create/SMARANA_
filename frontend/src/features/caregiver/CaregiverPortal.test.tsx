@@ -6,7 +6,7 @@ import { renderWithProviders } from "../../test/utils";
 import { CaregiverPortal } from "./CaregiverPortal";
 import { ScheduleTab } from "./schedule/ScheduleTab";
 
-const patient = { id: "p1", name: "Rao", is_primary: true, last_active_at: "2026-09-14T08:00:00Z" };
+const patient = { id: "p1", name: "Rao", is_primary: true, last_active_at: "2026-09-14T08:00:00Z", pending_on_device: true };
 const json = (body: unknown, status = 200) => Promise.resolve(new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } }));
 
 beforeEach(() => {
@@ -25,6 +25,7 @@ test("switching patient updates the URL and today shows status chips", async () 
   renderWithProviders(<Routes><Route path="/caregiver/:patientId/:tab" element={<><CaregiverPortal /><Location /></>} /></Routes>, { route: "/caregiver/p1/today" });
   expect(await screen.findByText("Morning tablet")).toBeInTheDocument();
   expect(screen.getByText("taken")).toBeInTheDocument();
+  expect(screen.getByText("Pending on device: Yes")).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText("Patient"), { target: { value: "p2" } });
   expect(await screen.findByText("/caregiver/p2/today")).toBeInTheDocument();
 });

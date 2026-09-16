@@ -67,3 +67,21 @@ def test_push_rejects_unknown_models(api, care_scenario) -> None:
 
     assert response.status_code == 200
     assert response.data["rejected"][0]["code"] == "validation"
+
+
+def test_invalid_payload_is_dead_lettered_for_the_sync_error_alert(api, care_scenario) -> None:
+    patient = care_scenario["patient"]
+    api.force_authenticate(patient.user)
+    item = _item(str(patient.id))
+    item["payload"].pop("title")
+
+    response = api.post("/api/v1/sync/push/", {"items": [item]}, format="json")
+
+    assert response.status_code == 200
+    assert response.data["rejected"][0]["code"] == "validation"
+    assert SyncRejection.objects.filter(
+        user=patient.user,
+        patient_id=patient.id,
+        model="routine_item",
+        code="validation",
+    ).exists()

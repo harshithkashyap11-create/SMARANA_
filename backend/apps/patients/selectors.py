@@ -3,7 +3,7 @@
 from django.db.models import BooleanField, Count, Exists, Max, OuterRef, Q, Subquery
 from django.db.models.query import QuerySet
 
-from apps.accounts.models import User
+from apps.accounts.models import DeviceSession, User
 from apps.patients.models import CareAssignment, PatientProfile
 
 
@@ -13,10 +13,16 @@ def patients_for(user: User) -> QuerySet[PatientProfile]:
     primary_caregiver = CareAssignment.objects.filter(
         patient=OuterRef("pk"), active=True, is_primary=True
     ).values("caregiver__display_name")[:1]
+    latest_device = DeviceSession.objects.filter(user=OuterRef("user_id")).order_by(
+        "-last_seen_at"
+    )
     queryset = PatientProfile.objects.select_related("user").annotate(
         last_active_at=Max("user__device_sessions__last_seen_at"),
         open_alert_count=Count("alerts", filter=Q(alerts__status="open"), distinct=True),
         primary_caregiver_name=Subquery(primary_caregiver),
+        last_push_had_rejections=Subquery(
+            latest_device.values("last_push_had_rejections")[:1]
+        ),
         is_primary=Exists(
             CareAssignment.objects.filter(
                 patient=OuterRef("pk"), caregiver=user, active=True, is_primary=True

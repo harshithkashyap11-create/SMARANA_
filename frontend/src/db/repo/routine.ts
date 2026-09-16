@@ -5,7 +5,7 @@ import {
   type CachedReminder,
   type CachedReminderResponse,
 } from "../schema";
-import { createOutboxEntry } from "../outbox";
+import { createOutboxEntry, isFakeOffline } from "../outbox";
 
 export type ReminderAction = "taken" | "later" | "skipped" | "help";
 export type Reminder = Omit<CachedReminder, "patientId">;
@@ -35,26 +35,44 @@ export class DexieRoutineRepository implements RoutineRepository {
   async getToday(): Promise<Reminder[]> {
     const id = await patientId();
     const date = new Date().toISOString().slice(0, 10);
-    const items = await apiClient<Reminder[]>(
-      `/api/v1/patients/${id}/reminders/?date=${date}`,
-      { method: "GET" },
-    );
-    await db.reminders.bulkPut(
-      items.map((item) => ({ ...item, patientId: id })),
-    );
-    return items;
+    const cached = await db.reminders
+      .where("patientId")
+      .equals(id)
+      .filter((item) => item.scheduled_at.startsWith(date))
+      .toArray();
+    if (isFakeOffline() || !navigator.onLine) return cached;
+    try {
+      const items = await apiClient<Reminder[]>(
+        `/api/v1/patients/${id}/reminders/?date=${date}`,
+        { method: "GET" },
+      );
+      await db.reminders.bulkPut(
+        items.map((item) => ({ ...item, patientId: id })),
+      );
+      return items;
+    } catch (error) {
+      if (cached.length) return cached;
+      throw error;
+    }
   }
 
   async getMedications(): Promise<Medication[]> {
     const id = await patientId();
-    const items = await apiClient<Medication[]>(
-      `/api/v1/patients/${id}/medications/`,
-      { method: "GET" },
-    );
-    await db.medications.bulkPut(
-      items.map((item) => ({ ...item, patientId: id })),
-    );
-    return items;
+    const cached = await db.medications.where("patientId").equals(id).toArray();
+    if (isFakeOffline() || !navigator.onLine) return cached;
+    try {
+      const items = await apiClient<Medication[]>(
+        `/api/v1/patients/${id}/medications/`,
+        { method: "GET" },
+      );
+      await db.medications.bulkPut(
+        items.map((item) => ({ ...item, patientId: id })),
+      );
+      return items;
+    } catch (error) {
+      if (cached.length) return cached;
+      throw error;
+    }
   }
 
   async respond(reminderId: string, action: ReminderAction): Promise<void> {

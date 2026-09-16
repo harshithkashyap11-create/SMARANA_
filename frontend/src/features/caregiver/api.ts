@@ -5,7 +5,9 @@ export type PatientCard = {
   name: string;
   is_primary: boolean;
   last_active_at: string | null;
+  pending_on_device: boolean;
 };
+export type PatientProfile = { region: string; cultural_notes: string; language: string };
 
 export type RoutineItem = {
   id: string;
@@ -150,6 +152,8 @@ export const caregiverApi = {
       `${base}/${patientId}/difficulty-changes/`,
       { method: "GET" },
     ),
+  profile: (patientId: string) => apiClient<PatientProfile>(`${base}/${patientId}/profile/`, { method: "GET" }),
+  updateProfile: (patientId: string, payload: PatientProfile) => apiClient<PatientProfile>(`${base}/${patientId}/profile/`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
   notes: (patientId: string) =>
     apiClient<CareNote[]>(`${base}/${patientId}/notes/`, { method: "GET" }),
   createNote: (patientId: string, text: string) =>

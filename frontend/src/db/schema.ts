@@ -101,6 +101,14 @@ export interface CachedGameSession {
   endedAt: string;
   synced: boolean;
 }
+export interface CachedGameDefinition {
+  key: string;
+  name: string;
+  cognitive_domains: string[];
+  min_level: number;
+  max_level: number;
+  is_regional: boolean;
+}
 export interface CachedDifficultyState {
   id: string;
   patientId: string;
@@ -132,6 +140,7 @@ class SmaranaDatabase extends Dexie {
   medications!: EntityTable<CachedMedication, "id">;
   memories!: EntityTable<CachedMemory, "id">;
   quizAttempts!: EntityTable<CachedQuizAttempt, "id">;
+  gameDefinitions!: EntityTable<CachedGameDefinition, "key">;
   gameSessions!: EntityTable<CachedGameSession, "id">;
   difficultyStates!: EntityTable<CachedDifficultyState, "id">;
   difficultyChanges!: EntityTable<CachedDifficultyChange, "id">;
@@ -196,6 +205,9 @@ class SmaranaDatabase extends Dexie {
       sleepLogs: "&id, patientId, deviceUpdatedAt", moodLogs: "&id, patientId, deviceUpdatedAt",
       sosEvents: "&id, patientId, deviceUpdatedAt", contentPacks: "&id, patientId",
       outbox: "&id, createdAt, nextAttemptAt, model, objectId", outboxDead: "&id, rejectedAt, model",
+    });
+    this.version(7).stores({
+      gameDefinitions: "&key",
     });
   }
 }

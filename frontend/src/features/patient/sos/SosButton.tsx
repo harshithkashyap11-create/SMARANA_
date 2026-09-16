@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "../../../shared/ui";
 import { sendSos } from "./sosRepository";
@@ -8,6 +8,11 @@ import type { CachedFamilyMember } from "../../../db/schema";
 export function SosButton() {
   const { t } = useTranslation(); const timer = useRef<number>(); const [confirm, setConfirm] = useState(false); const [sent, setSent] = useState(false);
   const [contacts, setContacts] = useState<CachedFamilyMember[]>([]);
+  useEffect(() => {
+    const openConfirmation = () => setConfirm(true);
+    window.addEventListener("smarana:open-sos-confirm", openConfirmation);
+    return () => window.removeEventListener("smarana:open-sos-confirm", openConfirmation);
+  }, []);
   const start = () => { timer.current = window.setTimeout(() => setConfirm(true), 2000); };
   const stop = () => { if (timer.current) window.clearTimeout(timer.current); };
   // T081: voice may open this confirmation, but must never send an SOS directly.

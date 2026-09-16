@@ -7,8 +7,15 @@ from rest_framework.test import APIClient
 
 from apps.accounts.models import DeviceSession
 from apps.alerts.models import Alert
-from apps.alerts.rules import level_drop_x3, missed_meds_3in7, no_login_2d
+from apps.alerts.rules import (
+    device_offline_3d,
+    level_drop_x3,
+    missed_meds_3in7,
+    no_login_2d,
+    sync_error,
+)
 from apps.alerts.services import raise_alert
+from apps.alerts.tasks import evaluate_alert_rules
 from apps.audit.models import AuditEvent
 from apps.games.models import DifficultyChange, DifficultyState, GameDefinition
 from apps.routines.models import Reminder
@@ -20,6 +27,7 @@ from apps.shared.tests.factories import (
     PatientFactory,
     ReminderFactory,
 )
+from apps.sync.models import SyncRejection
 
 pytestmark = pytest.mark.django_db
 
@@ -46,6 +54,52 @@ def test_no_login_boundary_requires_more_than_48_hours() -> None:
     draft = no_login_2d(patient, now)
     assert draft is not None
     assert draft.rule_key == Alert.RuleKey.NO_LOGIN_2D
+
+
+@freeze_time("2026-09-15 02:00:00+05:30")
+def test_device_offline_rule_requires_more_than_three_days_and_names_last_seen() -> None:
+    patient = PatientFactory()
+    now = timezone.now()
+    session = DeviceSession.objects.create(
+        user=patient.user,
+        device_id="phone",
+        refresh_token_jti="offline-jti",
+        last_seen_at=now - timedelta(hours=72),
+    )
+
+    assert device_offline_3d(patient, now) is None
+
+    session.last_seen_at = now - timedelta(hours=72, seconds=1)
+    session.save(update_fields=["last_seen_at"])
+    draft = device_offline_3d(patient, now)
+
+    assert draft is not None
+    assert draft.rule_key == Alert.RuleKey.DEVICE_OFFLINE_3D
+    assert draft.severity == Alert.Severity.ATTENTION
+    assert "last seen at" in draft.explanation
+    assert draft.evidence["last_seen_at"] == session.last_seen_at.isoformat()
+
+
+@freeze_time("2026-09-15 02:00:00+05:30")
+def test_dead_lettered_sync_item_creates_an_info_alert_for_the_care_team() -> None:
+    patient = PatientFactory()
+    SyncRejection.objects.create(
+        user=patient.user,
+        patient_id=patient.id,
+        model="reminder_response",
+        code="validation",
+        detail="Rejected client item",
+    )
+
+    draft = sync_error(patient, timezone.now())
+
+    assert draft is not None
+    assert draft.rule_key == Alert.RuleKey.SYNC_ERROR
+    assert draft.severity == Alert.Severity.INFO
+    assert len(draft.evidence["rejection_ids"]) == 1
+    assert evaluate_alert_rules() == 1
+    alert = Alert.objects.get(patient=patient, rule_key=Alert.RuleKey.SYNC_ERROR)
+    assert alert.severity == Alert.Severity.INFO
 
 
 @freeze_time("2026-09-15 02:00:00+05:30")

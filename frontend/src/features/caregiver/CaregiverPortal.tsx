@@ -6,6 +6,7 @@ import { ScheduleTab } from "./schedule/ScheduleTab";
 import { MemoryUploadTab } from "./memories/MemoryUploadTab";
 import { AlertsTab } from "./alerts/AlertsTab";
 import { ProgressTab } from "./progress/ProgressTab";
+import { ProfileTab } from "./profile/ProfileTab";
 
 const tabs = [
   "today",
@@ -15,14 +16,17 @@ const tabs = [
   "memories",
   "reports",
   "care-team",
+  "profile",
 ] as const;
 
 function TodayTab({
   patientId,
   lastSeen,
+  pendingOnDevice,
 }: {
   patientId: string;
   lastSeen: string | null;
+  pendingOnDevice: boolean;
 }) {
   const adherence = useQuery({
     queryKey: ["caregiver", patientId, "adherence"],
@@ -36,6 +40,9 @@ function TodayTab({
       <p className="text-sm text-muted">
         Last synced:{" "}
         {lastSeen ? new Date(lastSeen).toLocaleString() : "Not yet synced"}
+      </p>
+      <p className="text-sm text-muted">
+        Pending on device: {pendingOnDevice ? "Yes" : "No"}
       </p>
       <section>
         <h2 className="text-xl font-bold">Today’s medicines</h2>
@@ -160,7 +167,11 @@ export function CaregiverPortal() {
         ))}
       </nav>
       {tab === "today" ? (
-        <TodayTab lastSeen={patient.last_active_at} patientId={patientId} />
+        <TodayTab
+          lastSeen={patient.last_active_at}
+          patientId={patientId}
+          pendingOnDevice={patient.pending_on_device}
+        />
       ) : tab === "schedule" ? (
         <ScheduleTab patientId={patientId} />
       ) : tab === "memories" ? (
@@ -169,6 +180,8 @@ export function CaregiverPortal() {
         <AlertsTab patientId={patientId} />
       ) : tab === "progress" ? (
         <ProgressTab patientId={patientId} />
+      ) : tab === "profile" ? (
+        <ProfileTab patientId={patientId} />
       ) : (
         <section className="rounded-card bg-surface p-6">
           <h2 className="text-xl font-bold">Coming in this phase</h2>

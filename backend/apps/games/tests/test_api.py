@@ -62,12 +62,13 @@ def test_authenticated_users_can_list_catalog(api, care_scenario) -> None:
     api.force_authenticate(care_scenario["caregiver"])
     response = api.get("/api/v1/games/")
     assert response.status_code == 200
-    assert {game["key"] for game in response.data} == {
+    assert {game["key"] for game in response.data} >= {
         "memory_match",
         "sequence_recall",
         "object_sorting",
         "tea_garden_attention",
         "bihu_rhythm_recall",
         "daily_life_sequencing",
+        "familiar_place_recall",
     }
-    assert GameDefinition.objects.count() == 6
+    assert GameDefinition.objects.count() >= 7

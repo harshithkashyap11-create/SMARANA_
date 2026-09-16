@@ -6,7 +6,6 @@ import {
   loadResume,
   persistLocalResult,
   saveResume,
-  syncSession,
   type GameDefinitionDto,
   type ResumeState,
 } from "../../db/repo/games";
@@ -134,14 +133,6 @@ export function useGameSession<R>(
       setBreakOpen(false);
       setMessageKey(local.messageKey);
       await clearResume(patientId, module.key);
-      try {
-        const server = await syncSession(patientId, game, session);
-        if (import.meta.env.DEV && server.message_key !== local.messageKey)
-          console.warn("DDA reconciliation mismatch", { local, server });
-        setMessageKey(server.message_key);
-      } catch {
-        /* queued locally for the later sync engine */
-      }
     },
     [challengeMode, difficulty, game, module.key, patientId],
   );

@@ -100,13 +100,17 @@ export function GamesPage() {
 export async function currentPatient(): Promise<{
   id: string;
   sessionCapMinutes: number;
+  region: string;
+  language: string;
 }> {
   const response = await apiClient<{
-    results: Array<{ id: string; session_cap_minutes: number | null }>;
+    results: Array<{ id: string; session_cap_minutes: number | null; region?: string; language?: string }>;
   }>("/api/v1/patients/", { method: "GET" });
   if (!response.results[0]) throw new Error("Patient unavailable");
   return {
     id: response.results[0].id,
     sessionCapMinutes: response.results[0].session_cap_minutes ?? 20,
+    region: response.results[0].region ?? "AS",
+    language: response.results[0].language ?? "en",
   };
 }

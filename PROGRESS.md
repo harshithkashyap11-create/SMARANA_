@@ -3,10 +3,10 @@
 Update this file at the end of every task (`/finish-task` does it). Keep it short. This is the memory Claude Code reads at the start of each session.
 
 ## Current phase
-Phase 7–8 — Offline PWA and voice
+Phase 9 — Regional content
 
 ## In flight
-- T070–T076 and T080–T084 acceptance review: core local outbox, sync API, caching, encrypted offline secrets, device alerts, voice wrappers/router/actions/settings/fallback implemented. Remaining: full round-trip browser coverage, database-backed backend verification, and login-lifecycle wiring for offline PIN secrets.
+- T090–T094: regional content models, review workflow, versioned cached packs, pack-aware games, caregiver preference controls, and Assam/Meghalaya seeds are implemented. Backend database tests require the Compose PostgreSQL service, which is unavailable in this workspace.
 
 ## Done
 | Task | Date | Commit | Notes |
@@ -63,12 +63,13 @@ Phase 7–8 — Offline PWA and voice
 | T062 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Live admin counts, catalog controls and regional scope, read-only patient difficulty, force logout, account lock, and PIN-reset actions. |
 | T063 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | Immutable searchable/filterable audit browser and audited export action. |
 | T064 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | TOTP-gated admin site, idempotent demo authenticator enrollment, setup documentation, and Phase 6 demo script. |
+| T090–T094 | 2026-09-16 | `feat(regional): complete T090-T094 content packs` | Regional content catalogue/admin workflow, pack endpoint/cache, game integration, caregiver preferences, and regional seeds. |
 
 ## Assumptions made (review with mentor)
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
 - Assamese and Bengali catalogs mirror the English keys with `TODO:` values until translated content is supplied.
 - T012 returns nullable patient-card age and language until T020 adds date of birth and the later preferences/content work establishes the persisted language source.
-- Patient region is stored as a stable string key until T090 introduces the `content.Region` model.
+- Patient region remains a stable state code in the existing patient profile while the content app owns authoritative region metadata.
 - SOS uses one open patient alert whose evidence lists every active caregiver recipient; each emergency event remains separately idempotent and auditable.
 
 ## Known issues / tech debt
@@ -80,4 +81,4 @@ Phase 7–8 — Offline PWA and voice
 - The local database may retain the removed pre-commit T021 prototype reminder table; it is unreferenced and fresh installations do not create it.
 
 ## Next up
-- Complete remaining Phase 7/8 acceptance work before T090.
+- Run the backend suite against the Compose PostgreSQL service, then begin Phase 10 game modules.

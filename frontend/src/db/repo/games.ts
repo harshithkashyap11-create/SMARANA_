@@ -6,7 +6,7 @@ import type {
 } from "../../games/dda";
 import { db, getMeta, setMeta, type CachedGameSession } from "../schema";
 import type { FatigueReason } from "../../games/engine/fatigue";
-import { createOutboxEntry } from "../outbox";
+import { createOutboxEntry, isFakeOffline } from "../outbox";
 
 export interface GameDefinitionDto {
   key: string;
@@ -37,7 +37,18 @@ export interface ResumeState {
 export const resumeKey = (patientId: string, gameKey: string): string =>
   `game-resume:${patientId}:${gameKey}`;
 export async function listGames(): Promise<GameDefinitionDto[]> {
-  return apiClient("/api/v1/games/", { method: "GET" });
+  const cached = await db.gameDefinitions.toArray();
+  if (isFakeOffline() || !navigator.onLine) return cached;
+  try {
+    const games = await apiClient<GameDefinitionDto[]>("/api/v1/games/", {
+      method: "GET",
+    });
+    await db.gameDefinitions.bulkPut(games);
+    return games;
+  } catch (error) {
+    if (cached.length) return cached;
+    throw error;
+  }
 }
 export async function loadResume(
   patientId: string,
@@ -175,56 +186,7 @@ export async function persistLocalResult(
       });
       const updatedAt = session.endedAt;
       await db.outbox.put(createOutboxEntry("game_session", session.id, patientId, { id: session.id, patient_id: patientId, game_key: session.gameKey, seed: session.seed, level: session.level, metrics: session.metrics, challenge_mode: session.challengeMode, started_at: session.startedAt, ended_at: session.endedAt, device_updated_at: updatedAt }));
-      await db.outbox.put(createOutboxEntry("difficulty_state", stateId, patientId, { id: stateId, patient_id: patientId, game_key: game.key, level: result.state.level, window: result.state.window, device_updated_at: updatedAt }));
+      await db.outbox.put(createOutboxEntry("difficulty_state", session.id, patientId, { id: stateId, patient_id: patientId, game_key: game.key, level: result.state.level, window: result.state.window, device_updated_at: updatedAt }));
     },
   );
-}
-export async function syncSession(
-  patientId: string,
-  game: GameDefinitionDto,
-  session: CachedGameSession,
-): Promise<{
-  state: {
-    level: number;
-    window: SessionSummary[];
-    locked_by_doctor: boolean;
-    cap_level: number | null;
-  };
-  message_key: string;
-}> {
-  const response = await apiClient<{
-    state: {
-      level: number;
-      window: SessionSummary[];
-      locked_by_doctor: boolean;
-      cap_level: number | null;
-    };
-    message_key: string;
-  }>(`/api/v1/patients/${patientId}/game-sessions/`, {
-    method: "POST",
-    body: JSON.stringify({
-      game_key: session.gameKey,
-      seed: session.seed,
-      level: session.level,
-      metrics: session.metrics,
-      challenge_mode: session.challengeMode,
-      started_at: session.startedAt,
-      ended_at: session.endedAt,
-    }),
-  });
-  await db.transaction("rw", db.gameSessions, db.difficultyStates, async () => {
-    await db.gameSessions.update(session.id, { synced: true });
-    await db.difficultyStates.put({
-      id: `${patientId}:${game.key}`,
-      patientId,
-      gameKey: game.key,
-      level: response.state.level,
-      window: response.state.window,
-      lockedByDoctor: response.state.locked_by_doctor,
-      capLevel: response.state.cap_level,
-      minLevel: game.min_level,
-      maxLevel: game.max_level,
-    });
-  });
-  return response;
 }

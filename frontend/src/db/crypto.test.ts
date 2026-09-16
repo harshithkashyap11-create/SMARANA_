@@ -23,6 +23,7 @@ import {
   recordOfflineFailure,
   storeOfflineSecrets,
   unlockOffline,
+  updateEncryptedRefreshToken,
 } from "./crypto";
 
 const patient = {
@@ -47,6 +48,16 @@ test("stores an encrypted refresh token that only the correct PIN unlocks", asyn
     user: patient,
   });
   expect(state.values.get("refreshTokenEncrypted")).not.toContain("refresh-token");
+});
+
+test("re-encrypts a rotated refresh token for the next offline unlock", async () => {
+  await storeOfflineSecrets("1234", "first-refresh", patient);
+  await updateEncryptedRefreshToken("rotated-refresh");
+
+  await expect(unlockOffline("1234")).resolves.toEqual({
+    refreshToken: "rotated-refresh",
+    user: patient,
+  });
 });
 
 test("locks for fifteen minutes after five offline failures", async () => {

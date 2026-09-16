@@ -1,6 +1,7 @@
 import { apiClient } from "../../api/client";
 import { db, type CachedMemory, type CachedQuizAttempt } from "../schema";
 import { createOutboxEntry } from "../outbox";
+import { isFakeOffline } from "../outbox";
 
 interface PatientList { results: Array<{ id: string }> }
 export interface QuizQuestion { memory_id: string | null; question_type: string; prompt: string; options: string[]; expected_label: string; media_url: string | null }
@@ -16,6 +17,8 @@ async function patientId(): Promise<string> {
 export const memoriesRepository = {
   async list(): Promise<CachedMemory[]> {
     const id = await patientId();
+    if (isFakeOffline() || !navigator.onLine)
+      return db.memories.where("patientId").equals(id).toArray();
     try {
       const remote = await apiClient<Array<{ id: string; title: string; occasion: string; occurred_on: string | null; place: string; summary: string; people: CachedMemory["people"]; media: CachedMemory["media"] }>>(`/api/v1/patients/${id}/memories/`, { method: "GET" });
       const memories = remote.map((item) => ({ ...item, patientId: id, occurredOn: item.occurred_on }));

@@ -1,5 +1,7 @@
 """Role-specific patient API shapes."""
 
+from datetime import timedelta
+
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -16,6 +18,7 @@ class PatientCardSerializer(serializers.ModelSerializer):
     last_active_at = serializers.DateTimeField(read_only=True, allow_null=True)
     open_alert_count = serializers.IntegerField(read_only=True)
     is_primary = serializers.BooleanField(read_only=True, default=False)
+    pending_on_device = serializers.SerializerMethodField()
 
     class Meta:
         model = PatientProfile
@@ -28,7 +31,9 @@ class PatientCardSerializer(serializers.ModelSerializer):
             "last_active_at",
             "open_alert_count",
             "is_primary",
+            "pending_on_device",
             "session_cap_minutes",
+            "region",
         )
         read_only_fields = fields
 
@@ -45,8 +50,14 @@ class PatientCardSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_language(self, obj: PatientProfile) -> str | None:
-        del obj
-        return None
+        return obj.user.language
+
+    @extend_schema_field(serializers.BooleanField())
+    def get_pending_on_device(self, obj: PatientProfile) -> bool:
+        last_active_at = getattr(obj, "last_active_at", None)
+        return bool(getattr(obj, "last_push_had_rejections", False)) or (
+            last_active_at is None or last_active_at < timezone.now() - timedelta(hours=24)
+        )
 
 
 CAREGIVER_PROFILE_FIELDS = (
@@ -68,9 +79,11 @@ CAREGIVER_PROFILE_FIELDS = (
 
 
 class PatientProfileCaregiverSerializer(serializers.ModelSerializer):
+    language = serializers.CharField(source="user.language")
+
     class Meta:
         model = PatientProfile
-        fields = CAREGIVER_PROFILE_FIELDS
+        fields = (*CAREGIVER_PROFILE_FIELDS, "language")
 
 
 class PatientProfileDoctorSerializer(serializers.ModelSerializer):
@@ -129,9 +142,7 @@ class ConsentSettingsSerializer(serializers.ModelSerializer):
 
 
 class OrientationSerializer(serializers.Serializer):
-    greeting_key = serializers.ChoiceField(
-        choices=("morning", "afternoon", "evening")
-    )
+    greeting_key = serializers.ChoiceField(choices=("morning", "afternoon", "evening"))
     day = serializers.CharField()
     date = serializers.CharField()
     time = serializers.CharField()

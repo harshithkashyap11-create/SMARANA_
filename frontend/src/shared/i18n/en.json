@@ -82,6 +82,7 @@
     "title": "Today's routine",
     "empty": "Nothing is planned right now.",
     "takenDone": "Marked as taken.",
+    "savedOnDevice": "Saved safely on this device.",
     "undo": "Undo",
     "skipTitle": "Do you want to skip this medicine?",
     "skipYes": "Yes, skip",

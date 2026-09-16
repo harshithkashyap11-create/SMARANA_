@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "apps.clinical.apps.ClinicalConfig",
     "apps.sync.apps.SyncConfig",
     "apps.voice.apps.VoiceConfig",
+    "apps.content.apps.ContentConfig",
 ]
 VOICE_LLM_FALLBACK = env.bool("VOICE_LLM_FALLBACK", default=False)
 

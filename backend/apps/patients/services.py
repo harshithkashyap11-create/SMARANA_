@@ -32,12 +32,17 @@ def update_profile(
     *, actor: User, patient: PatientProfile, fields: dict[str, Any]
 ) -> PatientProfile:
     with transaction.atomic():
+        user_fields = fields.pop("user", {})
         changes = _changes(patient, fields)
         for name, value in fields.items():
             setattr(patient, name, value)
         if changes:
             patient.save(update_fields=[*changes, "updated_at"])
             audit(actor, "update", patient, patient=patient, changes=changes)
+        if user_fields:
+            for name, value in user_fields.items():
+                setattr(patient.user, name, value)
+            patient.user.save(update_fields=list(user_fields))
     return patient
 
 
