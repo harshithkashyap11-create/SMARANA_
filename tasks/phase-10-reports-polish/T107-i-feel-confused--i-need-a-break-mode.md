@@ -19,7 +19,7 @@ A persistent gentle button that pauses tasks, dims visuals, lowers audio, enable
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] Vitest: activating pauses engine and enables slow speech; no SOS created.
+- [x] Vitest: activating pauses engine and enables slow speech; no SOS created.
 
 ## Verification
 ```
@@ -27,5 +27,10 @@ cd frontend && npm run lint && npm run typecheck && npm test -- --run
 ```
 
 ## Done checklist
-- [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/review-task` verdict READY
+- [x] `/finish-task` run (PROGRESS.md updated, committed)
+
+## Implementation evidence
+Frontend `phase10.test.tsx` verifies paused answers/hints, slow speech, familiar photo, no automatic SOS, and explicit caregiver confirmation. Game renderers unmount while paused to stop audio/preview timers; engine round state is retained.
+
+Verification: backend Ruff, 137 PostgreSQL tests and migration check; frontend lint, typecheck, 189 tests, locale/copy checks and production build. Committed with `feat(care): complete T100-T108 and offline content hardening`.

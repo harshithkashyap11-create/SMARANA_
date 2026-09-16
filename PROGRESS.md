@@ -3,10 +3,10 @@
 Update this file at the end of every task (`/finish-task` does it). Keep it short. This is the memory Claude Code reads at the start of each session.
 
 ## Current phase
-Phase 9 — Regional content
+Phase 10 — Reports and polish
 
 ## In flight
-- T090–T094: regional content models, review workflow, versioned cached packs, pack-aware games, caregiver preference controls, and Assam/Meghalaya seeds are implemented. Backend database tests require the Compose PostgreSQL service, which is unavailable in this workspace.
+- None. T070–T094 follow-up fixes and T100–T108 are complete; T109 is next.
 
 ## Done
 | Task | Date | Commit | Notes |
@@ -65,7 +65,17 @@ Phase 9 — Regional content
 | T064 | 2026-09-15 | `feat(doctor): complete doctor portal and admin phases` | TOTP-gated admin site, idempotent demo authenticator enrollment, setup documentation, and Phase 6 demo script. |
 | T090–T094 | 2026-09-16 | `feat(regional): complete T090-T094 content packs` | Regional content catalogue/admin workflow, pack endpoint/cache, game integration, caregiver preferences, and regional seeds. |
 
+| T070–T094 follow-up | 2026-09-16 | `feat(care): complete T100-T108 and offline content hardening` | Offline sync/replay and account isolation, voice routing/settings, content import/admin hardening, regional demo media, real-backend offline regression and persistent local startup. |
+| T100–T104 | 2026-09-16 | `feat(care): complete T100-T108 and offline content hardening` | Five remaining game modules and catalogue seeds; validated scene variants and demo content; patient-scoped synced favourites and home suggestions; once-per-section walkthroughs and replay instructions. |
+| T105 | 2026-09-16 | `feat(care): complete T100-T108 and offline content hardening` | Patient and caregiver practice entry; stored guest sessions leave difficulty, analytics, charts, engagement and progress unchanged. |
+| T106 | 2026-09-16 | `feat(care): complete T100-T108 and offline content hardening` | Offline sleep/mood entry and sync; audited caregiver corrections; consent-gated doctor reads and latest-daily low_mood_3d rule. |
+| T107 | 2026-09-16 | `feat(care): complete T100-T108 and offline content hardening` | Persistent calming break overlay with familiar photo, paused game rendering/timers, dimmed visuals, reduced motion and slow speech; caregiver contact requires explicit confirmation. |
+| T108 | 2026-09-16 | `feat(care): complete T100-T108 and offline content hardening` | Date-filtered caregiver timeline, routine conflict preflight/confirmation, and active care-team call/email contacts. |
+
+T105–T108 verification: backend Ruff and 137 PostgreSQL tests passed; migrations clean. Frontend lint, typecheck and 189 tests passed; locale and patient-copy checks passed; production PWA build passed. Existing bundler chunk warnings remain. All completed work through T108 is recorded in the implementation commit above.
+
 ## Assumptions made (review with mentor)
+- T106 uses the existing `share_mood_with_doctor` consent flag for both sleep and mood; there is no separate sleep-sharing flag in the specified data model.
 - PostgreSQL and Redis are internal-only Compose services to avoid conflicting with host development databases; application and MinIO ports remain exposed.
 - Assamese and Bengali catalogs mirror the English keys with `TODO:` values until translated content is supplied.
 - T012 returns nullable patient-card age and language until T020 adds date of birth and the later preferences/content work establishes the persisted language source.
@@ -81,4 +91,5 @@ Phase 9 — Regional content
 - The local database may retain the removed pre-commit T021 prototype reminder table; it is unreferenced and fresh installations do not create it.
 
 ## Next up
-- Run the backend suite against the Compose PostgreSQL service, then begin Phase 10 game modules.
+- T109: remaining alert rules and notification preferences; then T110–T112.
+- Run the local website with `make local`. Authentic regional content and native-language editorial review remain publication requirements.

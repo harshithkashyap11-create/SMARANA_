@@ -120,6 +120,14 @@
       "when": "When was this?",
       "where": "Where was this?",
       "occasion": "What was the occasion?"
+    },
+    "occasions": {
+      "birthday": "Birthday",
+      "festival": "Festival",
+      "wedding": "Wedding",
+      "trip": "Trip",
+      "daily": "Everyday moment",
+      "other": "Other"
     }
   },
   "people": {
@@ -133,7 +141,8 @@
     "confirm": "Would you like emergency help?",
     "yes": "Yes, tell my caregiver",
     "no": "Not now",
-    "sent": "Your caregiver has been told. Help is on the way."
+    "sent": "Your caregiver has been told. Help is on the way.",
+    "queued": "Your request is saved on this device. It will be shared when connected. You can call your family below."
   },
   "progress": {
     "title": "My progress",
@@ -157,7 +166,13 @@
     "loadingList": "Getting your games ready…",
     "offlineList": "Here are the games saved on this device.",
     "regional": "From your region",
-    "empty": "Games will be ready here soon."
+    "empty": "Games will be ready here soon.",
+    "rhythmAssam": "Assam rhythm practice",
+    "rhythmMeghalaya": "Meghalaya rhythm practice",
+    "rhythmGeneric": "Rhythm practice",
+    "unavailable": "This game is unavailable. Please choose another.",
+    "practice": "Try a game (practice)",
+    "practiceBanner": "Practice — nothing is saved to Rao’s progress"
   },
   "dda": {
     "harder_next_time": "Great job! Next time will be a little more interesting.",
@@ -165,7 +180,11 @@
     "easier_next_time": "Today's game will be a bit easier so you can enjoy playing.",
     "thanks_for_playing": "Thanks for playing. Rest whenever you like."
   },
-  "game": { "correct": "Yes!", "its_here": "It's here", "show_me": "Show me" },
+  "game": {
+    "correct": "Yes!",
+    "its_here": "It's here",
+    "show_me": "Show me"
+  },
   "health": {
     "title": "Connection",
     "loading": "One moment…",
@@ -198,5 +217,111 @@
       "larger": "Larger",
       "largest": "Largest"
     }
+  },
+  "settings": {
+    "title": "Settings",
+    "region": "Your region",
+    "caregiverHelp": "Your caregiver can update this in your profile.",
+    "language": "Language",
+    "lockedHelp": "Language is locked to prevent accidental changes.",
+    "lock": "Lock language",
+    "textSize": "Text size",
+    "standard": "Standard",
+    "large": "Large",
+    "larger": "Larger",
+    "largest": "Largest",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "slow": "Speak slowly",
+    "replay": "Replay instructions",
+    "instructions": "Choose a comfortable text size and theme. You can slow down speech and lock your language."
+  },
+  "voice": {
+    "languageLocked": "Language is locked. Ask your caregiver to change it.",
+    "activityNext": "{{title}} is next.",
+    "listening": "Listening…",
+    "heard": "I heard",
+    "medicines": "Today you have {{medicines}}.",
+    "noMedicines": "There are no medicines listed for today.",
+    "homeTogether": "Let us look at your home page together.",
+    "slower": "I will speak more slowly.",
+    "normal": "I will speak at the usual pace.",
+    "familyMember": "your family member",
+    "call": "Call {{name}}?",
+    "emergency": "Open emergency help?",
+    "reminder": "Set a reminder for {{title}}?"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "offline": {
+    "working": "Working offline"
+  },
+  "calm": {
+    "title": "Calm time",
+    "help": "Breathe gently at a comfortable pace. You can stop at any time.",
+    "in": "Breathe in",
+    "hold": "Rest gently",
+    "out": "Breathe out",
+    "ready": "Start when you are ready.",
+    "complete": "Well done. Rest for a moment.",
+    "start": "Start",
+    "stop": "Stop"
+  },
+  "newGames": {
+    "person": "Who is this?",
+    "relationship": "How are they related to you?",
+    "word": "Which word goes with",
+    "festival": "Which season, month or state goes with",
+    "sound": "Listen, then choose the pictures in order.",
+    "change": "Tap the things that changed.",
+    "scene": "A familiar scene",
+    "replaySound": "Hear it again",
+    "save": "☆ Favourite",
+    "saved": "★ Favourite",
+    "suggestion": "Something to enjoy",
+    "showMe": "Show me",
+    "remember": "Take a moment to remember the pairs."
+  },
+  "walkthrough": {
+    "home": "Choose a section to enjoy an activity.",
+    "games": "Tap a game to play at your own pace.",
+    "memories": "Tap a photograph to hear its story.",
+    "medicines": "See your medicines and tell us when you have taken them.",
+    "people": "Tap a familiar person to see their details.",
+    "calm": "Choose a sound or take a gentle breathing break.",
+    "routine": "See your activities for today.",
+    "progress": "See the activities you have enjoyed.",
+    "settings": "Choose the text size and voice that feel comfortable.",
+    "replay": "Replay instructions",
+    "gotIt": "Got it",
+    "instructions": "Instructions"
+  },
+  "confused": {
+    "button": "I feel confused / I need a break",
+    "comfort": "You are safe. Take your time.",
+    "photo": "A familiar face",
+    "routine": "My routine",
+    "calm": "Calm time",
+    "call": "Call my caregiver",
+    "resume": "I am ready"
+  },
+  "wellness": {
+    "title": "Sleep and mood",
+    "bed": "Bedtime",
+    "wake": "Wake time",
+    "save": "Save my sleep",
+    "saved": "Your entry is saved",
+    "great": "Great",
+    "good": "Good",
+    "ok": "Okay",
+    "low": "Low",
+    "bad": "Bad",
+    "date": "Date",
+    "quality": "Sleep quality",
+    "mood": "How do you feel?",
+    "retry": "We could not save that. Please try again."
   }
 }

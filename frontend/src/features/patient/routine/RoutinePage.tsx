@@ -21,7 +21,8 @@ export function RoutinePage({
   useEffect(() => {
     void repo.getToday().then(setItems);
   }, [repo]);
-  const respond = (item: Reminder, action: ReminderAction) => {
+  const respond = async (item: Reminder, action: ReminderAction) => {
+    await repo.respond(item.id, action);
     setSaved(true);
     if (action === "taken") {
       setUndo(item);
@@ -32,7 +33,6 @@ export function RoutinePage({
         value.id === item.id ? { ...value, status: action } : value,
       ),
     );
-    void repo.respond(item.id, action);
   };
   return (
     <section className="space-y-5">
@@ -42,7 +42,9 @@ export function RoutinePage({
           <ReminderCard
             key={item.id}
             reminder={item}
-            onRespond={(action) => respond(item, action)}
+            onRespond={(action) => {
+              void respond(item, action);
+            }}
           />
         ))
       ) : (

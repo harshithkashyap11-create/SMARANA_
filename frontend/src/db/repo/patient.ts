@@ -1,5 +1,5 @@
 import { apiClient } from "../../api/client";
-import { db, type CachedFamilyMember } from "../schema";
+import { activeProfile, db, getMeta, type CachedFamilyMember } from "../schema";
 import { isFakeOffline } from "../outbox";
 
 export interface Orientation {
@@ -35,24 +35,49 @@ export interface PatientRepository {
 
 export class DexiePatientRepository implements PatientRepository {
   async getFamilyMembers(): Promise<CachedFamilyMember[]> {
-    const cachedProfile = await db.profile.orderBy("refreshedAt").last();
+    const cachedProfile = await activeProfile();
     const patientId = cachedProfile?.id;
-    if (!patientId) return db.familyMembers.toArray();
+    if (!patientId) return [];
     if (isFakeOffline() || !navigator.onLine)
       return patientId
         ? db.familyMembers.where("patientId").equals(patientId).toArray()
-        : db.familyMembers.toArray();
+        : [];
     try {
-      const remote = await apiClient<Array<{ id: string; name: string; relationship_label: string; relationship: string; photo_url: string | null; phone: string; is_emergency_contact: boolean }>>(`/api/v1/patients/${patientId}/family/`, { method: "GET" });
-      const members = remote.map((item) => ({ id: item.id, patientId, name: item.name, relationship: item.relationship_label || item.relationship, photoUrl: item.photo_url, phone: item.phone, isEmergencyContact: item.is_emergency_contact }));
+      const remote = await apiClient<
+        Array<{
+          id: string;
+          name: string;
+          relationship_label: string;
+          relationship: string;
+          photo_url: string | null;
+          phone: string;
+          is_emergency_contact: boolean;
+        }>
+      >(`/api/v1/patients/${patientId}/family/`, { method: "GET" });
+      const members = remote.map((item) => ({
+        id: item.id,
+        patientId,
+        name: item.name,
+        relationship: item.relationship_label || item.relationship,
+        photoUrl: item.photo_url,
+        phone: item.phone,
+        isEmergencyContact: item.is_emergency_contact,
+      }));
       await db.familyMembers.bulkPut(members);
-      return members.sort((a, b) => Number(Boolean(b.isEmergencyContact)) - Number(Boolean(a.isEmergencyContact)));
-    } catch { return db.familyMembers.where("patientId").equals(patientId).toArray(); }
+      return members.sort(
+        (a, b) =>
+          Number(Boolean(b.isEmergencyContact)) -
+          Number(Boolean(a.isEmergencyContact)),
+      );
+    } catch {
+      return db.familyMembers.where("patientId").equals(patientId).toArray();
+    }
   }
 
   async getOrientation(): Promise<Orientation> {
-    const cached = await db.profile.orderBy("refreshedAt").last();
-    const online = !isFakeOffline() &&
+    const cached = await activeProfile();
+    const online =
+      !isFakeOffline() &&
       (typeof navigator === "undefined" || navigator.onLine);
     if (online) {
       try {
@@ -71,10 +96,10 @@ export class DexiePatientRepository implements PatientRepository {
           await db.profile.put({
             id: patient.id,
             name: patient.name,
+            userId: await getMeta("patientUserId"),
             orientation,
             refreshedAt: new Date().toISOString(),
           });
-          await db.familyMembers.where("patientId").equals(patient.id).delete();
           const member = orientation.family_member;
           if (member) {
             const cachedMember: CachedFamilyMember = {
@@ -84,7 +109,8 @@ export class DexiePatientRepository implements PatientRepository {
               relationship: member.relationship,
               photoUrl: member.photo_url,
             };
-            await db.familyMembers.put(cachedMember);
+            const existing = await db.familyMembers.get(member.id);
+            await db.familyMembers.put({ ...existing, ...cachedMember });
           }
         });
         return orientation;
@@ -92,7 +118,52 @@ export class DexiePatientRepository implements PatientRepository {
         if (!cached) throw error;
       }
     }
-    if (cached) return cached.orientation as Orientation;
+    if (cached) {
+      const orientation = cached.orientation as Orientation;
+      const now = new Date();
+      const reminders = await db.reminders
+        .where("patientId")
+        .equals(cached.id)
+        .toArray();
+      const next = reminders
+        .filter(
+          (item) =>
+            (item.status === "pending" || item.status === "later") &&
+            Date.parse(item.snoozed_until ?? item.scheduled_at) >=
+              now.getTime(),
+        )
+        .sort(
+          (a, b) =>
+            Date.parse(a.snoozed_until ?? a.scheduled_at) -
+            Date.parse(b.snoozed_until ?? b.scheduled_at),
+        )[0];
+      return {
+        ...orientation,
+        greeting_key:
+          now.getHours() < 12
+            ? "morning"
+            : now.getHours() < 17
+              ? "afternoon"
+              : "evening",
+        day: now.toLocaleDateString(undefined, { weekday: "long" }),
+        date: now.toLocaleDateString(undefined, {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }),
+        time: now.toLocaleTimeString(undefined, {
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+        next_activity: next
+          ? {
+              id: next.id,
+              title: next.title,
+              scheduled_for: next.snoozed_until ?? next.scheduled_at,
+            }
+          : null,
+      };
+    }
     throw new Error("Orientation is unavailable");
   }
 }

@@ -59,7 +59,7 @@ services:
   backend:
     build:
       context: ./backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
     environment: &backend-environment
       DJANGO_SETTINGS_MODULE: config.settings.dev
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-development-only-change-me-at-least-32-bytes}
@@ -123,6 +123,8 @@ services:
     build:
       context: ./frontend
     command: npm run dev -- --host 0.0.0.0
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:8000
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:

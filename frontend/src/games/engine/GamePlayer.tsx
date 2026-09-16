@@ -1,3 +1,4 @@
+import { useCalmStore } from "../../features/patient/confused/store";
 import { useTranslation } from "react-i18next";
 import type { ContentPack } from "../../content/packs";
 import type { GameDefinitionDto } from "../../db/repo/games";
@@ -13,6 +14,8 @@ export function GamePlayer<R>({
   content,
   challengeMode,
   sessionCapMinutes,
+  guestMode = false,
+  homePath,
 }: {
   module: GameModule<R>;
   game: GameDefinitionDto;
@@ -20,7 +23,10 @@ export function GamePlayer<R>({
   content: ContentPack;
   challengeMode: boolean;
   sessionCapMinutes?: number;
+  guestMode?: boolean;
+  homePath?: string;
 }) {
+  const calmMode = useCalmStore((s) => s.calmMode);
   const { t } = useTranslation();
   const session = useGameSession(
     module,
@@ -29,19 +35,26 @@ export function GamePlayer<R>({
     content,
     challengeMode,
     sessionCapMinutes,
+    guestMode,
   );
+  if (calmMode) return <p>{t("confused.comfort")}</p>;
   if (session.messageKey)
     return (
-      <SupportiveEndScreen
-        messageKey={session.messageKey}
-        onReplay={() => session.restart()}
-      />
+      <>
+        {guestMode && <p role="status">{t("games.practiceBanner")}</p>}
+        <SupportiveEndScreen
+          homePath={homePath}
+          messageKey={session.messageKey}
+          onReplay={() => session.restart()}
+        />
+      </>
     );
   if (!session.ready || !session.round) return <p>{t("games.loading")}</p>;
   const Render = module.Render;
   return (
     <section>
-      <h1 className="mb-2 text-3xl font-bold">{module.name}</h1>
+      {guestMode && <p role="status">{t("games.practiceBanner")}</p>}
+      <h1 className="mb-2 text-3xl font-bold">{game.name}</h1>
       <p className="mb-5">
         {t("games.round", {
           current: session.roundIndex + 1,

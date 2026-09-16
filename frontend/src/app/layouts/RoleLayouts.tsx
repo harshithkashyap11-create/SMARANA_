@@ -1,6 +1,15 @@
+import { ConfusedMode } from "../../features/patient/confused/ConfusedMode";
+import { useCalmStore } from "../../features/patient/confused/store";
+import { SectionHeader } from "../../features/patient/walkthrough/SectionHeader";
 import type { PropsWithChildren } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import type { RoleEnum } from "../../api/generated/models";
 import { useAuthStore } from "../../features/auth/authStore";
@@ -58,6 +67,8 @@ export function ProLayout() {
 }
 
 export function PatientLayout() {
+  const calmMode = useCalmStore((s) => s.calmMode);
+  const section = useLocation().pathname.split("/")[2] || "home";
   const { t } = useTranslation();
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
@@ -76,7 +87,9 @@ export function PatientLayout() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-[720px] flex-col bg-bg text-text">
+    <div
+      className={`mx-auto flex min-h-screen max-w-[720px] flex-col bg-bg text-text ${calmMode ? "calm-mode" : ""}`}
+    >
       <header className="sticky top-0 z-10 grid min-h-touch grid-cols-[1fr_auto_1fr] items-center gap-2 bg-surface px-3 shadow-card">
         <button
           className="min-h-touch justify-self-start px-2 font-bold"
@@ -86,9 +99,17 @@ export function PatientLayout() {
           ← {t("auth.back")}
         </button>
         <strong className="text-center">{t("patient.title")}</strong>
-        <div className="flex items-center"><OfflineChip /><TalkButton /></div>
+        <div className="flex items-center">
+          <OfflineChip />
+          <TalkButton />
+        </div>
       </header>
       <main className="flex-1 p-4 pb-24">
+        <SectionHeader key={section} section={section} />
+        <ConfusedMode />
+        <Link className="block min-h-touch p-4" to="/patient/sleep">
+          {t("wellness.title")}
+        </Link>
         <Outlet />
       </main>
       <nav

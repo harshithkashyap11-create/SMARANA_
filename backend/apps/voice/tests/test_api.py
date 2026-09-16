@@ -55,3 +55,24 @@ def test_provider_cannot_return_unstructured_slots(api, care_scenario) -> None:
         )
 
     assert response.data == {"intent": None, "slots": {}, "confidence": 0}
+
+
+def test_configured_router_handles_provider_outages_and_malformed_replies(settings, monkeypatch):
+    import json
+    from io import BytesIO
+
+    from apps.voice.providers import HttpJsonProvider
+
+    settings.VOICE_ROUTER_ENDPOINT = "https://configured-provider.invalid/route"
+    provider = HttpJsonProvider()
+    monkeypatch.setattr(
+        "apps.voice.providers.urlopen",
+        lambda *args, **kwargs: BytesIO(
+            json.dumps({"intent": "help", "slots": {}, "confidence": 0.9}).encode()
+        ),
+    )
+    assert provider.route("help", "en").intent == "help"
+    monkeypatch.setattr(
+        "apps.voice.providers.urlopen", lambda *args, **kwargs: BytesIO(b"invalid json")
+    )
+    assert provider.route("help", "en") is None

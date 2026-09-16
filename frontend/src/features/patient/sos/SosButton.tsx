@@ -7,6 +7,7 @@ import type { CachedFamilyMember } from "../../../db/schema";
 
 export function SosButton() {
   const { t } = useTranslation(); const timer = useRef<number>(); const [confirm, setConfirm] = useState(false); const [sent, setSent] = useState(false);
+  const [shared, setShared] = useState(false);
   const [contacts, setContacts] = useState<CachedFamilyMember[]>([]);
   useEffect(() => {
     const openConfirmation = () => setConfirm(true);
@@ -16,5 +17,5 @@ export function SosButton() {
   const start = () => { timer.current = window.setTimeout(() => setConfirm(true), 2000); };
   const stop = () => { if (timer.current) window.clearTimeout(timer.current); };
   // T081: voice may open this confirmation, but must never send an SOS directly.
-  return <>{sent ? <aside className="fixed inset-x-4 bottom-24 z-20 mx-auto max-w-md rounded-card bg-calm p-5 text-center text-xl shadow-card"><p>{t("sos.sent")}</p>{contacts.filter((contact) => contact.isEmergencyContact && contact.phone).map((contact) => <a className="mt-3 block min-h-touch rounded-card bg-primary p-4 font-bold text-primary-text" href={`tel:${contact.phone}`} key={contact.id}>{t("people.call", { name: contact.name })}</a>)}</aside> : <button aria-label={t("sos.label")} className="fixed bottom-24 right-4 z-20 h-20 w-20 rounded-full bg-warn font-bold shadow-card" type="button" onPointerDown={start} onPointerLeave={stop} onPointerUp={stop}>{t("sos.label")}</button>}<ConfirmDialog noLabel={t("sos.no")} open={confirm} title={t("sos.confirm")} ttsLabel={t("patient.listen")} yesLabel={t("sos.yes")} onNo={() => setConfirm(false)} onYes={() => { setConfirm(false); void sendSos().then(async () => { setContacts(await patientRepository.getFamilyMembers()); setSent(true); }); }} /></>;
+  return <>{sent ? <aside className="fixed inset-x-4 bottom-24 z-20 mx-auto max-w-md rounded-card bg-calm p-5 text-center text-xl shadow-card"><p>{t(shared ? "sos.sent" : "sos.queued")}</p>{contacts.filter((contact) => contact.isEmergencyContact && contact.phone).map((contact) => <a className="mt-3 block min-h-touch rounded-card bg-primary p-4 font-bold text-primary-text" href={`tel:${contact.phone}`} key={contact.id}>{t("people.call", { name: contact.name })}</a>)}</aside> : <button aria-label={t("sos.label")} className="fixed bottom-24 right-4 z-20 h-20 w-20 rounded-full bg-warn font-bold shadow-card" type="button" onPointerDown={start} onPointerLeave={stop} onPointerUp={stop}>{t("sos.label")}</button>}<ConfirmDialog noLabel={t("sos.no")} open={confirm} title={t("sos.confirm")} ttsLabel={t("patient.listen")} yesLabel={t("sos.yes")} onNo={() => setConfirm(false)} onYes={() => { setConfirm(false); void sendSos().then(async (shared) => { setShared(shared); setContacts(await patientRepository.getFamilyMembers()); setSent(true); }); }} /></>;
 }

@@ -5,15 +5,46 @@ export interface MetaEntry {
   value: string;
 }
 
-export type SyncModel = "reminder_response" | "game_session" | "difficulty_state" | "difficulty_change" | "memory_quiz_attempt" | "sleep_log" | "mood_log" | "sos_event" | "routine_item";
-export interface OutboxEntry { id: string; model: SyncModel; objectId: string; patientId: string; payload: Record<string, unknown>; idempotencyKey: string; createdAt: string; attempts: number; nextAttemptAt: string; lastError?: string; }
-export interface DeadLetterEntry extends OutboxEntry { rejectedAt: string; code: string; }
-export interface CachedGenericRecord { id: string; patientId: string; deviceUpdatedAt: string; [key: string]: unknown; }
+export type SyncModel =
+  | "patient_profile_favourites"
+  | "accessibility"
+  | "reminder_response"
+  | "game_session"
+  | "difficulty_state"
+  | "difficulty_change"
+  | "memory_quiz_attempt"
+  | "sleep_log"
+  | "mood_log"
+  | "sos_event"
+  | "routine_item";
+export interface OutboxEntry {
+  id: string;
+  model: SyncModel;
+  objectId: string;
+  patientId: string;
+  payload: Record<string, unknown>;
+  idempotencyKey: string;
+  createdAt: string;
+  attempts: number;
+  nextAttemptAt: string;
+  lastError?: string;
+}
+export interface DeadLetterEntry extends OutboxEntry {
+  rejectedAt: string;
+  code: string;
+}
+export interface CachedGenericRecord {
+  id: string;
+  patientId: string;
+  deviceUpdatedAt: string;
+  [key: string]: unknown;
+}
 
 export interface CachedPatientProfile {
   id: string;
   name: string;
   orientation: unknown;
+  userId?: string;
   refreshedAt: string;
 }
 
@@ -35,6 +66,7 @@ export interface CachedMemory {
   occurredOn: string | null;
   place: string;
   summary: string;
+  visibility?: string;
   people: Array<{ id: string; name: string; relationship: string }>;
   media: Array<{
     id: string;
@@ -63,6 +95,10 @@ export interface CachedRoutineItem {
   title: string;
   category: string;
   time_of_day: string;
+  days_of_week?: number[];
+  start_date?: string;
+  end_date?: string | null;
+  note?: string;
 }
 export interface CachedReminder {
   id: string;
@@ -90,6 +126,7 @@ export interface CachedMedication {
   active: boolean;
 }
 export interface CachedGameSession {
+  guestMode?: boolean;
   id: string;
   patientId: string;
   gameKey: string;
@@ -195,16 +232,25 @@ class SmaranaDatabase extends Dexie {
       difficultyChanges: "&id, stateId, sessionId",
     });
     this.version(6).stores({
-      meta: "&key", profile: "&id, refreshedAt", familyMembers: "&id, patientId",
-      routineItems: "&id, patientId", reminders: "&id, patientId, scheduled_at",
-      reminderResponses: "&id, reminderId", medications: "&id, patientId",
-      memories: "&id, patientId", memoryMedia: "&id, patientId",
+      meta: "&key",
+      profile: "&id, refreshedAt",
+      familyMembers: "&id, patientId",
+      routineItems: "&id, patientId",
+      reminders: "&id, patientId, scheduled_at",
+      reminderResponses: "&id, reminderId",
+      medications: "&id, patientId",
+      memories: "&id, patientId",
+      memoryMedia: "&id, patientId",
       quizAttempts: "&id, patientId, attemptedAt, idempotencyKey",
       gameSessions: "&id, patientId, gameKey, synced",
-      difficultyStates: "&id, [patientId+gameKey]", difficultyChanges: "&id, stateId, sessionId",
-      sleepLogs: "&id, patientId, deviceUpdatedAt", moodLogs: "&id, patientId, deviceUpdatedAt",
-      sosEvents: "&id, patientId, deviceUpdatedAt", contentPacks: "&id, patientId",
-      outbox: "&id, createdAt, nextAttemptAt, model, objectId", outboxDead: "&id, rejectedAt, model",
+      difficultyStates: "&id, [patientId+gameKey]",
+      difficultyChanges: "&id, stateId, sessionId",
+      sleepLogs: "&id, patientId, deviceUpdatedAt",
+      moodLogs: "&id, patientId, deviceUpdatedAt",
+      sosEvents: "&id, patientId, deviceUpdatedAt",
+      contentPacks: "&id, patientId",
+      outbox: "&id, createdAt, nextAttemptAt, model, objectId",
+      outboxDead: "&id, rejectedAt, model",
     });
     this.version(7).stores({
       gameDefinitions: "&key",
@@ -214,10 +260,74 @@ class SmaranaDatabase extends Dexie {
 
 export const db = new SmaranaDatabase();
 
-export async function getMeta(key: string): Promise<string | undefined> {
-  return (await db.meta.get(key))?.value;
-}
+const scopedKeys = new Set([
+  "memoryEngagement",
+  "exerciseAssignments",
+  "favourites",
+  "walkthroughSeen",
+  "lastPullAt",
+  "gamePatient",
+  "languageLocked",
+  "slowSpeech",
+  "fontScale",
+  "theme",
+  "quiz-resume",
+  "accessibilityPending",
+]);
 
+export async function metadataKey(key: string): Promise<string> {
+  if (!scopedKeys.has(key)) return key;
+  const patientId = (await db.meta.get("patientId"))?.value;
+  const owner = (await db.meta.get("patientUserId"))?.value;
+  return patientId && owner === sessionUserId
+    ? `patient:${patientId}:${key}`
+    : `unassigned:${sessionUserId ?? "anonymous"}:${key}`;
+}
+export async function getMeta(key: string): Promise<string | undefined> {
+  return (await db.meta.get(await metadataKey(key)))?.value;
+}
 export async function setMeta(key: string, value: string): Promise<void> {
-  await db.meta.put({ key, value });
+  await db.meta.put({ key: await metadataKey(key), value });
+}
+let sessionUserId: string | null = null;
+export function setSessionUser(userId: string | null): void {
+  sessionUserId = userId;
+}
+export async function activeProfile(): Promise<
+  CachedPatientProfile | undefined
+> {
+  const id = await getMeta("patientId");
+  if (!sessionUserId || (await getMeta("patientUserId")) !== sessionUserId)
+    return undefined;
+  return id ? db.profile.get(id) : undefined;
+}
+export async function activatePatient(
+  patientId: string,
+  userId: string,
+): Promise<void> {
+  // Adopt legacy metadata only when its offline credential proves the owner.
+  const secrets = await getMeta("pinVerifier");
+  let legacyOwner: string | undefined;
+  try {
+    legacyOwner = secrets
+      ? (JSON.parse(secrets) as { user?: { id?: string } }).user?.id
+      : undefined;
+  } catch {
+    /* Ignore invalid legacy credentials. */
+  }
+  await db.transaction("rw", db.meta, async () => {
+    if (legacyOwner === userId) {
+      for (const key of scopedKeys) {
+        const old = await db.meta.get(key);
+        const scoped = `patient:${patientId}:${key}`;
+        if (old && !(await db.meta.get(scoped)))
+          await db.meta.put({ key: scoped, value: old.value });
+      }
+    }
+    for (const key of scopedKeys) await db.meta.delete(key);
+    await db.meta.put({ key: "patientId", value: patientId });
+    await db.meta.put({ key: "patientUserId", value: userId });
+  });
+  if (typeof window !== "undefined")
+    window.dispatchEvent(new Event("smarana:session-ready"));
 }

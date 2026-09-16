@@ -15,4 +15,7 @@ lint:
 	docker compose run --build --rm --no-deps frontend npm run lint
 
 seed:
-	@echo "Seed data will be added by a later foundation task."
+	docker compose exec backend python manage.py seed_demo
+
+local:
+	./scripts/start-local.sh

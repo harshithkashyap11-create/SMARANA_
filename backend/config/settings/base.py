@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     "apps.voice.apps.VoiceConfig",
     "apps.content.apps.ContentConfig",
 ]
+VOICE_ROUTER_ENDPOINT = env("VOICE_ROUTER_ENDPOINT", default="")
+VOICE_ROUTER_TOKEN = env("VOICE_ROUTER_TOKEN", default="")
 VOICE_LLM_FALLBACK = env.bool("VOICE_LLM_FALLBACK", default=False)
 
 MIDDLEWARE = [
@@ -111,7 +113,7 @@ PASSWORD_HASHERS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 

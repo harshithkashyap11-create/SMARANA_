@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { apiClient } from "../../../api/client";
+import { loadProgress } from "../../../db/repo/progress";
 import { Card } from "../../../shared/ui";
 
 interface Summary {
@@ -10,24 +10,11 @@ interface Summary {
   favourite_games: string[];
   upcoming: Array<{ id: string; title: string }>;
 }
-interface PatientList {
-  results: Array<{ id: string }>;
-}
 export function ProgressPage({ load }: { load?: () => Promise<Summary> }) {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<Summary | null>(null);
   useEffect(() => {
-    void (
-      load
-        ? load()
-        : apiClient<PatientList>("/api/v1/patients/", { method: "GET" }).then(
-            (p) =>
-              apiClient<Summary>(
-                `/api/v1/patients/${p.results[0]?.id}/progress-summary/`,
-                { method: "GET" },
-              ),
-          )
-    ).then(setSummary);
+    void (load ? load() : loadProgress()).then(setSummary);
   }, [load]);
   if (!summary) return <p>{t("progress.loading")}</p>;
   return (

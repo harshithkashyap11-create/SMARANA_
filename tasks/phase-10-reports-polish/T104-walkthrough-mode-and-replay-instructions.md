@@ -19,7 +19,7 @@ First visit to each section speaks/shows a one-line explanation once; `SectionHe
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] Vitest: shown once, replay shows again.
+- [x] Vitest: shown once, replay shows again.
 
 ## Verification
 ```
@@ -28,4 +28,4 @@ cd frontend && npm run lint && npm run typecheck && npm test -- --run
 
 ## Done checklist
 - [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/finish-task` run (PROGRESS.md updated, committed)

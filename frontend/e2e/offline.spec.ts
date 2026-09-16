@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 const patientId = "patient-offline-e2e";
 const reminderId = "reminder-offline-e2e";
 const gameSessionId = "game-session-offline-e2e";
-const now = "2026-09-16T08:00:00.000Z";
+const now = new Date().toISOString();
 
 type PushItem = {
   outbox_id?: string;
@@ -132,7 +132,7 @@ async function unlockOfflinePatientSession(page: Page) {
   await page.getByRole("button", { name: /Patient/ }).click();
   await expect(page.getByLabel("Login ID")).toHaveValue("RAO1234");
   await enterPatientPin(page);
-  await expect(page).toHaveURL(/\/patient$/);
+  await expect(page).toHaveURL(/(?<!login)\/patient$/);
 }
 
 async function openRoutineFromPatientHome(page: Page) {
@@ -144,6 +144,7 @@ test("offline reminder and game records survive reload and sync once", async ({
   page,
   context,
 }) => {
+  test.setTimeout(60_000);
   const pushed: PushItem[] = [];
   const acceptedKeys = new Set<string>();
   const acceptedObjects = new Set<string>();
@@ -187,10 +188,26 @@ test("offline reminder and game records survive reload and sync once", async ({
       },
     });
   });
+  await page.route("**/api/v1/patients/*/reminders/**", async (route) => {
+    await route.fulfill({
+      json: [
+        {
+          id: reminderId,
+          title: "Morning tablet",
+          category: "medicine",
+          note: "With water",
+          scheduled_at: now,
+          status: "pending",
+          snoozed_until: null,
+        },
+      ],
+    });
+  });
   await page.route("**/api/v1/sync/pull/**", async (route) => {
     await route.fulfill({
       json: {
         server_time: now,
+        patient_id: patientId,
         records: { reminders: [], difficulty_states: [] },
       },
     });
@@ -213,11 +230,17 @@ test("offline reminder and game records survive reload and sync once", async ({
   await page.goto("/login/patient");
   await page.getByLabel("Login ID").fill("RAO1234");
   await enterPatientPin(page);
-  await expect(page).toHaveURL(/\/patient$/);
+  await expect(page).toHaveURL(/(?<!login)\/patient$/);
 
   await seedOfflineData(page);
   await openRoutineFromPatientHome(page);
   await expect(page.getByText("Morning tablet")).toBeVisible();
+  await expect
+    .poll(
+      () => page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
+      { timeout: 30_000 },
+    )
+    .toBe(true);
   await context.setOffline(true);
   await page.reload();
   await unlockOfflinePatientSession(page);

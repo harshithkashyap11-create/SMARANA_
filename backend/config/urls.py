@@ -1,6 +1,6 @@
 """Root URL configuration."""
-
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django_otp.admin import OTPAdminSite
@@ -31,3 +31,7 @@ urlpatterns = [
     path("api/v1/voice/", include("apps.voice.urls")),
     path("api/v1/", include("apps.content.urls")),
 ]
+
+
+if settings.DEBUG and getattr(settings, "MEDIA_ROOT", None):
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

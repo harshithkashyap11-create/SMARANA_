@@ -21,7 +21,7 @@ Simple bedtime/wake and 5-face mood entry for patients (offline), caregiver entr
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] Tests: consent off → doctor 404 on mood; correction audited with before/after; rule test.
+- [x] Tests: consent off → doctor 404 on mood; correction audited with before/after; rule test.
 
 ## Verification
 ```
@@ -30,5 +30,10 @@ cd frontend && npm run lint && npm run typecheck && npm test -- --run
 ```
 
 ## Done checklist
-- [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/review-task` verdict READY
+- [x] `/finish-task` run (PROGRESS.md updated, committed)
+
+## Implementation evidence
+Backend tests cover doctor 404 without consent, permitted read-only access with consent, before/after correction audits, sleep validation, offline push replay/pull, and latest-entry-per-day low mood evaluation.
+
+Verification: backend Ruff, 137 PostgreSQL tests and migration check; frontend lint, typecheck, 189 tests, locale/copy checks and production build. Committed with `feat(care): complete T100-T108 and offline content hardening`.

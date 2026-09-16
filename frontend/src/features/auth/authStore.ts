@@ -13,11 +13,18 @@ import type {
   RoleEnum,
   UserSummary,
 } from "../../api/generated/models";
-import { setApiAccessToken, setApiRefreshHandler } from "../../api/client";
+import {
+  apiClient,
+  ApiError,
+  setApiAccessToken,
+  setApiRefreshHandler,
+} from "../../api/client";
 import {
   clearOfflineSecrets,
   updateEncryptedRefreshToken,
 } from "../../db/crypto";
+
+import { activatePatient, setSessionUser } from "../../db/schema";
 
 let refreshToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
@@ -36,6 +43,7 @@ interface AuthState {
 }
 
 function applySession(session: LoginResponse): void {
+  setSessionUser(session.user.id);
   refreshToken = session.refresh;
   setApiAccessToken(session.access);
   useAuthStore.setState({
@@ -46,6 +54,7 @@ function applySession(session: LoginResponse): void {
 }
 
 function clearSession(): void {
+  setSessionUser(null);
   refreshToken = null;
   setApiAccessToken(null);
   useAuthStore.setState({ accessToken: null, user: null, role: null });
@@ -70,8 +79,12 @@ async function refreshAccessToken(): Promise<string | null> {
       setApiAccessToken(rotated.access);
       useAuthStore.setState({ accessToken: rotated.access });
       return rotated.access;
-    } catch {
-      if (refreshToken === token) {
+    } catch (error) {
+      if (
+        refreshToken === token &&
+        error instanceof ApiError &&
+        [400, 401, 403].includes(error.status)
+      ) {
         clearSession();
         await clearOfflineSecrets();
       }
@@ -100,11 +113,24 @@ export const useAuthStore = create<AuthState>(() => ({
       skipAuthRefresh: true,
     });
     applySession(session);
+    try {
+      const patients = await apiClient<{ results: Array<{ id: string }> }>(
+        "/api/v1/patients/",
+        { method: "GET" },
+      );
+      const patient = patients.results[0];
+      if (!patient) throw new Error("Patient profile unavailable");
+      await activatePatient(patient.id, session.user.id);
+    } catch (error) {
+      clearSession();
+      throw error;
+    }
     return session;
   },
   setSession: applySession,
   clearSession,
   resumeOfflineSession: (refresh, user) => {
+    setSessionUser(user.id);
     refreshToken = refresh;
     setApiAccessToken(null);
     useAuthStore.setState({ accessToken: null, user, role: "patient" });

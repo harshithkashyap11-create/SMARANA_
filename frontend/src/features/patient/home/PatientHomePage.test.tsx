@@ -45,7 +45,7 @@ function renderHome(orientation: Orientation) {
   return renderWithProviders(<PatientHomePage />, { repos: { patient } });
 }
 
-test("renders the next activity, family photo, and eight ordered tiles", async () => {
+test("renders the next activity, family photo, and seven implemented tiles", async () => {
   renderHome(base);
   expect(await screen.findByText("Morning tea")).toBeVisible();
   expect(screen.getByRole("img", { name: "Mina" })).toBeVisible();
@@ -54,7 +54,6 @@ test("renders the next activity, family photo, and eight ordered tiles", async (
   ).toEqual([
     "◈Games",
     "✚Medicines",
-    "☾Sleep",
     "▧Memories",
     "≈Calm",
     "♧My people",

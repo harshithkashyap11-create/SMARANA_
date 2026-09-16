@@ -139,7 +139,32 @@ def level_drop_x3(patient: PatientProfile, now: datetime) -> AlertDraft | None:
     )
 
 
-RULES = (no_login_2d, missed_meds_3in7, level_drop_x3, device_offline_3d, sync_error)
+def low_mood_3d(patient: PatientProfile, now: datetime) -> AlertDraft | None:
+    from django.utils import timezone
+
+    today = timezone.localdate(now)
+    rows = []
+    for offset in range(3):
+        row = (
+            patient.mood_logs.filter(
+                logged_at__date=today - timedelta(days=offset), logged_at__lte=now
+            )
+            .order_by("-logged_at", "-created_at")
+            .first()
+        )
+        if row is None or row.mood not in {"low", "bad"}:
+            return None
+        rows.append(str(row.id))
+    return AlertDraft(
+        Alert.RuleKey.LOW_MOOD_3D,
+        Alert.Severity.ATTENTION,
+        "Low mood recorded for three days",
+        "The latest mood entry on each of the last three days was low or bad.",
+        {"mood_log_ids": rows},
+    )
+
+
+RULES = (no_login_2d, missed_meds_3in7, level_drop_x3, device_offline_3d, sync_error, low_mood_3d)
 
 
 def evaluate(patient: PatientProfile, now: datetime) -> list[AlertDraft]:

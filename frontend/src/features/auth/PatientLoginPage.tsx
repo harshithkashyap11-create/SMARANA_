@@ -51,7 +51,9 @@ export function PatientLoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    void getMeta(LOGIN_ID_KEY).then((value) => setLoginId(value ?? ""));
+    void getMeta(LOGIN_ID_KEY).then((value) =>
+      setLoginId((current) => current || value || ""),
+    );
   }, []);
 
   const submit = async (nextPin: string): Promise<void> => {
@@ -74,7 +76,11 @@ export function PatientLoginPage() {
         if (lockedUntil) {
           setMessageKey("auth.locked_caregiver_told");
         } else {
-          const unlocked = await unlockOffline(nextPin);
+          const rememberedLogin = await getMeta(LOGIN_ID_KEY);
+          const unlocked =
+            rememberedLogin === loginId.trim()
+              ? await unlockOffline(nextPin)
+              : null;
           if (unlocked) {
             await clearOfflineFailures();
             resumeOfflineSession(unlocked.refreshToken, unlocked.user);

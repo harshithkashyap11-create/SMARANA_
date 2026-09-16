@@ -1,3 +1,4 @@
+import { SuggestionCard } from "./SuggestionCard";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +15,6 @@ import { abandonResume, loadLatestResume } from "../../../games/engine/resume";
 const tiles = [
   ["games", "◈"],
   ["medicines", "✚"],
-  ["sleep", "☾"],
   ["memories", "▧"],
   ["calm", "≈"],
   ["people", "♧"],
@@ -25,16 +25,17 @@ const tiles = [
 export function PatientHomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const userId = useAuthStore((state) => state.user?.id);
   const name = useAuthStore((state) => state.user?.display_name ?? "");
   const { repos } = useAppContext();
   const repo =
     (repos.patient as PatientRepository | undefined) ?? patientRepository;
   const orientation = useQuery({
-    queryKey: ["patient", "orientation"],
+    queryKey: ["patient", userId, "orientation"],
     queryFn: () => repo.getOrientation(),
   });
   const interrupted = useQuery({
-    queryKey: ["games", "interrupted"],
+    queryKey: ["games", userId, "interrupted"],
     queryFn: loadLatestResume,
     enabled: orientation.isSuccess,
   });
@@ -47,6 +48,7 @@ export function PatientHomePage() {
       <h1 className="text-3xl font-bold leading-tight">
         {t(`home.greeting_${orientation.data.greeting_key}`, { name })}
       </h1>
+      <SuggestionCard />
       <OrientationCard orientation={orientation.data} />
       {interrupted.data ? (
         <Card aria-labelledby="resume-game-title" className="space-y-3">

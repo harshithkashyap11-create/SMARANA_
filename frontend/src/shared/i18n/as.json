@@ -120,6 +120,14 @@
       "when": "এয়া কেতিয়া হৈছিল?",
       "where": "এয়া ক’ত হৈছিল?",
       "occasion": "অনুষ্ঠানটো কি আছিল?"
+    },
+    "occasions": {
+      "birthday": "জন্মদিন",
+      "festival": "উৎসৱ",
+      "wedding": "বিয়া",
+      "trip": "ভ্ৰমণ",
+      "daily": "দৈনন্দিন মুহূৰ্ত",
+      "other": "অন্য"
     }
   },
   "people": {
@@ -133,7 +141,8 @@
     "confirm": "জৰুৰী সহায় লাগেনে?",
     "yes": "হয়, জনাওক",
     "no": "এতিয়া নহয়",
-    "sent": "আপোনাৰ যত্ন লোৱা ব্যক্তিক জনোৱা হৈছে। সহায় আহি আছে।"
+    "sent": "আপোনাৰ যত্ন লোৱা ব্যক্তিক জনোৱা হৈছে। সহায় আহি আছে।",
+    "queued": "আপোনাৰ অনুৰোধ এই ডিভাইচত সুৰক্ষিত আছে। সংযোগ হ’লে জনোৱা হ’ব। তলত পৰিয়াললৈ ফোন কৰিব পাৰে।"
   },
   "progress": {
     "title": "TODO: My progress",
@@ -157,7 +166,13 @@
     "loadingList": "TODO: Getting your games ready…",
     "offlineList": "TODO: Here are the games saved on this device.",
     "regional": "TODO: From your region",
-    "empty": "TODO: Games will be ready here soon."
+    "empty": "TODO: Games will be ready here soon.",
+    "rhythmAssam": "অসমৰ ছন্দৰ অনুশীলন",
+    "rhythmMeghalaya": "মেঘালয়ৰ ছন্দৰ অনুশীলন",
+    "rhythmGeneric": "ছন্দৰ অনুশীলন",
+    "unavailable": "এই খেল এতিয়া উপলব্ধ নহয়। আন এখন বাছক।",
+    "practice": "এটা খেল চেষ্টা কৰক (অনুশীলন)",
+    "practiceBanner": "অনুশীলন — ৰাওৰ অগ্ৰগতিত একো সাঁচি ৰখা নহয়"
   },
   "dda": {
     "harder_next_time": "TODO: Great job! Next time will be a little more interesting.",
@@ -202,5 +217,111 @@
       "larger": "TODO: Larger",
       "largest": "TODO: Largest"
     }
+  },
+  "settings": {
+    "title": "ছেটিংছ",
+    "region": "আপোনাৰ অঞ্চল",
+    "caregiverHelp": "আপোনাৰ যত্ন লোৱা ব্যক্তিয়ে প্ৰফাইলত এইটো সলনি কৰিব পাৰে।",
+    "language": "ভাষা",
+    "lockedHelp": "ভুলতে সলনি নহ’বলৈ ভাষা লক কৰা আছে।",
+    "lock": "ভাষা লক কৰক",
+    "textSize": "আখৰৰ আকাৰ",
+    "standard": "সাধাৰণ",
+    "large": "ডাঙৰ",
+    "larger": "আৰু ডাঙৰ",
+    "largest": "আটাইতকৈ ডাঙৰ",
+    "theme": "ৰঙৰ ৰূপ",
+    "light": "পোহৰ",
+    "dark": "আন্ধাৰ",
+    "slow": "লাহে কথা কওক",
+    "replay": "নিৰ্দেশনা আকৌ শুনক",
+    "instructions": "সুবিধাজনক আখৰৰ আকাৰ আৰু ৰঙৰ ৰূপ বাছক। কথা কোৱাৰ গতি কমাব পাৰে আৰু ভাষা লক কৰিব পাৰে।"
+  },
+  "voice": {
+    "languageLocked": "ভাষা লক কৰা আছে। সলনি কৰিবলৈ আপোনাৰ যত্ন লোৱা ব্যক্তিক কওক।",
+    "activityNext": "পৰৱৰ্তী কাম {{title}}।",
+    "listening": "শুনি আছোঁ…",
+    "heard": "মই শুনিলোঁ",
+    "medicines": "আজি আপোনাৰ ঔষধ {{medicines}}।",
+    "noMedicines": "আজিৰ বাবে কোনো ঔষধ তালিকাত নাই।",
+    "homeTogether": "আহক, আপোনাৰ মূল পৃষ্ঠাটো একেলগে চাওঁ।",
+    "slower": "মই আৰু লাহে লাহে কথা ক’ম।",
+    "normal": "মই সাধাৰণ গতিত কথা ক’ম।",
+    "familyMember": "আপোনাৰ পৰিয়ালৰ সদস্য",
+    "call": "{{name}}লৈ ফোন কৰোঁনে?",
+    "emergency": "জৰুৰী সহায় খুলোঁনে?",
+    "reminder": "{{title}}ৰ বাবে সোঁৱৰণী দিওঁনে?"
+  },
+  "common": {
+    "yes": "হয়",
+    "no": "নহয়"
+  },
+  "offline": {
+    "working": "অফলাইনত কাম কৰি আছে"
+  },
+  "calm": {
+    "title": "শান্ত সময়",
+    "help": "সুবিধাজনক গতিত লাহে লাহে উশাহ লওক। যিকোনো সময়তে ৰ’ব পাৰে।",
+    "in": "উশাহ লওক",
+    "hold": "অলপ জিৰাওক",
+    "out": "উশাহ এৰক",
+    "ready": "সাজু হ’লে আৰম্ভ কৰক।",
+    "complete": "ভাল হৈছে। অলপ জিৰাওক।",
+    "start": "আৰম্ভ কৰক",
+    "stop": "ৰওক"
+  },
+  "newGames": {
+    "person": "TODO: Who is this?",
+    "relationship": "TODO: How are they related to you?",
+    "word": "TODO: Which word goes with",
+    "festival": "TODO: Which season, month or state goes with",
+    "sound": "TODO: Listen, then choose the pictures in order.",
+    "change": "TODO: Tap the things that changed.",
+    "scene": "TODO: A familiar scene",
+    "replaySound": "TODO: Hear it again",
+    "save": "TODO: ☆ Favourite",
+    "saved": "TODO: ★ Favourite",
+    "suggestion": "TODO: Something to enjoy",
+    "showMe": "TODO: Show me",
+    "remember": "TODO: Take a moment to remember the pairs."
+  },
+  "walkthrough": {
+    "home": "TODO: Choose a section to enjoy an activity.",
+    "games": "TODO: Tap a game to play at your own pace.",
+    "memories": "TODO: Tap a photograph to hear its story.",
+    "medicines": "TODO: See your medicines and tell us when you have taken them.",
+    "people": "TODO: Tap a familiar person to see their details.",
+    "calm": "TODO: Choose a sound or take a gentle breathing break.",
+    "routine": "TODO: See your activities for today.",
+    "progress": "TODO: See the activities you have enjoyed.",
+    "settings": "TODO: Choose the text size and voice that feel comfortable.",
+    "replay": "TODO: Replay instructions",
+    "gotIt": "TODO: Got it",
+    "instructions": "TODO: Instructions"
+  },
+  "confused": {
+    "button": "মই বিভ্ৰান্ত অনুভৱ কৰিছোঁ / মোক অলপ জিৰণি লাগে",
+    "comfort": "আপুনি নিৰাপদে আছে। লাহে লাহে কৰক।",
+    "photo": "এখন চিনাকি মুখ",
+    "routine": "মোৰ দৈনন্দিন কাম",
+    "calm": "শান্ত সময়",
+    "call": "মোৰ যত্ন লোৱা মানুহজনক ফোন কৰক",
+    "resume": "মই সাজু"
+  },
+  "wellness": {
+    "title": "টোপনি আৰু মনৰ অৱস্থা",
+    "bed": "শোৱাৰ সময়",
+    "wake": "সাৰ পোৱাৰ সময়",
+    "save": "মোৰ টোপনিৰ তথ্য সাঁচক",
+    "saved": "আপোনাৰ তথ্য সাঁচি ৰখা হৈছে",
+    "great": "বহুত ভাল",
+    "good": "ভাল",
+    "ok": "ঠিকেই",
+    "low": "মন বেয়া",
+    "bad": "বহুত মন বেয়া",
+    "date": "তাৰিখ",
+    "quality": "টোপনি কেনে আছিল",
+    "mood": "আপোনাৰ কেনে লাগিছে?",
+    "retry": "সাঁচিব নোৱাৰিলোঁ। আকৌ চেষ্টা কৰক।"
   }
 }

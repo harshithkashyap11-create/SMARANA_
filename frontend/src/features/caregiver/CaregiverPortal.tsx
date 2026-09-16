@@ -6,10 +6,16 @@ import { ScheduleTab } from "./schedule/ScheduleTab";
 import { MemoryUploadTab } from "./memories/MemoryUploadTab";
 import { AlertsTab } from "./alerts/AlertsTab";
 import { ProgressTab } from "./progress/ProgressTab";
+import { TimelineTab } from "./TimelineTab";
+import { CareTeamTab } from "./CareTeamTab";
+import { WellnessTab } from "./WellnessTab";
 import { ProfileTab } from "./profile/ProfileTab";
 
 const tabs = [
+  "practice",
   "today",
+  "timeline",
+  "wellness",
   "progress",
   "alerts",
   "schedule",
@@ -173,13 +179,19 @@ export function CaregiverPortal() {
           pendingOnDevice={patient.pending_on_device}
         />
       ) : tab === "schedule" ? (
-        <ScheduleTab patientId={patientId} />
+        <ScheduleTab key={patientId} patientId={patientId} />
       ) : tab === "memories" ? (
         <MemoryUploadTab patientId={patientId} />
       ) : tab === "alerts" ? (
         <AlertsTab patientId={patientId} />
       ) : tab === "progress" ? (
         <ProgressTab patientId={patientId} />
+      ) : tab === "timeline" ? (
+        <TimelineTab patientId={patientId} />
+      ) : tab === "care-team" ? (
+        <CareTeamTab patientId={patientId} />
+      ) : tab === "wellness" ? (
+        <WellnessTab key={patientId} patientId={patientId} />
       ) : tab === "profile" ? (
         <ProfileTab patientId={patientId} />
       ) : (

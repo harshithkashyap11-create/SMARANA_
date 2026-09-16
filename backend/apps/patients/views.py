@@ -401,3 +401,96 @@ class PatientViewSet(ReadOnlyModelViewSet):
                 fields=dict(serializer.validated_data),
             )
         return Response(ConsentSettingsSerializer(consent).data)
+
+    def _wellness(self, request, kind, log_id=None):
+        from rest_framework.exceptions import NotFound
+
+        from apps.routines.serializers import MoodLogSerializer, SleepLogSerializer
+        from apps.routines.wellness import save_log
+
+        patient = self.get_object()
+        if request.user.role == User.Role.DOCTOR:
+            consent = getattr(patient, "consent", None)
+            if not consent or not consent.share_mood_with_doctor:
+                raise NotFound()
+            if request.method != "GET":
+                raise PermissionDenied("Doctors can only read wellness logs.")
+        rows = getattr(patient, f"{kind}_logs").all()
+        cls = MoodLogSerializer if kind == "mood" else SleepLogSerializer
+        if request.method == "GET":
+            return Response(cls(rows.order_by("-created_at"), many=True).data)
+        if log_id and request.user.role != User.Role.CAREGIVER:
+            raise PermissionDenied("Only caregivers can correct logs.")
+        obj = get_object_or_404(rows, id=log_id) if log_id else None
+        serializer = cls(obj, data=request.data, partial=bool(log_id))
+        serializer.is_valid(raise_exception=True)
+        if obj and "id" in serializer.validated_data:
+            serializer.validated_data.pop("id")
+        obj = save_log(serializer, patient, request.user)
+        return Response(cls(obj).data, status=200 if log_id else 201)
+
+    @action(detail=True, methods=["get", "post"], url_path="mood-logs")
+    def mood_logs(self, request, **kwargs):
+        return self._wellness(request, "mood")
+
+    @action(detail=True, methods=["get", "post"], url_path="sleep-logs")
+    def sleep_logs(self, request, **kwargs):
+        return self._wellness(request, "sleep")
+
+    @action(detail=True, methods=["patch"], url_path=r"mood-logs/(?P<log_id>[^/.]+)")
+    def mood_log_detail(self, request, log_id, **kwargs):
+        return self._wellness(request, "mood", log_id)
+
+    @action(detail=True, methods=["patch"], url_path=r"sleep-logs/(?P<log_id>[^/.]+)")
+    def sleep_log_detail(self, request, log_id, **kwargs):
+        return self._wellness(request, "sleep", log_id)
+
+    @action(detail=True, methods=["get"], url_path="timeline")
+    def timeline(self, request, **kwargs):
+        from apps.patients.timeline import timeline
+
+        if request.user.role != User.Role.CAREGIVER:
+            raise PermissionDenied("Caregiver access required.")
+        return Response(timeline(self.get_object(), request.query_params))
+
+    @action(detail=True, methods=["get"], url_path="care-team")
+    def care_team(self, request, **kwargs):
+        patient = self.get_object()
+        if request.user.role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
+            raise PermissionDenied("Care team access required.")
+        members = [
+            a.caregiver
+            for a in patient.care_assignments.filter(active=True).select_related("caregiver")
+        ]
+        members += [
+            a.doctor
+            for a in patient.doctor_assignments.filter(active=True).select_related("doctor")
+        ]
+        return Response(
+            [
+                {
+                    "id": str(u.id),
+                    "name": u.display_name,
+                    "role": u.role,
+                    "phone": u.phone,
+                    "email": u.email,
+                }
+                for u in members
+            ]
+        )
+
+    @action(detail=True, methods=["post"], url_path="routine-conflicts")
+    def routine_conflicts(self, request, **kwargs):
+        from apps.routines.conflicts import conflicts
+
+        patient = self.get_object()
+        if request.user.role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
+            raise PermissionDenied("Care team access required.")
+        item = (
+            get_object_or_404(patient.routine_items.all(), id=request.data["item_id"])
+            if request.data.get("item_id")
+            else None
+        )
+        serializer = RoutineItemSerializer(item, data=request.data, partial=bool(item))
+        serializer.is_valid(raise_exception=True)
+        return Response({"warnings": conflicts(patient, serializer.validated_data, item)})

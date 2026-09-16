@@ -8,6 +8,21 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+test("marks string request bodies as JSON for the backend parser", async () => {
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValue(new Response(null, { status: 204 }));
+  vi.stubGlobal("fetch", fetchMock);
+  await apiClient("/api/v1/sync/push/", {
+    method: "POST",
+    body: JSON.stringify({ items: [] }),
+  });
+  const options = fetchMock.mock.calls[0]?.[1] as RequestInit;
+  expect(new Headers(options.headers).get("Content-Type")).toBe(
+    "application/json",
+  );
+});
+
 test("adds the bearer token when an access token is available", async () => {
   const fetchMock = vi.fn().mockResolvedValue(
     new Response(JSON.stringify({ status: "ok" }), {

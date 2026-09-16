@@ -53,3 +53,13 @@ Level 1–10. Each game defines how level maps to parameters. Defaults: rounds =
 - Touch targets ≥ 64px; drag-and-drop always has a tap-tap alternative (tap item, tap target).
 - No time limits below level 4; time limits are generous and never shown as a countdown — a gentle progress arc instead.
 - All images have `alt` from content pack `title_translations`.
+
+## Phase 10 pack metadata
+
+- `routine_scene.tags.variants` is a non-empty list of `{imageUrl, differences}`. Each difference is `{id, title, imageUrl}`; a variant has 1–4 unique difference IDs. The base image and variant must depict the same scene. Original generated demo scenes include variants with 1–4 objects removed.
+- `festival.tags` supplies translated `season`, `month`, and `state` labels. Festival Match uses season at L1–3, month at L4–6, and state at L7–10, falling back to season when the selected field has fewer than two distinct labels. Demo celebrations are explicitly fictional practice content.
+- `sound` items need both an audio asset and a matching image. Audio is played sequentially at L6+; replay increments hints and cancels prior playback.
+- `word` titles come from the requested language pack; Word Pairs uses 3–8 pairs, then a short blank recall delay. Family photos are patient-scoped and are never supplied by public packs.
+- Missing required content shows the existing supportive unavailable message.
+
+Favourites use patient-scoped offline metadata and the `patient_profile_favourites` sync allowlist. The server validates game keys and memory ownership and applies timestamp ordering. Home prefers an assigned exercise due today, then a favourite with no engagement in three days, then evening calm time. Walkthrough acknowledgements are stored in patient-scoped `meta.walkthroughSeen`; the section header can replay them.

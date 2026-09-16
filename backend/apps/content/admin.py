@@ -26,6 +26,7 @@ class ContentItemAdmin(admin.ModelAdmin):
     list_filter = ("region", "kind", "review_status")
     search_fields = ("title",)
     actions = ("mark_reviewed", "publish")
+    change_list_template = "admin/content/contentitem/change_list.html"
 
     @admin.display(description="Preview")
     def media_preview(self, obj: ContentItem) -> str:
@@ -42,8 +43,11 @@ class ContentItemAdmin(admin.ModelAdmin):
     @admin.action(description="Publish reviewed content")
     def publish(self, request: HttpRequest, queryset):  # type: ignore[no-untyped-def]
         invalid = queryset.exclude(review_status=ContentItem.ReviewStatus.REVIEWED)
-        if invalid.exists():
-            self.message_user(request, "Only reviewed content can be published.", level="ERROR")
+        missing_reviewer = queryset.filter(reviewed_by__isnull=True)
+        if invalid.exists() or missing_reviewer.exists():
+            self.message_user(
+                request, "Only reviewed content with a reviewer can be published.", level="ERROR"
+            )
             return
         queryset.update(review_status=ContentItem.ReviewStatus.PUBLISHED)
 
@@ -58,9 +62,23 @@ class ContentItemAdmin(admin.ModelAdmin):
         ]
 
     def missing_translations(self, request: HttpRequest) -> HttpResponse:
+        if not self.has_view_or_change_permission(request):
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        request.current_app = self.admin_site.name
         languages = Language.objects.filter(enabled=True)
+        items = list(ContentItem.objects.select_related("region"))
         rows = [
-            (language, ContentItem.objects.exclude(title_translations__has_key=language.code))
+            (
+                language,
+                [
+                    item
+                    for item in items
+                    if not isinstance(item.title_translations.get(language.code), str)
+                    or not item.title_translations[language.code].strip()
+                ],
+            )
             for language in languages
         ]
         return TemplateResponse(

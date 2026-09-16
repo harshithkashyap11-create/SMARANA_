@@ -110,7 +110,9 @@ def upsert_assignment(
         )
     else:
         RoutineItem.objects.filter(source_ref=assignment.id).delete()
-    if not GameSession.objects.filter(patient=patient, game=assignment.game).exists():
+    if not GameSession.objects.filter(
+        patient=patient, game=assignment.game, guest_mode=False
+    ).exists():
         DifficultyState.objects.update_or_create(
             patient=patient,
             game=assignment.game,

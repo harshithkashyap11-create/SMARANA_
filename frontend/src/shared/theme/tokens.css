@@ -99,3 +99,6 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+.calm-mode main { filter: brightness(0.85); }
+.calm-mode *, .calm-mode *::before, .calm-mode *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

@@ -8,7 +8,14 @@ from django.db import transaction
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import PatientCredential, User
-from apps.patients.models import CareAssignment, DoctorAssignment, PatientProfile
+from apps.memories.models import Memory
+from apps.patients.models import (
+    CareAssignment,
+    ConsentSettings,
+    DoctorAssignment,
+    FamilyMember,
+    PatientProfile,
+)
 from apps.routines.models import Medication, RoutineItem
 
 PATIENT_LOGIN_ID = "RAO1234"
@@ -61,6 +68,34 @@ class Command(BaseCommand):
         )
 
         profile, _ = PatientProfile.objects.get_or_create(user=patient)
+        if not profile.home_label:
+            profile.home_label = "Home"
+        if not profile.region:
+            profile.region = "AS"
+        if not profile.known_places:
+            profile.known_places = ["Riverbank", "Village market"]
+        profile.save(update_fields=["home_label", "region", "known_places", "updated_at"])
+        ConsentSettings.objects.get_or_create(
+            patient=profile, defaults={"use_memories_in_quiz": True}
+        )
+        member, _ = FamilyMember.objects.get_or_create(
+            patient=profile,
+            linked_user=caregiver,
+            defaults={"name": "Priya", "relationship": "daughter", "is_emergency_contact": True},
+        )
+        memory, created_memory = Memory.objects.get_or_create(
+            patient=profile,
+            title="A family walk",
+            defaults={
+                "occasion": "daily",
+                "place": "Riverbank",
+                "summary": "A demo memory of a gentle family walk.",
+                "visibility": "quiz",
+                "uploaded_by": caregiver,
+            },
+        )
+        if created_memory:
+            memory.people.add(member)
         credential, _ = PatientCredential.objects.update_or_create(
             user=patient,
             defaults={

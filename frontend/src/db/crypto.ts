@@ -15,6 +15,7 @@ interface StoredSecrets {
   user: UserSummary;
 }
 
+let activeOfflineUserId: string | null = null;
 let activeOfflineKey: CryptoKey | null = null;
 
 export interface OfflineUnlock {
@@ -62,6 +63,7 @@ export async function storeOfflineSecrets(
   const tokenIv = crypto.getRandomValues(new Uint8Array(12));
   const key = await deriveKey(pin, salt);
   activeOfflineKey = key;
+  activeOfflineUserId = user.id;
   const verifier = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: verifierIv },
     key,
@@ -105,6 +107,7 @@ export async function unlockOffline(
       bytes(encrypted) as BufferSource,
     );
     activeOfflineKey = key;
+    activeOfflineUserId = data.user.id;
     return { refreshToken: decoder.decode(token), user: data.user };
   } catch {
     return null;
@@ -117,6 +120,7 @@ export async function updateEncryptedRefreshToken(
   const raw = await getMeta("pinVerifier");
   if (!raw || !activeOfflineKey) return;
   const data = JSON.parse(raw) as StoredSecrets;
+  if (activeOfflineUserId !== data.user.id) return;
   const tokenIv = crypto.getRandomValues(new Uint8Array(12));
   const encryptedToken = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: tokenIv },
@@ -159,6 +163,7 @@ export async function clearOfflineFailures(): Promise<void> {
 
 export async function clearOfflineSecrets(): Promise<void> {
   activeOfflineKey = null;
+  activeOfflineUserId = null;
   await db.meta.bulkDelete([
     "pinVerifier",
     "refreshTokenEncrypted",

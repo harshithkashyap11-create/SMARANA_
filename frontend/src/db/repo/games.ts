@@ -1,10 +1,17 @@
+import { useAuthStore } from "../../features/auth/authStore";
 import { apiClient } from "../../api/client";
 import type {
   DdaResult,
   DifficultyStateData,
   SessionSummary,
 } from "../../games/dda";
-import { db, getMeta, setMeta, type CachedGameSession } from "../schema";
+import {
+  activeProfile,
+  db,
+  getMeta,
+  setMeta,
+  type CachedGameSession,
+} from "../schema";
 import type { FatigueReason } from "../../games/engine/fatigue";
 import { createOutboxEntry, isFakeOffline } from "../outbox";
 
@@ -70,7 +77,8 @@ export async function clearResume(
   await db.meta.delete(resumeKey(patientId, gameKey));
 }
 export async function loadLatestResume(): Promise<ResumeState | null> {
-  const profile = await db.profile.orderBy("refreshedAt").last();
+  const profile = await activeProfile();
+  if (!profile) return null;
   const entries = await db.meta
     .filter(
       (entry) =>
@@ -95,8 +103,8 @@ export async function loadLatestResume(): Promise<ResumeState | null> {
 export async function abandonResume(value: ResumeState): Promise<void> {
   const endedAt = new Date();
   const times = value.metrics.reactionTimes;
-  await db.transaction("rw", db.gameSessions, db.meta, async () => {
-    await db.gameSessions.put({
+  await db.transaction("rw", db.gameSessions, db.meta, db.outbox, async () => {
+    const session: CachedGameSession = {
       id: crypto.randomUUID(),
       patientId: value.patientId,
       gameKey: value.gameKey,
@@ -120,7 +128,22 @@ export async function abandonResume(value: ResumeState): Promise<void> {
         fatigue_flags: value.fatigueFlags ?? [],
         raw_events: value.metrics.rawEvents,
       },
-    });
+    };
+    await db.gameSessions.put(session);
+    await db.outbox.put(
+      createOutboxEntry("game_session", session.id, value.patientId, {
+        id: session.id,
+        patient_id: value.patientId,
+        game_key: session.gameKey,
+        seed: session.seed,
+        level: session.level,
+        metrics: session.metrics,
+        challenge_mode: session.challengeMode,
+        started_at: session.startedAt,
+        ended_at: session.endedAt,
+        device_updated_at: session.endedAt,
+      }),
+    );
     await db.meta.delete(resumeKey(value.patientId, value.gameKey));
   });
 }
@@ -155,6 +178,23 @@ export async function persistLocalResult(
   session: CachedGameSession,
   result: DdaResult,
 ): Promise<void> {
+  if (session.guestMode && useAuthStore.getState().role === "caregiver") {
+    await apiClient(`/api/v1/patients/${patientId}/game-sessions/`, {
+      method: "POST",
+      body: JSON.stringify({
+        id: session.id,
+        game_key: session.gameKey,
+        seed: session.seed,
+        level: session.level,
+        metrics: session.metrics,
+        challenge_mode: false,
+        guest_mode: true,
+        started_at: session.startedAt,
+        ended_at: session.endedAt,
+      }),
+    });
+    return;
+  }
   const stateId = `${patientId}:${game.key}`;
   await db.transaction(
     "rw",
@@ -164,29 +204,55 @@ export async function persistLocalResult(
     db.outbox,
     async () => {
       await db.gameSessions.put(session);
-      await db.difficultyStates.put({
-        id: stateId,
-        patientId,
-        gameKey: game.key,
-        level: result.state.level,
-        window: result.state.window,
-        lockedByDoctor: result.state.lockedByDoctor,
-        capLevel: result.state.capLevel,
-        minLevel: result.state.minLevel,
-        maxLevel: result.state.maxLevel,
-      });
-      await db.difficultyChanges.put({
-        id: crypto.randomUUID(),
-        stateId,
-        sessionId: session.id,
-        fromLevel: result.change.fromLevel,
-        toLevel: result.change.toLevel,
-        reasonCode: result.change.reasonCode,
-        explanation: result.change.explanation,
-      });
+      if (!session.guestMode) {
+        await db.difficultyStates.put({
+          id: stateId,
+          patientId,
+          gameKey: game.key,
+          level: result.state.level,
+          window: result.state.window,
+          lockedByDoctor: result.state.lockedByDoctor,
+          capLevel: result.state.capLevel,
+          minLevel: result.state.minLevel,
+          maxLevel: result.state.maxLevel,
+        });
+        await db.difficultyChanges.put({
+          id: crypto.randomUUID(),
+          stateId,
+          sessionId: session.id,
+          fromLevel: result.change.fromLevel,
+          toLevel: result.change.toLevel,
+          reasonCode: result.change.reasonCode,
+          explanation: result.change.explanation,
+        });
+      }
       const updatedAt = session.endedAt;
-      await db.outbox.put(createOutboxEntry("game_session", session.id, patientId, { id: session.id, patient_id: patientId, game_key: session.gameKey, seed: session.seed, level: session.level, metrics: session.metrics, challenge_mode: session.challengeMode, started_at: session.startedAt, ended_at: session.endedAt, device_updated_at: updatedAt }));
-      await db.outbox.put(createOutboxEntry("difficulty_state", session.id, patientId, { id: stateId, patient_id: patientId, game_key: game.key, level: result.state.level, window: result.state.window, device_updated_at: updatedAt }));
+      await db.outbox.put(
+        createOutboxEntry("game_session", session.id, patientId, {
+          id: session.id,
+          patient_id: patientId,
+          game_key: session.gameKey,
+          seed: session.seed,
+          level: session.level,
+          metrics: session.metrics,
+          challenge_mode: session.challengeMode,
+          guest_mode: Boolean(session.guestMode),
+          started_at: session.startedAt,
+          ended_at: session.endedAt,
+          device_updated_at: updatedAt,
+        }),
+      );
+      if (!session.guestMode)
+        await db.outbox.put(
+          createOutboxEntry("difficulty_state", session.id, patientId, {
+            id: stateId,
+            patient_id: patientId,
+            game_key: game.key,
+            level: result.state.level,
+            window: result.state.window,
+            device_updated_at: updatedAt,
+          }),
+        );
     },
   );
 }

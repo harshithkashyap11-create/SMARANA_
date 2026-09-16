@@ -8,6 +8,30 @@ from apps.sync.models import IdempotencyRecord, SyncRejection
 pytestmark = pytest.mark.django_db
 
 
+def test_bad_database_write_does_not_break_next_item(api, care_scenario) -> None:
+    patient = care_scenario["patient"]
+    api.force_authenticate(patient.user)
+    bad = _item(str(patient.id))
+    bad["payload"]["time_of_day"] = "invalid"
+    good = _item(str(patient.id))
+    response = api.post("/api/v1/sync/push/", {"items": [bad, good]}, format="json")
+    assert response.status_code == 200
+    assert response.data["accepted"][0]["outbox_id"] == good["outbox_id"]
+    assert response.data["rejected"][0]["outbox_id"] == bad["outbox_id"]
+    assert not IdempotencyRecord.objects.filter(key=bad["idempotency_key"]).exists()
+
+
+def test_malformed_object_id_is_rejected_per_item(api, care_scenario) -> None:
+    patient = care_scenario["patient"]
+    api.force_authenticate(patient.user)
+    bad = _item(str(patient.id))
+    bad["object_id"] = "invalid"
+    good = _item(str(patient.id))
+    response = api.post("/api/v1/sync/push/", {"items": [bad, good]}, format="json")
+    assert response.status_code == 200
+    assert len(response.data["accepted"]) == len(response.data["rejected"]) == 1
+
+
 def _item(patient_id: str, *, source: str = "patient") -> dict:
     object_id = str(uuid4())
     return {

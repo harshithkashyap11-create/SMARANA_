@@ -1,7 +1,9 @@
 """Business operations for care-team alerts."""
 
 from collections.abc import Mapping
+from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 from django.db import transaction
 from django.utils import timezone
@@ -100,7 +102,12 @@ def dismiss_alert(alert: Alert, actor: User, note: str = "") -> Alert:
 
 @transaction.atomic
 def create_sos(
-    *, patient: PatientProfile, idempotency_key: str, location_text: str = ""
+    *,
+    patient: PatientProfile,
+    idempotency_key: str,
+    location_text: str = "",
+    event_id: UUID | None = None,
+    triggered_at: datetime | None = None,
 ) -> tuple[SosEvent, bool]:
     """Create one event and one patient alert carrying all in-app recipients."""
 
@@ -117,10 +124,11 @@ def create_sos(
         )
     ]
     event = SosEvent.objects.create(
+        **({"id": event_id} if event_id else {}),
         patient=patient,
         idempotency_key=idempotency_key,
         device_updated_at=now,
-        triggered_at=now,
+        triggered_at=triggered_at or now,
         location_text=location_text,
         notified=[
             {"user_id": user_id, "channel": "in_app", "at": now.isoformat()}

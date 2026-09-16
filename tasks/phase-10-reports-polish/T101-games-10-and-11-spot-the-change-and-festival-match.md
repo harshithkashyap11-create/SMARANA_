@@ -20,7 +20,7 @@ Two scenes with 1â€“4 differences (from pack routine_scene variants); festivalâ†
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] Per-game tests; seeds.
+- [x] Per-game tests; seeds.
 
 ## Verification
 ```
@@ -30,4 +30,4 @@ cd frontend && npm run lint && npm run typecheck && npm test -- --run
 
 ## Done checklist
 - [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/finish-task` run (PROGRESS.md updated, committed)

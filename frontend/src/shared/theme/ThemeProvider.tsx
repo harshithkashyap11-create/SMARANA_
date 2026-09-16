@@ -8,11 +8,30 @@ export function ThemeProvider({ children }: PropsWithChildren) {
   const fontScale = useThemeStore((state) => state.fontScale);
 
   useEffect(() => {
-    void Promise.all([getMeta("theme"), getMeta("fontScale")]).then(([savedTheme, savedScale]) => {
-      if (savedTheme === "light" || savedTheme === "dark") useThemeStore.getState().setTheme(savedTheme);
-      const scale = Number(savedScale);
-      if ([1, 1.2, 1.4, 1.6].includes(scale)) useThemeStore.getState().setFontScale(scale as 1 | 1.2 | 1.4 | 1.6);
-    }).catch(() => undefined);
+    const load = () => {
+      void Promise.all([getMeta("theme"), getMeta("fontScale")])
+        .then(([savedTheme, savedScale]) => {
+          useThemeStore
+            .getState()
+            .setTheme(savedTheme === "dark" ? "dark" : "light");
+          const scale = Number(savedScale);
+          useThemeStore
+            .getState()
+            .setFontScale(
+              [1, 1.2, 1.4, 1.6].includes(scale)
+                ? (scale as 1 | 1.2 | 1.4 | 1.6)
+                : 1,
+            );
+        })
+        .catch(() => undefined);
+    };
+    load();
+    window.addEventListener("smarana:session-ready", load);
+    window.addEventListener("smarana:comfort-updated", load);
+    return () => {
+      window.removeEventListener("smarana:session-ready", load);
+      window.removeEventListener("smarana:comfort-updated", load);
+    };
   }, []);
 
   useEffect(() => {

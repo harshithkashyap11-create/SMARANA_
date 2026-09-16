@@ -59,6 +59,13 @@ export function DailyLifeSequencingRound({
               type="button"
               onClick={() => choose(step.id)}
             >
+              {step.imageUrl ? (
+                <img
+                  alt=""
+                  src={step.imageUrl}
+                  className="mr-3 inline-block h-16 w-16 object-contain"
+                />
+              ) : null}
               {step.title}
             </button>
           ))}

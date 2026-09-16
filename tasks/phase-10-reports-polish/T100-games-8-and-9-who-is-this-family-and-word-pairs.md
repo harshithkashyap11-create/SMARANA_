@@ -20,7 +20,7 @@ Family recognition game from FamilyMember photos; word-pair memory in the patien
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] Per-game tests; GameDefinition seeds.
+- [x] Per-game tests; GameDefinition seeds.
 
 ## Verification
 ```
@@ -29,4 +29,4 @@ cd frontend && npm run lint && npm run typecheck && npm test -- --run
 
 ## Done checklist
 - [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/finish-task` run (PROGRESS.md updated, committed)

@@ -70,5 +70,10 @@ def test_authenticated_users_can_list_catalog(api, care_scenario) -> None:
         "bihu_rhythm_recall",
         "daily_life_sequencing",
         "familiar_place_recall",
+        "who_is_this",
+        "word_pairs",
+        "spot_the_change",
+        "festival_calendar",
+        "sound_match",
     }
-    assert GameDefinition.objects.count() >= 7
+    assert GameDefinition.objects.count() >= 12

@@ -45,9 +45,14 @@ def save_session(
     game = GameDefinition.objects.get(key=data["game_key"], active=True)
     metrics = data["metrics"]
     validate_metrics(game, metrics)
-    state, _ = DifficultyState.objects.select_for_update().get_or_create(
-        patient=patient, game=game, defaults={"level": game.min_level}
-    )
+    if data.get("guest_mode", False):
+        state = DifficultyState.objects.filter(patient=patient, game=game).first()
+        if state is None:
+            state = DifficultyState(patient=patient, game=game, level=game.min_level, window=[])
+    else:
+        state, _ = DifficultyState.objects.select_for_update().get_or_create(
+            patient=patient, game=game, defaults={"level": game.min_level}
+        )
     session_fields = {"id": data["id"]} if data.get("id") else {}
     session = GameSession.objects.create(
         **session_fields,
@@ -61,6 +66,9 @@ def save_session(
         started_at=data["started_at"],
         ended_at=data["ended_at"],
     )
+    if session.guest_mode:
+        audit(actor, "create", session, patient)
+        return session, state, None, "dda.thanks_for_playing"
     summary = SessionSummary(
         level=session.level,
         accuracy=metrics["accuracy"],

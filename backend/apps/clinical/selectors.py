@@ -15,7 +15,7 @@ def doctor_dashboard(doctor: User) -> dict[str, list[dict[str, Any]]]:
 
     now = timezone.now()
     patients = patients_for(doctor).annotate(
-        last_session_at=Max("game_sessions__ended_at"),
+        last_session_at=Max("game_sessions__ended_at", filter=Q(game_sessions__guest_mode=False)),
         flag_count=Count(
             "alerts",
             filter=Q(alerts__status="open"),
@@ -46,7 +46,8 @@ def doctor_dashboard(doctor: User) -> dict[str, list[dict[str, Any]]]:
         "patients": cards,
         "needs_attention": [card for card in cards if card["flag_count"] > 0],
         "reviews_due": [
-            card for card in cards
+            card
+            for card in cards
             if ExerciseAssignment.objects.filter(
                 patient_id=card["id"], active=True, review_date__lte=timezone.localdate()
             ).exists()

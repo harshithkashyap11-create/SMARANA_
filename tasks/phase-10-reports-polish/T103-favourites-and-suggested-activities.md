@@ -20,7 +20,7 @@ Patients can favourite games/memories; home suggests one activity based on routi
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] Rule tests; UI card.
+- [x] Rule tests; UI card.
 
 ## Verification
 ```
@@ -30,4 +30,4 @@ cd frontend && npm run lint && npm run typecheck && npm test -- --run
 
 ## Done checklist
 - [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/finish-task` run (PROGRESS.md updated, committed)

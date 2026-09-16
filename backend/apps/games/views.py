@@ -29,7 +29,9 @@ class PatientGameSessionList(APIView):
         if request.user.role not in {User.Role.CAREGIVER, User.Role.DOCTOR}:
             return Response(status=status.HTTP_404_NOT_FOUND)
         patient = get_object_or_404(patients_for(request.user), id=patient_id)
-        queryset = GameSession.objects.filter(patient=patient).select_related("game")
+        queryset = GameSession.objects.filter(patient=patient, guest_mode=False).select_related(
+            "game"
+        )
         if game_key := request.query_params.get("game"):
             queryset = queryset.filter(game__key=game_key)
         if start := request.query_params.get("from"):
@@ -52,9 +54,14 @@ class PatientGameSessionList(APIView):
         )
 
     def post(self, request: Request, patient_id: str) -> Response:
-        patient = get_object_or_404(
-            patients_for(request.user).filter(user=request.user), id=patient_id
-        )
+        queryset = patients_for(request.user)
+        if request.user.role != User.Role.PATIENT:
+            if (
+                request.user.role != User.Role.CAREGIVER
+                or request.data.get("guest_mode") is not True
+            ):
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        patient = get_object_or_404(queryset, id=patient_id)
         serializer = GameSessionInputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         session, state, change, message_key = save_session(

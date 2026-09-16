@@ -1,11 +1,17 @@
 export type VoiceLanguage = "en" | "as" | "bn";
-export const recognitionLocale = (language: VoiceLanguage): string => ({ en: "en-IN", as: "as-IN", bn: "bn-IN" })[language];
-export interface SpeechToText { start(onResult: (text: string) => void, onEnd?: () => void): void; stop(): void; }
+export const recognitionLocale = (language: VoiceLanguage): string =>
+  ({ en: "en-IN", as: "as-IN", bn: "bn-IN" })[language];
+export interface SpeechToText {
+  start(onResult: (text: string) => void, onEnd?: () => void): void;
+  stop(): void;
+}
 type Recognition = {
   lang: string;
   interimResults: boolean;
   continuous: boolean;
-  onresult: ((event: { results: ArrayLike<{ 0: { transcript: string } }> }) => void) | null;
+  onresult:
+    | ((event: { results: ArrayLike<{ 0: { transcript: string } }> }) => void)
+    | null;
   onend: (() => void) | null;
   onerror: ((event: { error: string }) => void) | null;
   start(): void;
@@ -13,8 +19,9 @@ type Recognition = {
 };
 
 /** Assamese recognition is not consistently available in browser engines. */
-const fallbackRecognitionLocale = (language: VoiceLanguage): string | undefined =>
-  language === "as" ? "bn-IN" : undefined;
+const fallbackRecognitionLocale = (
+  language: VoiceLanguage,
+): string | undefined => (language === "as" ? "bn-IN" : undefined);
 
 export class BrowserSpeechToText implements SpeechToText {
   private recognition?: Recognition;
@@ -51,15 +58,21 @@ export class BrowserSpeechToText implements SpeechToText {
       };
       recognition.onerror = (event) => {
         const fallback = fallbackRecognitionLocale(this.language);
-        if (!this.triedFallback && fallback && event.error === "language-not-supported") {
+        if (
+          !this.triedFallback &&
+          fallback &&
+          event.error === "language-not-supported"
+        ) {
           this.triedFallback = true;
           this.clearTimer();
           begin(fallback);
         }
       };
       recognition.onend = () => {
+        if (this.recognition !== recognition) return;
         this.clearTimer();
-        if (this.recognition === recognition) onEnd?.();
+        this.recognition = undefined;
+        onEnd?.();
       };
       recognition.start();
       resetSilenceTimer();
@@ -72,7 +85,6 @@ export class BrowserSpeechToText implements SpeechToText {
   stop(): void {
     this.clearTimer();
     this.recognition?.stop();
-    this.recognition = undefined;
   }
 
   private clearTimer(): void {

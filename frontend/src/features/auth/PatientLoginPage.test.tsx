@@ -9,6 +9,7 @@ import { useAuthStore } from "./authStore";
 import { PatientLoginPage } from "./PatientLoginPage";
 
 vi.mock("../../db/schema", () => ({
+  setSessionUser: vi.fn(),
   getMeta: vi.fn().mockResolvedValue("RAO1234"),
   setMeta: vi.fn().mockResolvedValue(undefined),
 }));

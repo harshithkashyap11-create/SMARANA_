@@ -1,3 +1,4 @@
+import { useCalmStore } from "../../features/patient/confused/store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ContentPack } from "../../content/packs";
 import {
@@ -44,7 +45,9 @@ export function useGameSession<R>(
   content: ContentPack,
   challengeMode: boolean,
   sessionCapMinutes = 20,
+  guestMode = false,
 ): GameSessionController<R> {
+  const calmMode = useCalmStore((s) => s.calmMode);
   const [resume, setResumeState] = useState<ResumeState | null>(null);
   const [difficulty, setDifficulty] = useState<DifficultyStateData | null>(
     null,
@@ -52,13 +55,16 @@ export function useGameSession<R>(
   const [messageKey, setMessageKey] = useState<string | null>(null);
   const [breakOpen, setBreakOpen] = useState(false);
   const roundStarted = useRef(0);
+  useEffect(() => {
+    if (!calmMode) roundStarted.current = Date.now();
+  }, [calmMode]);
   const start = useCallback(async () => {
     const storedDifficulty = await getDifficulty(patientId, game);
     const override = new URLSearchParams(window.location.search).get("level");
     const level = override
       ? Math.min(game.max_level, Math.max(game.min_level, Number(override)))
       : sessionLevel(storedDifficulty, challengeMode);
-    const existing = await loadResume(patientId, module.key);
+    const existing = guestMode ? null : await loadResume(patientId, module.key);
     const value = existing ?? {
       gameKey: module.key,
       patientId,
@@ -71,8 +77,8 @@ export function useGameSession<R>(
     setDifficulty(storedDifficulty);
     setResumeState(value);
     roundStarted.current = Date.now();
-    await saveResume(value);
-  }, [challengeMode, game, module.key, patientId]);
+    if (!guestMode) await saveResume(value);
+  }, [challengeMode, game, module.key, patientId, guestMode]);
   // The async repository read is the external subscription that initializes this session.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -102,7 +108,7 @@ export function useGameSession<R>(
         rounds: finalResume.roundIndex,
         completed,
         challengeMode,
-        guestMode: false,
+        guestMode,
         fatigueFlagged: Boolean(finalResume.fatigueFlags?.length),
       };
       const local = nextDifficulty(difficulty, summary);
@@ -113,6 +119,7 @@ export function useGameSession<R>(
         seed: finalResume.seed,
         level: finalResume.level,
         challengeMode,
+        guestMode,
         startedAt: finalResume.startedAt,
         endedAt: endedAt.toISOString(),
         synced: false,
@@ -132,13 +139,20 @@ export function useGameSession<R>(
       await persistLocalResult(patientId, game, session, local);
       setBreakOpen(false);
       setMessageKey(local.messageKey);
-      await clearResume(patientId, module.key);
+      if (!guestMode) await clearResume(patientId, module.key);
     },
-    [challengeMode, difficulty, game, module.key, patientId],
+    [challengeMode, difficulty, game, module.key, patientId, guestMode],
   );
   const answer = useCallback(
     (value: Answer) => {
-      if (!resume || !round) return;
+      if (
+        !resume ||
+        !round ||
+        useCalmStore.getState().calmMode ||
+        calmMode ||
+        breakOpen
+      )
+        return;
       const next = recordAnswer(
         module,
         round,
@@ -166,30 +180,39 @@ export function useGameSession<R>(
         nextIndex > (resume.suppressFatigueUntilRound ?? 0);
       if (canPrompt) {
         setBreakOpen(true);
-        void saveResume(flagged);
+        if (!guestMode) void saveResume(flagged);
       } else if (nextIndex >= module.roundsForLevel(resume.level))
         void finish(flagged);
       else {
         roundStarted.current = Date.now();
-        void saveResume(flagged);
+        if (!guestMode) void saveResume(flagged);
       }
     },
-    [finish, module, resume, round, sessionCapMinutes],
+    [
+      finish,
+      module,
+      resume,
+      round,
+      sessionCapMinutes,
+      guestMode,
+      calmMode,
+      breakOpen,
+    ],
   );
   const hint = useCallback(() => {
-    if (!resume) return;
+    if (!resume || calmMode) return;
     const next = {
       ...resume,
       metrics: { ...resume.metrics, hintsUsed: resume.metrics.hintsUsed + 1 },
     };
     setResumeState(next);
-    void saveResume(next);
-  }, [resume]);
+    if (!guestMode) void saveResume(next);
+  }, [resume, guestMode, calmMode]);
   const acceptBreak = useCallback(() => {
     if (resume) void finish(resume, false, "break_prompt");
   }, [finish, resume]);
   const continuePlaying = useCallback(() => {
-    if (!resume) return;
+    if (!resume || calmMode) return;
     const next = {
       ...resume,
       suppressFatigueUntilRound: resume.roundIndex + 3,
@@ -200,9 +223,9 @@ export function useGameSession<R>(
     else {
       roundStarted.current = Date.now();
       setResumeState(next);
-      void saveResume(next);
+      if (!guestMode) void saveResume(next);
     }
-  }, [finish, module, resume]);
+  }, [finish, module, resume, guestMode, calmMode]);
   const restart = useCallback(() => {
     setMessageKey(null);
     setResumeState(null);

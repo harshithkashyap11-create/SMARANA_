@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
+import { WellnessTab } from "../caregiver/WellnessTab";
 import { doctorApi } from "./api";
 import { DifficultyTab, MetricsTab, NotesTab, OverviewTab, RoutineTab } from "./PatientTabs";
 
 const tabs = [
+  ["wellness", "Sleep & Mood"],
   ["overview", "Overview"],
   ["metrics", "Metrics"],
   ["difficulty", "Difficulty"],
@@ -57,6 +59,7 @@ export function DoctorPatientPage() {
       <div className="rounded-card bg-surface p-6">
         <h2 className="text-xl font-bold">{selected[1]}</h2>
         <div className="mt-4">
+          {tab === "wellness" && <WellnessTab patientId={patientId} readOnly />}
           {tab === "overview" && <OverviewTab patientId={patientId} />}
           {tab === "metrics" && <MetricsTab patientId={patientId} />}
           {tab === "difficulty" && <DifficultyTab patientId={patientId} />}

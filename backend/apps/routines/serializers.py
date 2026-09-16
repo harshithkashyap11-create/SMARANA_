@@ -1,6 +1,14 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
-from apps.routines.models import Medication, Reminder, ReminderResponse, RoutineItem
+from apps.routines.models import (
+    Medication,
+    MoodLog,
+    Reminder,
+    ReminderResponse,
+    RoutineItem,
+    SleepLog,
+)
 
 
 class RoutineItemSerializer(serializers.ModelSerializer):
@@ -77,3 +85,28 @@ class MedicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Medication
         fields = ("id", "name", "dose", "times", "instructions", "active", "start_date", "end_date")
+
+
+class SleepLogSerializer(serializers.ModelSerializer):
+    quality = serializers.IntegerField(min_value=1, max_value=5)
+    device_updated_at = serializers.DateTimeField(required=False)
+    id = serializers.UUIDField(
+        required=False, validators=[UniqueValidator(queryset=SleepLog.objects.all())]
+    )
+
+    class Meta:
+        model = SleepLog
+        fields = ("id", "date", "bed_time", "wake_time", "quality", "source", "device_updated_at")
+        read_only_fields = ("source",)
+
+
+class MoodLogSerializer(serializers.ModelSerializer):
+    device_updated_at = serializers.DateTimeField(required=False)
+    id = serializers.UUIDField(
+        required=False, validators=[UniqueValidator(queryset=MoodLog.objects.all())]
+    )
+
+    class Meta:
+        model = MoodLog
+        fields = ("id", "logged_at", "mood", "note", "source", "device_updated_at")
+        read_only_fields = ("source",)

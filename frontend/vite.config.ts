@@ -32,7 +32,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{html,js,css,woff2}"],
+        clientsClaim: true,
+        globPatterns: ["**/*.{html,js,css,woff2,svg,png,jpg,jpeg,webp,mp3,wav}"],
         runtimeCaching: [
           { urlPattern: /\/media\//, handler: "CacheFirst", options: { cacheName: "smarana-media", expiration: { maxEntries: 500, maxAgeSeconds: 2592000 } } },
           { urlPattern: /\/api\/v1\/content\/pack/, handler: "StaleWhileRevalidate", options: { cacheName: "smarana-content" } },
@@ -45,8 +46,11 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     proxy: {
+      "/admin": {target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000", changeOrigin: true},
+      "/static": {target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000", changeOrigin: true},
+      "/media": { target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000", changeOrigin: true },
       "/api": {
-        target: process.env.VITE_API_PROXY_TARGET ?? "http://backend:8000",
+        target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000",
         changeOrigin: true,
       },
     },

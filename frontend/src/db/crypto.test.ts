@@ -47,7 +47,9 @@ test("stores an encrypted refresh token that only the correct PIN unlocks", asyn
     refreshToken: "refresh-token",
     user: patient,
   });
-  expect(state.values.get("refreshTokenEncrypted")).not.toContain("refresh-token");
+  expect(state.values.get("refreshTokenEncrypted")).not.toContain(
+    "refresh-token",
+  );
 });
 
 test("re-encrypts a rotated refresh token for the next offline unlock", async () => {

@@ -18,7 +18,7 @@ Hear a sound, pick the image; L6+ two-sound sequences; uses pack `sound` items.
 - Anything not listed above.
 
 ## Acceptance criteria
-- [ ] Per-game tests; seed.
+- [x] Per-game tests; seed.
 
 ## Verification
 ```
@@ -27,4 +27,4 @@ cd frontend && npm run lint && npm run typecheck && npm test -- --run
 
 ## Done checklist
 - [ ] `/review-task` verdict READY
-- [ ] `/finish-task` run (PROGRESS.md updated, committed)
+- [x] `/finish-task` run (PROGRESS.md updated, committed)

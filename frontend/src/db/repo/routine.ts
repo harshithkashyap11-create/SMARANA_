@@ -1,5 +1,7 @@
+import { dayInTimezone, generateLocalReminders } from "../reminders";
 import { apiClient } from "../../api/client";
 import {
+  activeProfile,
   db,
   type CachedMedication,
   type CachedReminder,
@@ -22,7 +24,7 @@ export interface RoutineRepository {
 }
 
 async function patientId(): Promise<string> {
-  const cached = await db.profile.orderBy("refreshedAt").last();
+  const cached = await activeProfile();
   if (cached) return cached.id;
   const patients = await apiClient<PatientList>("/api/v1/patients/", {
     method: "GET",
@@ -34,11 +36,12 @@ async function patientId(): Promise<string> {
 export class DexieRoutineRepository implements RoutineRepository {
   async getToday(): Promise<Reminder[]> {
     const id = await patientId();
-    const date = new Date().toISOString().slice(0, 10);
+    const date = dayInTimezone();
+    await generateLocalReminders(id, date);
     const cached = await db.reminders
       .where("patientId")
       .equals(id)
-      .filter((item) => item.scheduled_at.startsWith(date))
+      .filter((item) => dayInTimezone(new Date(item.scheduled_at)) === date)
       .toArray();
     if (isFakeOffline() || !navigator.onLine) return cached;
     try {
@@ -46,10 +49,21 @@ export class DexieRoutineRepository implements RoutineRepository {
         `/api/v1/patients/${id}/reminders/?date=${date}`,
         { method: "GET" },
       );
-      await db.reminders.bulkPut(
-        items.map((item) => ({ ...item, patientId: id })),
+      const pending = new Set(
+        (
+          await db.outbox.where("model").equals("reminder_response").toArray()
+        ).map((item) => item.payload.reminder_id),
       );
-      return items;
+      const merged = items.map((item) =>
+        pending.has(item.id)
+          ? (cached.find((row) => row.id === item.id) ?? {
+              ...item,
+              patientId: id,
+            })
+          : { ...item, patientId: id },
+      );
+      await db.reminders.bulkPut(merged);
+      return merged;
     } catch (error) {
       if (cached.length) return cached;
       throw error;
@@ -85,18 +99,37 @@ export class DexieRoutineRepository implements RoutineRepository {
       action,
       respondedAt,
     };
-    const payload = { id: responseId, patient_id: id, reminder_id: reminderId, action, responded_at: respondedAt, device_updated_at: respondedAt };
-    await db.transaction("rw", db.reminders, db.reminderResponses, db.outbox, async () => {
-      await db.reminderResponses.put(local);
-      await db.reminders.update(reminderId, {
-        status: action,
-        snoozed_until:
-          action === "later"
-            ? new Date(Date.now() + 15 * 60_000).toISOString()
-            : null,
-      });
-      await db.outbox.put(createOutboxEntry("reminder_response", responseId, id, payload));
-    });
+    const reminder = await db.reminders.get(reminderId);
+    if (!reminder || reminder.patientId !== id)
+      throw new Error("Reminder unavailable");
+    const payload = {
+      scheduled_at: reminder.scheduled_at,
+      id: responseId,
+      patient_id: id,
+      reminder_id: reminderId,
+      action,
+      responded_at: respondedAt,
+      device_updated_at: respondedAt,
+    };
+    await db.transaction(
+      "rw",
+      db.reminders,
+      db.reminderResponses,
+      db.outbox,
+      async () => {
+        await db.reminderResponses.put(local);
+        await db.reminders.update(reminderId, {
+          status: action,
+          snoozed_until:
+            action === "later"
+              ? new Date(Date.now() + 15 * 60_000).toISOString()
+              : null,
+        });
+        await db.outbox.put(
+          createOutboxEntry("reminder_response", responseId, id, payload),
+        );
+      },
+    );
   }
 }
 

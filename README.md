@@ -40,6 +40,12 @@ The Django admin requires a time-based one-time password. Run `make seed`, then 
 the printed `Admin TOTP setup` URI with an authenticator app. Sign in with the admin
 password and the current six-digit code.
 
+For the missing-translations report, sign in at
+http://localhost:8000/admin/content/contentitem/missing-translations/ or select
+**Missing translations** on the Content items page. Files under
+`backend/apps/content/templates/` are Django source templates; opening them as
+local browser files displays template directives instead of the admin page.
+
 PostgreSQL and Redis are available to the application containers on the internal Compose network. Every host port and credential used by Docker Compose is documented in `.env.example`.
 
 ## Common commands
@@ -71,3 +77,34 @@ tasks/              Ordered implementation task cards
 ```
 
 Development follows one task card at a time. See [the task-card guide](tasks/README.md) before starting a task.
+
+## Run directly on this computer
+
+Phase 10 adds features and polish; the current patient, caregiver, doctor and admin
+portals can run independently of it. With Node.js 22+, Python 3.12+ and PostgreSQL
+installed, run `make local`. It prepares a separate persistent database and media
+folder in `.local/`, applies migrations and seeds demo accounts on the first run.
+It does not use your existing application database. Keep the command running; Ctrl+C
+stops the local services. Run the same command again to restart with saved data.
+
+Open http://localhost:5173. Demo patient login: **RAO1234**, PIN **1234**.
+Caregiver: **priya@example.com**; doctor: **deka@example.com**.
+Both use **SmaranaDemo123!**. Admin username is **admin** with the same password;
+the authenticator enrollment URI is in `.local/demo-setup.txt`.
+Local demo notifications go to the console rather than sending email.
+
+Original illustrative practice packs are bundled for all eight regions. Assam
+and Meghalaya meet the configured counts; the other regions have at least five
+items per kind. The illustrations and synthesized tones are generic English
+practice material, with CC0 attribution. They are not documentary photos or
+traditional music. Imported catalogue records remain **draft** until reviewed;
+the frontend can use the bundled practice assets while a real catalogue is being
+curated. Native-speaker review of translations and culturally specific assets
+is a separate human content step before public use.
+
+To verify the actual offline backend round trip with this demo backend running:
+
+```sh
+cd frontend
+SMARANA_REAL_BACKEND=1 npx playwright test e2e/offline-real.spec.ts
+```

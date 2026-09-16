@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- a game module intentionally colocates its renderer and pure rules. */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ContentItem } from "../../../content/packs";
 import type {
   Answer,
@@ -33,7 +33,7 @@ export function buildMemoryRound(
   items: ContentItem[],
 ): MemoryRound {
   const [rows, columns] = gridFor(level);
-  const pairCount = (rows * columns) / 2;
+  const pairCount = Math.min(items.length, (rows * columns) / 2);
   const chosen = rng.shuffle(items).slice(0, pairCount);
   return {
     pairCount,
@@ -51,6 +51,11 @@ export function MemoryMatchRound({
   onAnswer,
   onHint,
 }: RoundProps<MemoryRound>) {
+  const timers = useRef<number[]>([]);
+  useEffect(
+    () => () => timers.current.forEach((timer) => window.clearTimeout(timer)),
+    [],
+  );
   const [revealed, setRevealed] = useState<string[]>(
     round.cards.map((card) => card.cardId),
   );
@@ -68,17 +73,19 @@ export function MemoryMatchRound({
         round.cards.find((item) => item.cardId === id),
       );
       const correct = cards[0]?.id === cards[1]?.id;
-      window.setTimeout(() => {
-        setRevealed([]);
-        if (correct && cards[0]) setMatched((old) => [...old, cards[0]!.id]);
-        onAnswer({ value: correct });
-      }, 250);
+      timers.current.push(
+        window.setTimeout(() => {
+          setRevealed([]);
+          if (correct && cards[0]) setMatched((old) => [...old, cards[0]!.id]);
+          onAnswer({ value: correct });
+        }, 250),
+      );
     }
   };
   const hint = (): void => {
     onHint();
     setRevealed(round.cards.map((card) => card.cardId));
-    window.setTimeout(() => setRevealed([]), 900);
+    timers.current.push(window.setTimeout(() => setRevealed([]), 900));
   };
   return (
     <section>

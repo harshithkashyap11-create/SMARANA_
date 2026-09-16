@@ -25,3 +25,5 @@ postgres-data/
 .vscode/
 # claude code local
 .claude/settings.local.json
+
+.local/

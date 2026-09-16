@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 
 from apps.patients.models import PatientProfile
-from apps.shared.models import SoftDelete, TimeStamped, UUIDModel
+from apps.shared.models import OfflineCapable, SoftDelete, TimeStamped, UUIDModel
 
 
 class RoutineItem(UUIDModel, TimeStamped, SoftDelete):
@@ -100,3 +100,26 @@ class Medication(UUIDModel, TimeStamped):
 
     class Meta:
         ordering = ["name", "id"]
+
+
+class SleepLog(OfflineCapable):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="sleep_logs")
+    date = models.DateField()
+    bed_time = models.TimeField()
+    wake_time = models.TimeField()
+    quality = models.PositiveSmallIntegerField(default=3)
+    source = models.CharField(
+        max_length=16, choices=[("patient", "Patient"), ("caregiver", "Caregiver")]
+    )
+
+
+class MoodLog(OfflineCapable):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="mood_logs")
+    logged_at = models.DateTimeField()
+    mood = models.CharField(
+        max_length=16, choices=[(x, x.title()) for x in ["great", "good", "ok", "low", "bad"]]
+    )
+    note = models.TextField(blank=True)
+    source = models.CharField(
+        max_length=16, choices=[("patient", "Patient"), ("caregiver", "Caregiver")]
+    )

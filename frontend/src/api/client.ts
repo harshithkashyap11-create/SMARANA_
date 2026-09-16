@@ -48,6 +48,9 @@ async function request<T>(
   delete fetchOptions.skipAuthRefresh;
   const headers = new Headers(fetchOptions.headers);
   headers.set("Accept", "application/json");
+  if (typeof fetchOptions.body === "string" && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
 
   if (accessToken) {
     headers.set("Authorization", `Bearer ${accessToken}`);
