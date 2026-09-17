@@ -76,7 +76,7 @@ export function createIntegratedTransport(patientId: string, game: GameDefinitio
     submitMetrics: async (event: PerformanceEvent) => (await enqueue(event)).adjustment,
     async exit() {
       if (saving) await saving;
-      if (!finished) await enqueue({ ...(latest ?? {
+      if (!finished && latest) await enqueue({ ...(latest ?? {
         game_id: game.key, difficulty: game.min_level, accuracy: 0, reaction_time_ms: 0,
         errors: 0, hints_used: 0, session_duration_sec: (Date.now() - Date.parse(startedAt)) / 1000,
         rounds_completed: 0, timestamp: new Date().toISOString(),

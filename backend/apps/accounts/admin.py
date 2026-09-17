@@ -1,5 +1,8 @@
 """Django Admin configuration for the custom user."""
 
+from typing import Any
+
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.db.models import QuerySet
@@ -27,7 +30,7 @@ class SmaranaUserAdmin(UserAdmin[User]):
         "request_pin_reset",
     )
     fieldsets = (
-        (None, {"fields": ("username",)}),
+        (None, {"fields": ("username", "password")}),
         ("Personal info", {"fields": ("first_name", "last_name", "email")}),
         (
             "Permissions",
@@ -68,6 +71,22 @@ class SmaranaUserAdmin(UserAdmin[User]):
     list_display = ("username", "display_name", "role", "is_approved", "is_staff")
     list_filter = (*UserAdmin.list_filter, "role", "is_approved", "theme")
     search_fields = ("username", "display_name", "email", "phone")
+
+    def get_form(
+        self,
+        request: HttpRequest,
+        obj: User | None = None,
+        change: bool = False,
+        **kwargs: Any,
+    ) -> type[forms.ModelForm[User]]:
+        form = super().get_form(request, obj, change=change, **kwargs)
+        permissions = form.base_fields.get("user_permissions")
+        if (
+            isinstance(permissions, forms.ModelMultipleChoiceField)
+            and permissions.queryset is not None
+        ):
+            permissions.queryset = permissions.queryset.exclude(content_type__app_label="otp_totp")
+        return form
 
     @admin.action(description="Approve selected")
     def approve_selected(self, request: HttpRequest, queryset: QuerySet[User]) -> None:

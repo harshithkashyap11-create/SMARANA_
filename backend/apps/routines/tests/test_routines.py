@@ -40,6 +40,63 @@ def test_materialising_twice_is_idempotent(item: RoutineItem) -> None:
 
 
 @pytest.mark.django_db
+def test_edit_reschedules_future_pending_reminders_preserving_history(item: RoutineItem) -> None:
+    tomorrow = timezone.localdate() + timedelta(days=1)
+    first = materialise_reminders(item.patient, tomorrow, 2)
+    first[0].status = Reminder.Status.TAKEN
+    first[0].save()
+    item.time_of_day = time(10, 30)
+    item.save()
+    materialise_reminders(item.patient, tomorrow, 2)
+    first[0].refresh_from_db()
+    first[1].refresh_from_db()
+    assert timezone.localtime(first[0].scheduled_at).time() == time(8)
+    assert timezone.localtime(first[1].scheduled_at).time() == time(10, 30)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("change", ["weekday", "start", "end", "delete"])
+def test_recurrence_edit_removes_only_future_unanswered_instances(
+    item: RoutineItem, change: str
+) -> None:
+    tomorrow = timezone.localdate() + timedelta(days=1)
+    reminders = materialise_reminders(item.patient, tomorrow, 3)
+    reminders[0].status = Reminder.Status.TAKEN
+    reminders[0].save()
+    ReminderResponse.objects.create(
+        reminder=reminders[0],
+        action="taken",
+        responded_at=timezone.now(),
+        idempotency_key=uuid4(),
+    )
+    if change == "weekday":
+        item.days_of_week = [tomorrow.weekday()]
+    elif change == "start":
+        item.start_date = tomorrow + timedelta(days=3)
+    elif change == "end":
+        item.end_date = tomorrow
+    if change == "delete":
+        item.delete()
+    else:
+        item.save()
+    materialise_reminders(item.patient, tomorrow, 3)
+    assert Reminder.objects.filter(id=reminders[0].id, status="taken").exists()
+    assert ReminderResponse.objects.filter(reminder=reminders[0]).count() == 1
+    assert not Reminder.objects.filter(id__in=[row.id for row in reminders[1:]]).exists()
+
+
+@pytest.mark.django_db
+def test_patient_reminders_hide_deleted_routine(item: RoutineItem) -> None:
+    reminder = materialise_reminders(item.patient, timezone.localdate(), 1)[0]
+    item.delete()
+    client = APIClient()
+    client.force_authenticate(item.patient.user)
+    response = client.get(f"/api/v1/patients/{item.patient.id}/reminders/")
+    assert response.status_code == 200
+    assert all(row["id"] != str(reminder.id) for row in response.data)
+
+
+@pytest.mark.django_db
 def test_respond_is_idempotent_and_scoped_to_patient(item: RoutineItem) -> None:
     reminder = materialise_reminders(item.patient, timezone.localdate(), 1)[0]
     client = APIClient()
@@ -168,7 +225,15 @@ def test_caregiver_delete_soft_deletes_own_item(item: RoutineItem) -> None:
     item.save()
     client = APIClient()
     client.force_authenticate(caregiver)
-    response = client.delete(f"/api/v1/patients/{item.patient.id}/routine-items/{item.id}/")
+    url = f"/api/v1/patients/{item.patient.id}/routine-items/{item.id}/"
+    response = client.delete(url)
     assert response.status_code == 204
     assert not RoutineItem.objects.filter(id=item.id).exists()
     assert RoutineItem.all_objects.filter(id=item.id, deleted_at__isnull=False).exists()
+    assert not item.patient.routine_items.filter(id=item.id).exists()
+    listed = client.get(f"/api/v1/patients/{item.patient.id}/routine-items/")
+    assert listed.status_code == 200
+    assert all(row["id"] != str(item.id) for row in listed.data)
+    assert (
+        client.patch(url, {"title": "Cannot revive by editing"}, format="json").status_code == 404
+    )

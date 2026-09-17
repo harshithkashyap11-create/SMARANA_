@@ -67,18 +67,19 @@ def main() -> None:
                     "errors": max(0, rounds - int(round(accuracy * rounds))),
                 }
                 target = adjustment(history, accuracy, early_exit)
+                next_level = int(clipped(level + target, 1, 5))
                 rows.append({
                     "patient_id": f"synthetic-{patient_index:03d}",
                     "game_id": game_id,
                     "timestamp": (origin + timedelta(days=session_index, minutes=game_index)).isoformat(),
                     "performance": event,
                     "condition": condition,
-                    "applied_adjustment": target,
+                    "applied_adjustment": next_level - level,
                     "target_adj": target,
                     "provenance": "synthetic-demo-policy-v1",
                 })
                 history.append({"accuracy": accuracy})
-                level = int(clipped(level + target, 1, 5))
+                level = next_level
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(rows, indent=2))
     print(f"Wrote {len(rows)} synthetic demo rows to {args.output}")

@@ -19,6 +19,8 @@ def materialise_all_reminders() -> int:
 @shared_task
 def mark_missed_reminders() -> int:
     cutoff = timezone.now() - timedelta(minutes=60)
-    return Reminder.objects.filter(status=Reminder.Status.PENDING, scheduled_at__lte=cutoff).update(
-        status=Reminder.Status.MISSED
-    )
+    return Reminder.objects.filter(
+        status=Reminder.Status.PENDING,
+        scheduled_at__lte=cutoff,
+        routine_item__deleted_at__isnull=True,
+    ).update(status=Reminder.Status.MISSED)

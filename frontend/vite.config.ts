@@ -35,10 +35,16 @@ export default defineConfig({
         clientsClaim: true,
         skipWaiting: true,
         navigateFallbackDenylist: [/^\/(?:admin|api|static|media)(?:\/|$)/],
-        globPatterns: ["**/*.{html,js,css,woff2,svg,png,jpg,jpeg,webp,mp3,wav}"],
+        globPatterns: [
+          "**/*.{html,js,css,woff2,svg,png,jpg,jpeg,webp,mp3,wav}",
+        ],
         runtimeCaching: [
           { urlPattern: /\/media\//, handler: "NetworkOnly" },
-          { urlPattern: /\/api\/v1\/content\/pack/, handler: "StaleWhileRevalidate", options: { cacheName: "smarana-content" } },
+          {
+            urlPattern: /\/api\/v1\/content\/pack/,
+            handler: "StaleWhileRevalidate",
+            options: { cacheName: "smarana-content" },
+          },
           { urlPattern: /\/api\/v1\/patients\//, handler: "NetworkOnly" },
         ],
       },
@@ -48,9 +54,20 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     proxy: {
-      "/admin": {target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000", changeOrigin: true},
-      "/static": {target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000", changeOrigin: true},
-      "/media": { target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000", changeOrigin: true },
+      // Preserve the browser's Host so Django's CSRF origin check works through
+      // the same-origin Admin iframe, including non-default local demo ports.
+      "/admin": {
+        target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000",
+        changeOrigin: false,
+      },
+      "/static": {
+        target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/media": {
+        target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
       "/api": {
         target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000",
         changeOrigin: true,

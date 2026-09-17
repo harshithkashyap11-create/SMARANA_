@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import { renderWithProviders } from "../../../test/utils";
 import { MemoryUploadTab } from "./MemoryUploadTab";
@@ -63,7 +63,9 @@ test("compresses photos and sends tagged people ids", async () => {
   const create = requests.find((item) => item.url.endsWith("/memories/"));
   expect(create?.body).toBeInstanceOf(FormData);
   expect((create?.body as FormData).getAll("people")).toEqual(["person-1"]);
-  await waitFor(() =>
-    expect(requests.some((item) => item.url.endsWith("/media/"))).toBe(true),
-  );
+  expect((create?.body as FormData).getAll("photos")).toHaveLength(1);
+  expect(
+    requests.filter((item) => item.url.endsWith("/memories/")),
+  ).toHaveLength(1);
+  expect(requests.some((item) => item.url.endsWith("/media/"))).toBe(false);
 });

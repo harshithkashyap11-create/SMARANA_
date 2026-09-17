@@ -177,7 +177,7 @@ export default function PatternCompletion({
       onExit={handleExit}
       footer={
         status === 'playing' && config.hintsAllowed > 0 ? (
-          <button type="button" className="sm-btn sm-btn--quiet" onClick={handleHint} disabled={hintsUsed >= config.hintsAllowed}>
+          <button type="button" className="sm-btn sm-btn--quiet" data-voice-hint onClick={handleHint} disabled={hintsUsed >= config.hintsAllowed}>
             {t('games.common.showHint')}
           </button>
         ) : null

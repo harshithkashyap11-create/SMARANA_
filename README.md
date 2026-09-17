@@ -36,9 +36,10 @@ The first build downloads container images and language packages, so it can take
 | MinIO API | http://localhost:9000 |
 | MinIO console | http://localhost:9001 |
 
-The Django admin requires a time-based one-time password. Run `make seed`, then scan
-the printed `Admin TOTP setup` URI with an authenticator app. Sign in with the admin
-password and the current six-digit code.
+The Django Admin uses username/password login, CSRF protection and an active,
+staff user with the Admin role. Run `make seed` to create the fictional development
+account. Admin OTP enrollment and management are removed; existing historical
+OTP records and migrations are retained.
 
 For the missing-translations report, sign in at
 http://localhost:8000/admin/content/contentitem/missing-translations/ or select
@@ -80,17 +81,24 @@ Development follows one task card at a time. See [the task-card guide](tasks/REA
 
 ## Run directly on this computer
 
-Phase 10 adds features and polish; the current patient, caregiver, doctor and admin
-portals can run independently of it. With Node.js 22+, Python 3.12+ and PostgreSQL
-installed, run `make local`. It prepares a separate persistent database and media
+With Node.js 22.18+, Python 3.12 and PostgreSQL server/client tools installed,
+prepare the optional demo model runtime, then run `make local`:
+
+```sh
+python3.12 -m venv backend/.venv-dda
+backend/.venv-dda/bin/python -m pip install -r backend/requirements-dda.txt
+make local
+```
+
+It prepares a separate persistent database and media
 folder in `.local/`, applies migrations and seeds demo accounts on the first run.
 It does not use your existing application database. Keep the command running; Ctrl+C
 stops the local services. Run the same command again to restart with saved data.
 
 Open http://localhost:5173. Demo patient login: **RAO1234**, PIN **1234**.
 Caregiver: **priya@example.com**; doctor: **deka@example.com**.
-Both use **SmaranaDemo123!**. Admin username is **admin** with the same password;
-the authenticator enrollment URI is in `.local/demo-setup.txt`.
+Both use **SmaranaDemo123!**. Admin username is **admin** with the same password.
+These credentials and synthetic records are for local demonstrations only.
 Local demo notifications go to the console rather than sending email.
 
 Original illustrative practice packs are bundled for all eight regions. Assam
@@ -108,6 +116,9 @@ To verify the actual offline backend round trip with this demo backend running:
 cd frontend
 SMARANA_REAL_BACKEND=1 npx playwright test e2e/offline-real.spec.ts
 ```
+
+See [the final audit and demo runbook](docs/pre-release-audit.md) for verified
+results, voice setup, all-role browser checks and remaining limitations.
 
 
 ## Production deployment

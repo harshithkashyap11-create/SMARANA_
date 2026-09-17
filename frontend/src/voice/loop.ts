@@ -6,6 +6,9 @@ export class VoiceLoop {
   private active = false;
   private generation = 0;
   private timer?: ReturnType<typeof setTimeout>;
+  isRunning(): boolean {
+    return this.active;
+  }
   constructor(
     private stt: SpeechToText,
     private handle: (text: string) => Promise<void>,
@@ -26,6 +29,12 @@ export class VoiceLoop {
   }
   private listen(generation: number): void {
     if (!this.active || generation !== this.generation) return;
+    // Includes the existing second SOS confirmation and other modal UI.
+    if (document.querySelector('[role="dialog"][aria-modal="true"]')) {
+      this.state("processing");
+      this.schedule(generation);
+      return;
+    }
     if (window.speechSynthesis?.speaking || window.speechSynthesis?.pending) {
       this.state("speaking");
       this.schedule(generation);
@@ -64,6 +73,7 @@ export class VoiceLoop {
         if (
           [
             "unsupported",
+            "start-failed",
             "not-allowed",
             "service-not-allowed",
             "audio-capture",

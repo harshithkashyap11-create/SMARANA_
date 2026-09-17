@@ -45,6 +45,7 @@ from apps.routines.serializers import (
 from apps.routines.services import (
     create_routine_item,
     delete_routine_item,
+    materialise_reminders,
     record_response,
     update_routine_item,
     upsert_medication,
@@ -268,7 +269,11 @@ class PatientViewSet(ReadOnlyModelViewSet[PatientProfile]):
     @action(detail=True, methods=["get"], url_path="reminders")
     def reminders(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         del args, kwargs
-        queryset = self.get_object().routine_reminders.select_related("routine_item")
+        patient = self.get_object()
+        materialise_reminders(patient, timezone.localdate())
+        queryset = patient.routine_reminders.filter(
+            routine_item__deleted_at__isnull=True
+        ).select_related("routine_item")
         requested_date = request.query_params.get("date")
         if requested_date:
             queryset = queryset.filter(scheduled_at__date=requested_date)

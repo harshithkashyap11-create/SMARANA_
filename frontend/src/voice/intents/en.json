@@ -1,1 +1,7 @@
-{"help":["help","i am confused"],"sos":["emergency","need help now"],"read_this":["read this"],"speak_slowly":["speak slowly"],"speak_normally":["speak normally","normal speed"]}
+{
+  "help": ["help", "i am confused"],
+  "sos": ["emergency", "need help now"],
+  "read_this": ["read this"],
+  "speak_slowly": ["speak slowly"],
+  "speak_normally": ["speak normally", "normal speed"]
+}

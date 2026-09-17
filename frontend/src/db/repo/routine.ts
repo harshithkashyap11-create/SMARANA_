@@ -18,8 +18,8 @@ interface PatientList {
 }
 
 export interface RoutineRepository {
-  getToday(): Promise<Reminder[]>;
-  getMedications(): Promise<Medication[]>;
+  getToday(this: void, signal?: AbortSignal): Promise<Reminder[]>;
+  getMedications(this: void, signal?: AbortSignal): Promise<Medication[]>;
   respond(reminderId: string, action: ReminderAction): Promise<void>;
 }
 
@@ -34,8 +34,10 @@ async function patientId(): Promise<string> {
 }
 
 export class DexieRoutineRepository implements RoutineRepository {
-  async getToday(): Promise<Reminder[]> {
+  async getToday(signal?: AbortSignal): Promise<Reminder[]> {
+    signal?.throwIfAborted();
     const id = await patientId();
+    signal?.throwIfAborted();
     const date = dayInTimezone();
     await generateLocalReminders(id, date);
     const cached = await db.reminders
@@ -47,8 +49,9 @@ export class DexieRoutineRepository implements RoutineRepository {
     try {
       const items = await apiClient<Reminder[]>(
         `/api/v1/patients/${id}/reminders/?date=${date}`,
-        { method: "GET" },
+        { method: "GET", signal },
       );
+      signal?.throwIfAborted();
       const pending = new Set(
         (
           await db.outbox.where("model").equals("reminder_response").toArray()
@@ -65,25 +68,30 @@ export class DexieRoutineRepository implements RoutineRepository {
       await db.reminders.bulkPut(merged);
       return merged;
     } catch (error) {
+      signal?.throwIfAborted();
       if (cached.length) return cached;
       throw error;
     }
   }
 
-  async getMedications(): Promise<Medication[]> {
+  async getMedications(signal?: AbortSignal): Promise<Medication[]> {
+    signal?.throwIfAborted();
     const id = await patientId();
+    signal?.throwIfAborted();
     const cached = await db.medications.where("patientId").equals(id).toArray();
     if (isFakeOffline() || !navigator.onLine) return cached;
     try {
       const items = await apiClient<Medication[]>(
         `/api/v1/patients/${id}/medications/`,
-        { method: "GET" },
+        { method: "GET", signal },
       );
+      signal?.throwIfAborted();
       await db.medications.bulkPut(
         items.map((item) => ({ ...item, patientId: id })),
       );
       return items;
     } catch (error) {
+      signal?.throwIfAborted();
       if (cached.length) return cached;
       throw error;
     }

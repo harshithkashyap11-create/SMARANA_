@@ -7,7 +7,7 @@ from apps.clinical.models import ClinicalBaseline, ClinicalNote, DdaOverride, Ex
 
 class DdaOverrideInputSerializer(serializers.Serializer[dict[str, object]]):
     action = serializers.ChoiceField(choices=DdaOverride.Action.choices)
-    value = serializers.IntegerField(min_value=1, max_value=10, required=False, allow_null=True)
+    value = serializers.IntegerField(min_value=1, max_value=5, required=False, allow_null=True)
     reason = serializers.CharField(max_length=4000)
 
 
@@ -35,7 +35,7 @@ class ClinicalBaselineSerializer(serializers.ModelSerializer[ClinicalBaseline]):
         min_value=1, max_value=120, allow_null=True, required=False
     )
     max_difficulty_level = serializers.IntegerField(
-        min_value=1, max_value=10, allow_null=True, required=False
+        min_value=1, max_value=5, allow_null=True, required=False
     )
     recorded_by_name = serializers.CharField(source="recorded_by.display_name", read_only=True)
 
@@ -57,7 +57,7 @@ class ClinicalBaselineSerializer(serializers.ModelSerializer[ClinicalBaseline]):
 
 
 class ExerciseAssignmentSerializer(serializers.ModelSerializer[ExerciseAssignment]):
-    start_level = serializers.IntegerField(min_value=1, max_value=10)
+    start_level = serializers.IntegerField(min_value=1, max_value=5)
     target_minutes = serializers.IntegerField(min_value=1, max_value=120)
     times_per_week = serializers.IntegerField(min_value=1, max_value=7)
 

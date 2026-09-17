@@ -368,7 +368,7 @@ export default function DailyRoutine({
           <button
             type="button"
             className="sm-btn sm-btn--quiet"
-            onClick={handleHint}
+            data-voice-hint onClick={handleHint}
             disabled={session.hintsRemaining === 0}
           >
             {t('games.common.hint')}

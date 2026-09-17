@@ -24,7 +24,7 @@ from apps.voice.providers import (
         ProviderResult("set_reminder", {"title": "water", "time": "25:00"}, 0.99),
     ],
 )
-def test_rejects_unsafe_results(result):
+def test_rejects_unsafe_results(result: ProviderResult) -> None:
     assert not valid_result(result)
 
 
@@ -34,11 +34,15 @@ def test_rejects_unsafe_results(result):
     LOCAL_LLM_URL="http://localhost:11434",
     LOCAL_LLM_TIMEOUT=1,
 )
-def test_local_model_structured_response():
+def test_local_model_structured_response() -> None:
     reply = {
         "message": {
             "content": json.dumps(
-                {"intent": "open_section", "slots": {"section": "progress"}, "confidence": 0.91}
+                {
+                    "intent": "general_chat",
+                    "slots": {"response": "Games can be enjoyable."},
+                    "confidence": 0.91,
+                }
             )
         }
     }
@@ -46,14 +50,15 @@ def test_local_model_structured_response():
         "apps.voice.providers.urlopen", return_value=BytesIO(json.dumps(reply).encode())
     ) as http:
         result = OllamaProvider().route("how have I been doing in games", "en")
+    assert result is not None
     assert result.source == "LOCAL_LLM"
-    assert result.slots == {"section": "progress"}
+    assert result.slots == {"response": "Games can be enjoyable."}
     assert json.loads(http.call_args.args[0].data)["stream"] is False
 
 
 @override_settings(VOICE_LLM_FALLBACK=True)
-def test_local_precedes_cloud_and_cloud_only_on_failure():
-    local = ProviderResult("help", {}, 0.95, "LOCAL_LLM")
+def test_local_precedes_cloud_and_cloud_only_on_failure() -> None:
+    local = ProviderResult("general_chat", {"response": "Hello."}, 0.95, "LOCAL_LLM")
     with (
         patch.object(OllamaProvider, "route", return_value=local),
         patch("apps.voice.providers.HttpJsonProvider.route") as cloud,
@@ -68,13 +73,13 @@ def test_local_precedes_cloud_and_cloud_only_on_failure():
         cloud.assert_called_once()
 
 
-def test_provider_exception_does_not_escape():
+def test_provider_exception_does_not_escape() -> None:
     with patch("apps.voice.providers.provider.route", side_effect=TimeoutError):
         assert safe_route("hello", "en") is None
 
 
 @override_settings(LOCAL_LLM_PROVIDER="ollama")
-def test_local_failure_and_malformed_reply():
+def test_local_failure_and_malformed_reply() -> None:
     with patch("apps.voice.providers.urlopen", side_effect=TimeoutError):
         assert OllamaProvider().route("hello", "en") is None
     with patch("apps.voice.providers.urlopen", return_value=BytesIO(b"not json")):

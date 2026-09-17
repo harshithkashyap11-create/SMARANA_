@@ -1,23 +1,16 @@
 """Root URL configuration."""
 
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-
-# django-otp exposes no PEP 561 types for its admin integration.
-from django_otp.admin import OTPAdminSite  # type: ignore[import-untyped]
 from drf_spectacular.views import SpectacularAPIView
 from rest_framework.permissions import AllowAny
 
+from apps.patients.media_views import LocalMediaView
 from config.views import health_check
 
-otp_admin_site = OTPAdminSite(name="otp_admin")
-otp_admin_site._registry = admin.site._registry
-otp_admin_site.site_header = "Smārana administration"
-
 urlpatterns = [
-    path("admin/", otp_admin_site.urls if settings.REQUIRE_ADMIN_OTP else admin.site.urls),
+    path("admin/", admin.site.urls),
     path(
         "api/schema/",
         SpectacularAPIView.as_view(permission_classes=[AllowAny]),
@@ -38,4 +31,4 @@ urlpatterns = [
 
 
 if settings.DEBUG and getattr(settings, "MEDIA_ROOT", None):
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += [path("media/<path:name>", LocalMediaView.as_view(), name="local-media")]

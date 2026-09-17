@@ -12,6 +12,16 @@ async function pin(page: Page) {
   for (const digit of "1234")
     await page.getByRole("button", { name: digit, exact: true }).click();
 }
+async function dismissInstructions(page: Page) {
+  const dialog = page.getByRole("dialog", {
+    name: "Instructions",
+    exact: true,
+  });
+  if (await dialog.isVisible()) {
+    await dialog.getByRole("button", { name: "Got it", exact: true }).click();
+  }
+  await expect(dialog).toHaveCount(0);
+}
 
 test("real reminder and completed offline game survive reload, upload, and replay", async ({
   page,
@@ -42,16 +52,32 @@ test("real reminder and completed offline game survive reload, upload, and repla
   await page.getByLabel("Login ID").fill("RAO1234");
   await pin(page);
   await expect(page).toHaveURL(/(?<!login)\/patient$/);
+  await expect(page.locator("main h1")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Got it", exact: true }),
+  ).toBeVisible();
+  await dismissInstructions(page);
   await expect
     .poll(async () => (await records(page, "routineItems")).length)
     .toBeGreaterThan(0);
   await page.getByRole("button", { name: /games/i }).click();
+  await expect(
+    page.getByRole("heading", { name: "Games", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Got it", exact: true }),
+  ).toBeVisible();
+  await dismissInstructions(page);
   await page.getByRole("link", { name: /^Familiar Place Recall/ }).click();
   await expect(
     page.getByRole("heading", { name: "Familiar Place Recall" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Home", exact: true }).click();
   await page.getByRole("button", { name: /routine/i }).click();
+  await expect(
+    page.getByRole("button", { name: "Got it", exact: true }),
+  ).toBeVisible();
+  await dismissInstructions(page);
   await expect(page.getByText("Morning tablet", { exact: true })).toBeVisible();
   await expect
     .poll(
@@ -69,13 +95,16 @@ test("real reminder and completed offline game survive reload, upload, and repla
   ).toBeVisible();
   await page.getByRole("button", { name: "Home", exact: true }).click();
   await page.getByRole("button", { name: /games/i }).click();
+  await dismissInstructions(page);
   await page.getByRole("link", { name: /^Familiar Place Recall/ }).click();
   for (let round = 1; round <= 5; round++) {
     await expect(
       page.getByText(`Round ${round} of 5`, { exact: true }),
     ).toBeVisible();
     if (await page.getByRole("dialog").isVisible()) {
-      await page.getByRole("button", { name: "Keep going", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Keep going", exact: true })
+        .click();
     }
     const image = page.locator("main section img");
     let answer: string;
@@ -104,14 +133,25 @@ test("real reminder and completed offline game survive reload, upload, and repla
     const database = await new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open("smarana");
       request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error ?? new Error("Database inspection failed"));
+      request.onerror = () =>
+        reject(request.error ?? new Error("Database inspection failed"));
     });
     const stores = ["profile", "routineItems", "gameSessions", "outbox"];
-    const rows = await Promise.all(stores.map((store) => new Promise<Array<Record<string, unknown>>>((resolve, reject) => {
-      const request = database.transaction(store).objectStore(store).getAll();
-      request.onsuccess = () => resolve(request.result as Array<Record<string, unknown>>);
-      request.onerror = () => reject(request.error ?? new Error("Raw inspection failed"));
-    })));
+    const rows = await Promise.all(
+      stores.map(
+        (store) =>
+          new Promise<Array<Record<string, unknown>>>((resolve, reject) => {
+            const request = database
+              .transaction(store)
+              .objectStore(store)
+              .getAll();
+            request.onsuccess = () =>
+              resolve(request.result as Array<Record<string, unknown>>);
+            request.onerror = () =>
+              reject(request.error ?? new Error("Raw inspection failed"));
+          }),
+      ),
+    );
     database.close();
     return rows.flat();
   });

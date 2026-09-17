@@ -10,7 +10,13 @@ from rest_framework.exceptions import ValidationError
 from apps.accounts.models import User
 from apps.audit.services import audit
 from apps.games.dda import DdaConfig, DifficultyStateData, Reason, SessionSummary, next_difficulty
-from apps.games.models import DifficultyChange, DifficultyState, GameDefinition, GameSession
+from apps.games.models import (
+    DifficultyChange,
+    DifficultyState,
+    GameDefinition,
+    GamePerformanceEvent,
+    GameSession,
+)
 from apps.patients.models import PatientProfile
 
 logger = logging.getLogger(__name__)
@@ -89,7 +95,9 @@ def save_session(
         or end < start
     ):
         raise ValidationError({"ended_at": "Use valid ordered, timezone-aware session dates."})
-    if type(data.get("level")) is not int or not game.min_level <= data["level"] <= game.max_level:
+    if type(data.get("level")) is not int or not game.min_level <= data["level"] <= min(
+        5, game.max_level
+    ):
         raise ValidationError({"level": "Choose a level within the game's range."})
     # Serialize first-time state creation and clinician updates for this patient.
     patient = PatientProfile.objects.select_for_update().get(pk=patient.pk)
@@ -143,11 +151,11 @@ def save_session(
         lockedByDoctor=state.locked_by_doctor,
         capLevel=min(
             value
-            for value in (state.cap_level, patient.max_difficulty_level, game.max_level)
+            for value in (5, state.cap_level, patient.max_difficulty_level, game.max_level)
             if value is not None
         ),
         minLevel=game.min_level,
-        maxLevel=game.max_level,
+        maxLevel=min(5, game.max_level),
         lockedByName=state.locked_by_name,
     )
     try:
@@ -184,20 +192,66 @@ def save_session(
             min(
                 game.max_level,
                 input_state.capLevel or game.max_level,
-                state.level + decision["adjustment"],
+                (
+                    result.state.level
+                    if decision["reason"] == "model_out_of_domain" and settings.DDA_RULE_FALLBACK
+                    else state.level + decision["adjustment"]
+                ),
             ),
         )
-        if state.locked_by_doctor:
+        if decision["reason"] == "model_out_of_domain" and settings.DDA_RULE_FALLBACK:
+            decision = {
+                "engine_version": "deterministic-session-v1",
+                "reason": result.change.reasonCode,
+                "model_status": "model_out_of_domain",
+            }
+        # A live round may already have applied this session's one allowed change.
+        # Persist that decision without applying another RF step at session end.
+        checkpoint = GamePerformanceEvent.objects.filter(
+            patient=patient,
+            game=game,
+            session_id=session.id,
+        ).order_by("created_at")
+        applied = next(
+            (event.decision for event in checkpoint if event.decision.get("adjustment", 0)),
+            None,
+        )
+        if applied:
+            decision = {**applied, "reason": "round_change_persisted"}
+            target = max(
+                game.min_level, min(game.max_level, input_state.capLevel, applied["difficulty"])
+            )
+        if state.locked_by_doctor or metrics.get("fatigue_flags"):
             target = state.level
         reason: Reason = (
             "promote" if target > state.level else "demote" if target < state.level else "hold"
         )
         result = replace(
             result,
-            state=replace(result.state, level=target),
-            change=replace(result.change, toLevel=target, reasonCode=reason),
+            state=replace(
+                result.state,
+                level=target,
+                window=[] if target != state.level else result.state.window,
+            ),
+            change=replace(
+                result.change,
+                toLevel=target,
+                reasonCode="doctor_lock" if state.locked_by_doctor else reason,
+                explanation=f"Adaptive decision: {decision['reason']}; final level {target}.",
+            ),
+            messageKey=(
+                "dda.harder_next_time"
+                if target > state.level
+                else "dda.easier_next_time"
+                if target < state.level
+                else "dda.same_next_time"
+            ),
         )
-        metrics["dda"] = {**decision, "final_difficulty": target}
+        metrics["dda"] = {
+            **decision,
+            "adjustment": target - state.level,
+            "final_difficulty": target,
+        }
         session.save(update_fields=["metrics", "updated_at"])
     state.level, state.window = result.state.level, result.state.window
     state.save(update_fields=["level", "window", "updated_at"])

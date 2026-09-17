@@ -1,7 +1,9 @@
+from django.apps.registry import Apps
 from django.db import migrations
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 
 
-def update_languages(apps, schema_editor):
+def update_languages(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     language = apps.get_model("content", "Language")
     language.objects.using(schema_editor.connection.alias).filter(code="es").update(enabled=False)
     for code, name, native in [

@@ -13,7 +13,7 @@ class GameSessionInputSerializer(serializers.Serializer[dict[str, object]]):
     id = serializers.UUIDField(required=False)
     game_key = serializers.SlugField()
     seed = serializers.CharField(max_length=64)
-    level = serializers.IntegerField(min_value=1, max_value=10)
+    level = serializers.IntegerField(min_value=1, max_value=5)
     metrics = serializers.JSONField()
     challenge_mode = serializers.BooleanField(default=False)
     guest_mode = serializers.BooleanField(default=False)

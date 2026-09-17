@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-// Django retains its staff authentication and OTP checks inside the same-origin portal.
+// Django enforces password authentication, CSRF and the Admin role in this portal.
 export function AdminPortalPage() {
   const { t } = useTranslation();
   return <main className="flex h-screen flex-col bg-background">

@@ -6,6 +6,7 @@ type RefreshAccessToken = () => Promise<string | null>;
 export type ApiClientOptions = RequestInit & {
   skipAuthRefresh?: boolean;
   responseType?: "blob";
+  timeoutMs?: number;
 };
 
 let accessToken: string | null = null;
@@ -48,6 +49,7 @@ async function request<T>(
   const fetchOptions = { ...options };
   delete fetchOptions.skipAuthRefresh;
   delete fetchOptions.responseType;
+  delete fetchOptions.timeoutMs;
   const headers = new Headers(fetchOptions.headers);
   headers.set("Accept", "application/json");
   if (typeof fetchOptions.body === "string" && !headers.has("Content-Type")) {
@@ -79,9 +81,26 @@ async function request<T>(
   return body as T;
 }
 
-export function apiClient<T>(
+export async function apiClient<T>(
   url: string,
   options: ApiClientOptions,
 ): Promise<T> {
-  return request<T>(url, options, options.skipAuthRefresh !== true);
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  options.signal?.addEventListener("abort", abort, { once: true });
+  if (options.signal?.aborted) abort();
+  const timeout = setTimeout(
+    abort,
+    options.timeoutMs ?? (options.responseType === "blob" ? 60_000 : 15_000),
+  );
+  try {
+    return await request<T>(
+      url,
+      { ...options, signal: controller.signal },
+      options.skipAuthRefresh !== true,
+    );
+  } finally {
+    clearTimeout(timeout);
+    options.signal?.removeEventListener("abort", abort);
+  }
 }

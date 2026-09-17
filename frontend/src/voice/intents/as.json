@@ -1,1 +1,8 @@
-{"help":["সহায়"],"sos":["জৰুৰী"],"read_this":["পঢ়ি"],"speak_slowly":["লাহে"],"medicines_today":["ঔষধ"],"next_activity":["পৰৱৰ্তী"]}
+{
+  "help": ["সহায়"],
+  "sos": ["জৰুৰী"],
+  "read_this": ["পঢ়ি"],
+  "speak_slowly": ["লাহে"],
+  "medicines_today": ["ঔষধ"],
+  "next_activity": ["পৰৱৰ্তী"]
+}

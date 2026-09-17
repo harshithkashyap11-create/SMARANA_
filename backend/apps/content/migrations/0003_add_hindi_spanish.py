@@ -1,7 +1,9 @@
+from django.apps.registry import Apps
 from django.db import migrations
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 
 
-def add_languages(apps, schema_editor):
+def add_languages(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     language = apps.get_model("content", "Language")
     for code, name, native_name, locale in [
         ("hi", "Hindi", "हिन्दी", "hi-IN"),

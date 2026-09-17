@@ -12,6 +12,8 @@ class RecognitionFake {
     | null = null;
   onend: (() => void) | null = null;
   onerror: ((event: { error: string }) => void) | null = null;
+  onspeechstart: (() => void) | null = null;
+  onspeechend: (() => void) | null = null;
   start = vi.fn();
   stop = vi.fn();
 
@@ -82,6 +84,35 @@ describe("BrowserSpeechToText", () => {
     vi.advanceTimersByTime(6_000);
     expect(RecognitionFake.instances[1]!.stop).toHaveBeenCalledOnce();
   });
+
+  it("allows a slow spoken reminder and clears speech callbacks on stop", () => {
+    vi.useFakeTimers();
+    (window as unknown as { SpeechRecognition: unknown }).SpeechRecognition =
+      RecognitionFake;
+    const speech = new BrowserSpeechToText("en");
+    const result = vi.fn();
+    const end = vi.fn();
+    speech.start(result, end);
+    const recognition = RecognitionFake.instances[0]!;
+    recognition.onspeechstart?.();
+    vi.advanceTimersByTime(14_000);
+    expect(recognition.stop).not.toHaveBeenCalled();
+    recognition.onspeechend?.();
+    recognition.onresult?.({
+      results: [
+        { 0: { transcript: "Remind me every day at 8 PM to take medicine" } },
+      ],
+    });
+    expect(result).toHaveBeenCalledWith(
+      "Remind me every day at 8 PM to take medicine",
+    );
+    speech.stop();
+    vi.advanceTimersByTime(30_000);
+    expect(end).toHaveBeenCalledOnce();
+    expect(recognition.onspeechstart).toBeNull();
+    expect(recognition.onspeechend).toBeNull();
+    expect(recognition.stop).toHaveBeenCalledOnce();
+  });
 });
 
 it("reports missing recognition and denied microphone access", () => {
@@ -89,7 +120,8 @@ it("reports missing recognition and denied microphone access", () => {
   const end = vi.fn();
   new BrowserSpeechToText("hi").start(vi.fn(), end, error);
   expect(error).toHaveBeenCalledWith("unsupported");
-  (window as unknown as { SpeechRecognition: unknown }).SpeechRecognition = RecognitionFake;
+  (window as unknown as { SpeechRecognition: unknown }).SpeechRecognition =
+    RecognitionFake;
   const speech = new BrowserSpeechToText("te");
   speech.start(vi.fn(), end, error);
   const recognition = RecognitionFake.instances[0]!;

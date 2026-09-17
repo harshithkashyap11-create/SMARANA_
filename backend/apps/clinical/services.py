@@ -89,7 +89,7 @@ def apply_dda_override(
 
 
 def _checked_level(game: GameDefinition, value: Any) -> int:
-    if value is None or not game.min_level <= int(value) <= game.max_level:
+    if value is None or not game.min_level <= int(value) <= min(5, game.max_level):
         raise ValidationError({"value": "Choose a level within the game's range."})
     return int(value)
 

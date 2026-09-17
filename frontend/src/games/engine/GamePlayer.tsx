@@ -6,6 +6,7 @@ import type { GameModule } from "./types";
 import { SupportiveEndScreen } from "./SupportiveEndScreen";
 import { useGameSession } from "./useGameSession";
 import { BreakPrompt } from "../../shared/ui";
+import { catalogByKey } from "../registry";
 
 export function GamePlayer<R>({
   module,
@@ -55,6 +56,7 @@ export function GamePlayer<R>({
     <section>
       {guestMode && <p role="status">{t("games.practiceBanner")}</p>}
       <h1 className="mb-2 text-3xl font-bold">{game.name}</h1>
+      <p data-game-instructions>{t(catalogByKey(game.key)?.descriptionKey ?? "games.common.tapToBegin")}</p>
       <p className="mb-5">
         {t("games.round", {
           current: session.roundIndex + 1,

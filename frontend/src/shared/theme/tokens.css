@@ -212,11 +212,14 @@
 }
 .patient-layout > nav button {
   min-height: 64px;
+  padding-inline: 0;
   font-size: 16px;
-  overflow-wrap: normal;
+  line-height: 20px;
+  overflow-wrap: anywhere;
 }
 .patient-layout > nav button span {
   font-size: 28px;
+  line-height: 32px;
 }
 .patient-layout .bottom-24 {
   bottom: 76px;

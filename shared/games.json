@@ -43,15 +43,26 @@
     "id": "find_the_change",
     "displayName": "Find the Change",
     "route": "/patient/games/find_the_change",
-    "aliases": ["find change", "change game"],
-    "voiceAliases": ["find the change", "find change", "change game"],
+    "aliases": [
+      "find change",
+      "change game"
+    ],
+    "voiceAliases": [
+      "find the change",
+      "find change",
+      "change game"
+    ],
     "enabled": true
   },
   {
     "id": "object_sorting",
     "displayName": "Object Sorting",
     "route": "/patient/games/object_sorting",
-    "aliases": ["sorting game", "বস্তু সজোৱা", "জিনিস সাজাও"],
+    "aliases": [
+      "sorting game",
+      "বস্তু সজোৱা",
+      "জিনিস সাজাও"
+    ],
     "voiceAliases": [
       "object sorting",
       "sorting game",
@@ -64,7 +75,11 @@
     "id": "daily_routine",
     "displayName": "Daily Routine Builder",
     "route": "/patient/games/daily_routine",
-    "aliases": ["daily routine", "routine game", "routine builder"],
+    "aliases": [
+      "daily routine",
+      "routine game",
+      "routine builder"
+    ],
     "voiceAliases": [
       "daily routine builder",
       "daily routine",
@@ -77,23 +92,42 @@
     "id": "word_recall",
     "displayName": "Word Recall",
     "route": "/patient/games/word_recall",
-    "aliases": ["word game", "word recall game"],
-    "voiceAliases": ["word recall", "word game", "word recall game"],
+    "aliases": [
+      "word game",
+      "word recall game"
+    ],
+    "voiceAliases": [
+      "word recall",
+      "word game",
+      "word recall game"
+    ],
     "enabled": true
   },
   {
     "id": "visual_search",
     "displayName": "Visual Search",
     "route": "/patient/games/visual_search",
-    "aliases": ["visual search game", "search game"],
-    "voiceAliases": ["visual search", "visual search game", "search game"],
+    "aliases": [
+      "visual search game",
+      "search game",
+      "find objects"
+    ],
+    "voiceAliases": [
+      "visual search",
+      "visual search game",
+      "search game",
+      "find objects"
+    ],
     "enabled": true
   },
   {
     "id": "pattern_completion",
     "displayName": "Pattern Completion",
     "route": "/patient/games/pattern_completion",
-    "aliases": ["pattern game", "complete the pattern"],
+    "aliases": [
+      "pattern game",
+      "complete the pattern"
+    ],
     "voiceAliases": [
       "pattern completion",
       "pattern game",
@@ -105,31 +139,55 @@
     "id": "spatial_recall",
     "displayName": "Spatial Recall",
     "route": "/patient/games/spatial_recall",
-    "aliases": ["spatial game", "spatial memory"],
-    "voiceAliases": ["spatial recall", "spatial game", "spatial memory"],
+    "aliases": [
+      "spatial game",
+      "spatial memory"
+    ],
+    "voiceAliases": [
+      "spatial recall",
+      "spatial game",
+      "spatial memory"
+    ],
     "enabled": true
   },
   {
     "id": "attention_tap",
     "displayName": "Attention Tap",
     "route": "/patient/games/attention_tap",
-    "aliases": ["attention game", "tap game"],
-    "voiceAliases": ["attention tap", "attention game", "tap game"],
+    "aliases": [
+      "attention game",
+      "tap game"
+    ],
+    "voiceAliases": [
+      "attention tap",
+      "attention game",
+      "tap game"
+    ],
     "enabled": true
   },
   {
     "id": "association_game",
     "displayName": "Association Game",
     "route": "/patient/games/association_game",
-    "aliases": ["association", "association activity"],
-    "voiceAliases": ["association game", "association", "association activity"],
+    "aliases": [
+      "association",
+      "association activity"
+    ],
+    "voiceAliases": [
+      "association game",
+      "association",
+      "association activity"
+    ],
     "enabled": true
   },
   {
     "id": "personal_memory",
     "displayName": "Personal Memory Recall",
     "route": "/patient/games/personal_memory",
-    "aliases": ["personal memory", "personal memory game"],
+    "aliases": [
+      "personal memory",
+      "personal memory game"
+    ],
     "voiceAliases": [
       "personal memory recall",
       "personal memory",
@@ -141,7 +199,11 @@
     "id": "tea_garden_attention",
     "displayName": "Tea Garden Attention",
     "route": "/patient/games/tea_garden_attention",
-    "aliases": ["tea garden", "চাহ বাগিচা", "চা বাগান"],
+    "aliases": [
+      "tea garden",
+      "চাহ বাগিচা",
+      "চা বাগান"
+    ],
     "voiceAliases": [
       "tea garden attention",
       "tea garden",
@@ -154,7 +216,11 @@
     "id": "bihu_rhythm_recall",
     "displayName": "Bihu Rhythm Recall",
     "route": "/patient/games/bihu_rhythm_recall",
-    "aliases": ["bihu rhythm", "বিহু ছন্দ", "ছন্দ মনে রাখো"],
+    "aliases": [
+      "bihu rhythm",
+      "বিহু ছন্দ",
+      "ছন্দ মনে রাখো"
+    ],
     "voiceAliases": [
       "bihu rhythm recall",
       "bihu rhythm",
@@ -167,7 +233,11 @@
     "id": "daily_life_sequencing",
     "displayName": "Daily Life Sequencing",
     "route": "/patient/games/daily_life_sequencing",
-    "aliases": ["daily life sequence", "দৈনন্দিন ক্ৰম", "দৈনন্দিন ক্রম"],
+    "aliases": [
+      "daily life sequence",
+      "দৈনন্দিন ক্ৰম",
+      "দৈনন্দিন ক্রম"
+    ],
     "voiceAliases": [
       "daily life sequencing",
       "daily life sequence",
@@ -180,7 +250,11 @@
     "id": "familiar_place_recall",
     "displayName": "Familiar Place Recall",
     "route": "/patient/games/familiar_place_recall",
-    "aliases": ["familiar place", "চিনাকি ঠাই", "চেনা জায়গা"],
+    "aliases": [
+      "familiar place",
+      "চিনাকি ঠাই",
+      "চেনা জায়গা"
+    ],
     "voiceAliases": [
       "familiar place recall",
       "familiar place",
@@ -193,40 +267,65 @@
     "id": "who_is_this",
     "displayName": "Who Is This",
     "route": "/patient/games/who_is_this",
-    "aliases": ["who is this game"],
-    "voiceAliases": ["who is this", "who is this game"],
+    "aliases": [
+      "who is this game"
+    ],
+    "voiceAliases": [
+      "who is this",
+      "who is this game"
+    ],
     "enabled": true
   },
   {
     "id": "word_pairs",
     "displayName": "Word Pairs",
     "route": "/patient/games/word_pairs",
-    "aliases": ["word pairs game"],
-    "voiceAliases": ["word pairs", "word pairs game"],
+    "aliases": [
+      "word pairs game"
+    ],
+    "voiceAliases": [
+      "word pairs",
+      "word pairs game"
+    ],
     "enabled": true
   },
   {
     "id": "festival_calendar",
     "displayName": "Festival Calendar",
     "route": "/patient/games/festival_calendar",
-    "aliases": ["festival game"],
-    "voiceAliases": ["festival calendar", "festival game"],
+    "aliases": [
+      "festival game"
+    ],
+    "voiceAliases": [
+      "festival calendar",
+      "festival game"
+    ],
     "enabled": true
   },
   {
     "id": "sound_match",
     "displayName": "Sound Match",
     "route": "/patient/games/sound_match",
-    "aliases": ["sound game"],
-    "voiceAliases": ["sound match", "sound game"],
+    "aliases": [
+      "sound game"
+    ],
+    "voiceAliases": [
+      "sound match",
+      "sound game"
+    ],
     "enabled": true
   },
   {
     "id": "spot_the_change",
     "displayName": "Spot the Change",
     "route": "/patient/games/spot_the_change",
-    "aliases": ["spot change"],
-    "voiceAliases": ["spot the change", "spot change"],
+    "aliases": [
+      "spot change"
+    ],
+    "voiceAliases": [
+      "spot the change",
+      "spot change"
+    ],
     "enabled": true
   }
 ]

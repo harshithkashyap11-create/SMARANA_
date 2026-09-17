@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
@@ -35,6 +36,7 @@ class PatientMemoryList(APIView):
             )
         return Response(MemorySerializer(queryset, many=True).data)
 
+    @transaction.atomic
     def post(self, request: Request, patient_id: str) -> Response:
         if authenticated_user(request).role != User.Role.CAREGIVER:
             raise PermissionDenied("Only caregivers can add memories.")

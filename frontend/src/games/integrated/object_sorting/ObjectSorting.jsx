@@ -302,7 +302,7 @@ export default function ObjectSorting({
         <button
           type="button"
           className="sm-btn sm-btn--quiet"
-          onClick={handleHint}
+          data-voice-hint onClick={handleHint}
           disabled={!selectedObject || session.hintsRemaining === 0}
         >
           {t('games.common.hint')}

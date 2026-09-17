@@ -112,3 +112,9 @@ notebook/RF prediction parity cannot be verified without a valid trained artifac
 the exporter, model quality, and supervision/calibration still require independent
 validation on a suitable reviewed dataset. The app's functioning default DDA is
 the existing rule engine, not this unverified RF candidate.
+# Subsequent synthetic cloud run
+
+A compatible demo artifact was trained on Colab on 2026-09-17 after this audit.
+See [cloud training evidence](cloud-dda-training.md) for measured results and the
+saved download. This resolves the missing demo artifact; it does not validate the
+original notebook export, real-patient performance, or clinical deployment.

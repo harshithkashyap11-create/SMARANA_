@@ -55,6 +55,7 @@ def update_routine_item(
     for field, value in fields.items():
         setattr(item, field, value)
     item.save(update_fields=[*fields, "updated_at"])
+    materialise_reminders(item.patient, timezone.localdate())
     audit(
         actor,
         "routine_item.updated",
@@ -74,6 +75,7 @@ def delete_routine_item(*, actor: User, item: RoutineItem) -> None:
     snapshot = _snapshot(item)
     audit(actor, "routine_item.deleted", item, patient=item.patient, changes={"before": snapshot})
     item.delete()
+    materialise_reminders(item.patient, timezone.localdate())
 
 
 @transaction.atomic
@@ -128,6 +130,7 @@ def upsert_medication(
     for key, item in existing.items():
         if key not in wanted and item.deleted_at is None:
             item.delete()
+    materialise_reminders(patient, timezone.localdate())
     raise_alert(
         patient=patient,
         rule_key="prescription_updated",
@@ -161,15 +164,37 @@ def reminder_id_for(routine_item_id: UUID, day: date) -> UUID:
     return uuid5(SMARANA_NS, f"{routine_item_id}:{day.isoformat()}")
 
 
+@transaction.atomic
 def materialise_reminders(
     patient: PatientProfile, from_date: date, days: int = 3
 ) -> list[Reminder]:
+    now = timezone.now()
+    # Future pending instances are derived from the current rule. Never remove
+    # past doses or a patient's recorded response when recurrence changes.
+    obsolete = []
+    for reminder in (
+        patient.routine_reminders.select_for_update(of=("self",))
+        .filter(status=Reminder.Status.PENDING, scheduled_at__gte=now, responses__isnull=True)
+        .select_related("routine_item")
+    ):
+        item = reminder.routine_item
+        day = timezone.localdate(reminder.scheduled_at)
+        if (
+            item.deleted_at is not None
+            or day < item.start_date
+            or (item.end_date is not None and day > item.end_date)
+            or day.weekday() not in item.days_of_week
+        ):
+            obsolete.append(reminder.id)
+    if obsolete:
+        Reminder.objects.filter(id__in=obsolete).delete()
     reminders: list[Reminder] = []
+    items = RoutineItem.objects.filter(patient=patient)
     for offset in range(days):
         day = from_date + timedelta(days=offset)
-        for item in patient.routine_items.filter(start_date__lte=day).filter(
+        for item in items.filter(start_date__lte=day).filter(
             end_date__isnull=True
-        ) | patient.routine_items.filter(start_date__lte=day, end_date__gte=day):
+        ) | items.filter(start_date__lte=day, end_date__gte=day):
             if day.weekday() not in item.days_of_week:
                 continue
             scheduled_at = timezone.make_aware(datetime.combine(day, item.time_of_day))
@@ -177,6 +202,14 @@ def materialise_reminders(
                 id=reminder_id_for(item.id, day),
                 defaults={"routine_item": item, "patient": patient, "scheduled_at": scheduled_at},
             )
+            # Edit future pending doses without rewriting adherence history.
+            if (
+                reminder.status == Reminder.Status.PENDING
+                and reminder.scheduled_at >= now
+                and reminder.scheduled_at != scheduled_at
+            ):
+                reminder.scheduled_at = scheduled_at
+                reminder.save(update_fields=["scheduled_at", "updated_at"])
             reminders.append(reminder)
     return reminders
 

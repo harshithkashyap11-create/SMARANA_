@@ -7,6 +7,7 @@ Artifacts must carry the corrected feature contract and a training-only RT media
 import importlib
 import logging
 import math
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,12 @@ FEATURE_COLUMNS = [
     "condition",
 ]
 FEATURE_CONTRACT = "smarana-history-v1"
+
+
+@lru_cache(maxsize=2)
+def _load_artifact(path: str, modified_ns: int, size: int) -> Any:
+    """Cache trusted deployment files; replacement invalidates the cached pipeline."""
+    return importlib.import_module("joblib").load(Path(path))
 
 
 def build_features(
@@ -103,11 +110,11 @@ def recommend(
         return {**held, "reason": "cold_start"}
     try:
         # Only a deployment-controlled file is accepted; never a request-supplied pickle.
-        joblib = importlib.import_module("joblib")
         pd = importlib.import_module("pandas")
         sklearn = importlib.import_module("sklearn")
 
-        artifact = joblib.load(Path(artifact_path))
+        stat = Path(artifact_path).stat()
+        artifact = _load_artifact(artifact_path, stat.st_mtime_ns, stat.st_size)
         metadata = artifact["metadata"]
         if (
             metadata["feature_columns"] != FEATURE_COLUMNS
@@ -120,7 +127,7 @@ def recommend(
         for key in FEATURE_COLUMNS[:-1]:
             spec = schema[key]
             if not spec["min"] <= features[key] <= spec["max"]:
-                raise ValueError(f"Out-of-domain feature: {key}")
+                return {**held, "reason": "model_out_of_domain"}
         pipeline = artifact["pipeline"]
         confidence = float(
             max(pipeline.predict_proba(pd.DataFrame([features], columns=FEATURE_COLUMNS))[0])
@@ -162,7 +169,7 @@ def recommend(
         return held
 
 
-def recommend_for_patient(
+def _recommend_for_patient(
     patient: Any, game: Any, current: dict[str, Any], session_id: Any = None
 ) -> dict[str, Any]:
     from django.conf import settings
@@ -173,7 +180,9 @@ def recommend_for_patient(
     if session_id:
         sessions = sessions.exclude(id=session_id)
     history = []
-    for session in sessions.order_by("ended_at", "id"):
+    for session in reversed(
+        list(sessions.order_by("-ended_at", "-id").prefetch_related("difficulty_changes")[:10])
+    ):
         change = session.difficulty_changes.first()
         history.append(
             {
@@ -192,3 +201,14 @@ def recommend_for_patient(
         history,
         patient.accessibility.get("dda_condition", ""),
     )
+
+
+def recommend_for_patient(
+    patient: Any, game: Any, current: dict[str, Any], session_id: Any = None
+) -> dict[str, Any]:
+    """Corrupt history or optional model failures must not discard gameplay."""
+    try:
+        return _recommend_for_patient(patient, game, current, session_id)
+    except Exception:
+        logger.warning("Notebook DDA history unavailable; holding difficulty")
+        return {"adjustment": 0, "engine_version": "notebook-rf-v1", "reason": "model_unavailable"}

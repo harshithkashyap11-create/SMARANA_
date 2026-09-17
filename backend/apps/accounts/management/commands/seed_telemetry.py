@@ -1,6 +1,7 @@
 """Idempotent, explicitly synthetic local demonstration data."""
 
 from datetime import timedelta
+from typing import Any
 
 from django.conf import settings
 from django.core.management import call_command
@@ -19,7 +20,7 @@ class Command(BaseCommand):
     help = "Seed 3 users, 5 caregivers, 2 doctors, 1 admin and synthetic game telemetry locally."
 
     @transaction.atomic
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         if not settings.DEBUG:
             raise CommandError("Synthetic credentials are restricted to development settings.")
         call_command("seed_demo", stdout=self.stdout)
@@ -98,7 +99,7 @@ class Command(BaseCommand):
                         hour=10, minute=0, second=0, microsecond=0
                     ) - timedelta(days=day)
                     accuracy = round(0.65 + (13 - day) * 0.02, 2)
-                    GameSession.objects.get_or_create(
+                    session, created = GameSession.objects.get_or_create(
                         patient=profile,
                         game=game,
                         seed=seed,
@@ -114,13 +115,31 @@ class Command(BaseCommand):
                                 "rounds": 10,
                                 "duration_ms": 240000,
                                 "synthetic": True,
+                                "completed": True,
+                                "abandoned_reason": None,
+                                "fatigue_flags": [],
+                                "raw_events": [],
                             },
                         },
                     )
+                    if not created and session.metrics.get("synthetic") is True:
+                        defaults: dict[str, object] = {
+                            "completed": True,
+                            "abandoned_reason": None,
+                            "fatigue_flags": [],
+                            "raw_events": [],
+                        }
+                        missing = {
+                            key: value
+                            for key, value in defaults.items()
+                            if key not in session.metrics
+                        }
+                        if missing:
+                            session.metrics = {**session.metrics, **missing}
+                            session.save(update_fields=["metrics", "updated_at"])
         self.stdout.write(
             self.style.SUCCESS(
                 "Synthetic cohort ready: 3 users, 5 caregivers, 2 doctors, 1 admin. "
-                "Shared password: "
-                + PASSWORD
+                "Shared password: " + PASSWORD
             )
         )
