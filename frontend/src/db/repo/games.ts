@@ -50,7 +50,10 @@ export async function listGames(): Promise<GameDefinitionDto[]> {
     const games = await apiClient<GameDefinitionDto[]>("/api/v1/games/", {
       method: "GET",
     });
-    await db.gameDefinitions.bulkPut(games);
+    await db.transaction("rw", db.gameDefinitions, async () => {
+      await db.gameDefinitions.clear();
+      await db.gameDefinitions.bulkPut(games);
+    });
     return games;
   } catch (error) {
     if (cached.length) return cached;

@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { summarizeGameParticipation } from "../../../games/analytics";
 import { caregiverApi } from "../api";
 
 export function ProgressTab({ patientId }: { patientId: string }) {
@@ -37,6 +38,7 @@ export function ProgressTab({ patientId }: { patientId: string }) {
   if (sessions.isError || changes.isError || notes.isError)
     return <p>We could not load progress right now.</p>;
   const cutoff = openedAt - days * 86_400_000;
+  const participation = summarizeGameParticipation(sessions.data, cutoff);
   const chartData = [...sessions.data]
     .filter((row) => Date.parse(row.ended_at) >= cutoff)
     .reverse()
@@ -77,6 +79,12 @@ export function ProgressTab({ patientId }: { patientId: string }) {
           30 days
         </button>
       </div>
+      <dl className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-card border p-4"><dt>Games played</dt><dd>{participation.played}</dd></div>
+        <div className="rounded-card border p-4"><dt>Sessions completed</dt><dd>{participation.completed}</dd></div>
+        <div className="rounded-card border p-4"><dt>Average accuracy in completed sessions</dt><dd>{participation.averageAccuracy === null ? "Not enough completed sessions" : `${Math.round(participation.averageAccuracy * 100)}%`}</dd></div>
+        <div className="rounded-card border p-4"><dt>Hints per round</dt><dd>{participation.hintsPerRound.toFixed(1)}</dd></div>
+      </dl>
       {chartData.length ? (
         <div className="grid gap-4 lg:grid-cols-2">
           <div role="img" aria-label="Accuracy trend chart" className="h-64">

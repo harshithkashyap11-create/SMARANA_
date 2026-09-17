@@ -7,11 +7,19 @@ import { listGames, type GameDefinitionDto } from "../../../db/repo/games";
 import { GamePlayer } from "../../../games/engine/GamePlayer";
 import { createSeededRng } from "../../../games/engine/types";
 import type { GameModule } from "../../../games/engine/types";
-import { gameByKey } from "../../../games/registry";
+import { IntegratedGamePage } from "./IntegratedGamePage";
+import { catalogByKey, gameByKey } from "../../../games/registry";
 import { DexiePatientRepository } from "../../../db/repo/patient";
 import { currentPatient } from "./GamesPage";
 const challengeKey = `games-challenge:${new Date().toISOString().slice(0, 10)}`;
 export function GamePage() {
+  const { t } = useTranslation();
+  const { gameKey = "" } = useParams();
+  if (!catalogByKey(gameKey)) return <p role="status">{t("games.unavailable")}</p>;
+  if (catalogByKey(gameKey)?.component) return <IntegratedGamePage key={gameKey} gameKey={gameKey} />;
+  return <LegacyGamePage />;
+}
+function LegacyGamePage() {
   const { t, i18n } = useTranslation();
   const [failed, setFailed] = useState(false);
   const [contentFailed, setContentFailed] = useState(false);

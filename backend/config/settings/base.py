@@ -56,6 +56,8 @@ INSTALLED_APPS = [
     "apps.content.apps.ContentConfig",
     "apps.reports.apps.ReportsConfig",
 ]
+DDA_MODEL_ARTIFACT = env("DDA_MODEL_ARTIFACT", default="")
+
 VOICE_ROUTER_ENDPOINT = env("VOICE_ROUTER_ENDPOINT", default="")
 VOICE_ROUTER_TOKEN = env("VOICE_ROUTER_TOKEN", default="")
 VOICE_LLM_FALLBACK = env.bool("VOICE_LLM_FALLBACK", default=False)
@@ -63,6 +65,8 @@ LOCAL_LLM_PROVIDER = env("LOCAL_LLM_PROVIDER", default="")
 LOCAL_LLM_MODEL = env("LOCAL_LLM_MODEL", default="qwen2.5:1.5b")
 LOCAL_LLM_URL = env("LOCAL_LLM_URL", default="http://127.0.0.1:11434")
 LOCAL_LLM_TIMEOUT = env.int("LOCAL_LLM_TIMEOUT", default=8)
+VOICE_RESPONSE_MAX_WORDS = env.int("VOICE_RESPONSE_MAX_WORDS", default=60)
+VOICE_RESPONSE_MAX_CHARS = env.int("VOICE_RESPONSE_MAX_CHARS", default=600)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

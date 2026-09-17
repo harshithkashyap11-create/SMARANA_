@@ -18,6 +18,12 @@ export default tseslint.config(
     },
   },
   {
+    files: ["src/games/integrated/**/*.jsx"],
+    languageOptions: { globals: globals.browser, parserOptions: { ecmaFeatures: { jsx: true } } },
+    plugins: { "react-hooks": reactHooks },
+    rules: { "no-undef": "error", "no-unused-vars": "off" },
+  },
+  {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2022,

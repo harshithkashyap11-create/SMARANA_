@@ -78,3 +78,13 @@ class DifficultyChange(UUIDModel, TimeStamped):
 
     class Meta:
         ordering = ["-created_at", "id"]
+
+
+class GamePerformanceEvent(UUIDModel, TimeStamped):
+    """Idempotent checkpoints; session UUID exists before offline session sync."""
+
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE)
+    game = models.ForeignKey(GameDefinition, on_delete=models.PROTECT)
+    session_id = models.UUIDField()
+    performance = models.JSONField()
+    decision = models.JSONField(default=dict)

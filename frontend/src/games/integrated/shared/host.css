@@ -1,0 +1,6 @@
+.integrated-game { font-size: 1.25rem; }
+.integrated-game button { min-height: 64px; min-width: 64px; }
+.integrated-game .sm-cell { min-height: 64px; }
+.integrated-game .sm-grid { overflow-x: auto; }
+.integrated-game .sm-game__stage { overflow-x: auto; }
+@media (prefers-reduced-motion: reduce) { .integrated-game * { animation: none !important; transition: none !important; } }

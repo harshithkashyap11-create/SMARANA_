@@ -114,3 +114,19 @@ class PatientDifficultyChangeList(APIView):
                 for row in rows
             ]
         )
+
+
+class GamePerformanceEventCreate(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        from apps.games.performance import record_performance
+        from apps.games.serializers import PerformanceEventSerializer
+
+        user = authenticated_user(request)
+        if user.role != User.Role.PATIENT:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        patient = get_object_or_404(patients_for(user), user=user)
+        serializer = PerformanceEventSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(record_performance(patient, dict(serializer.validated_data)))

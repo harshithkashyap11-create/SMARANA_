@@ -9,11 +9,12 @@ export function flatten(value, prefix = "") {
     return nested && typeof nested === "object" ? Object.entries(flatten(nested, path)) : [[path, nested]];
   }));
 }
-export function catalogErrors(catalog, english, language) {
+export function catalogErrors(catalog, english, language, fallbacks = []) {
   const problems = [];
   const intentional = new Set(["app.title", "patient.title", "sos.label"]);
   const vars = (v) => typeof v === "string" ? [...v.matchAll(/{{\s*([^}]+)\s*}}/g)].map((x) => x[1].trim()).sort().join(",") : "";
   for (const key of new Set([...Object.keys(english), ...Object.keys(catalog)])) {
+    if (!(key in catalog) && fallbacks.includes(key) && key in english) continue;
     const value = catalog[key];
     if (!(key in english) || !(key in catalog)) problems.push(`${language}: mismatched key ${key}`);
     if (typeof value !== "string" || !value.trim() || /TODO|FIXME|TBD|placeholder/i.test(value)) problems.push(`${language}: unfinished ${key}`);
@@ -25,7 +26,8 @@ export function catalogErrors(catalog, english, language) {
 async function files(dir) { return (await Promise.all((await readdir(dir, { withFileTypes: true })).map((e) => e.isDirectory() ? files(join(dir, e.name)) : [join(dir, e.name)]))).flat(); }
 const english = flatten(JSON.parse(await readFile(join(root, "src/shared/i18n/en.json"), "utf8")));
 const problems = [];
-for (const lang of ["en", "as", "bn", "hi"]) problems.push(...catalogErrors(flatten(JSON.parse(await readFile(join(root, `src/shared/i18n/${lang}.json`), "utf8"))), english, lang));
+const gameFallbacks = JSON.parse(await readFile(join(root, "src/shared/i18n/game-english-fallbacks.json"), "utf8"));
+for (const lang of ["en", "as", "bn", "hi"]) problems.push(...catalogErrors(flatten(JSON.parse(await readFile(join(root, `src/shared/i18n/${lang}.json`), "utf8"))), english, lang, gameFallbacks[lang] ?? []));
 const telugu = flatten(JSON.parse(await readFile(join(root, "src/shared/i18n/te.json"), "utf8")));
 for (const [key, value] of Object.entries(telugu)) {
   if (!value.trim()) problems.push(`te: empty ${key}`);

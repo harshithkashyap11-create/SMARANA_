@@ -8,7 +8,9 @@ import { apiClient } from "../../../api/client";
 import { getMeta, setMeta } from "../../../db/schema";
 import { isFakeOffline } from "../../../db/outbox";
 import { listGames, type GameDefinitionDto } from "../../../db/repo/games";
-import { games } from "../../../games/registry";
+import { gameCatalog as games } from "../../../games/registry";
+import { selectDailyGames } from "../../../games/dailySession";
+import { db } from "../../../db/schema";
 import {
   loadLatestResume,
   type ResumeState,
@@ -16,7 +18,8 @@ import {
 
 const challengeKey = `games-challenge:${new Date().toISOString().slice(0, 10)}`;
 export function GamesPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [daily, setDaily] = useState<string[]>([]);
   const [region, setRegion] = useState("AS");
   const [definitions, setDefinitions] = useState<GameDefinitionDto[]>([]);
   const [resume, setResume] = useState<ResumeState | null>(null);
@@ -26,11 +29,11 @@ export function GamesPage() {
     () => sessionStorage.getItem(challengeKey) === "true",
   );
   useEffect(() => {
-    void currentPatient()
-      .then((patient) => setRegion(patient.region))
-      .catch(() => undefined);
-    void Promise.all([listGames(), loadLatestResume()])
-      .then(([items, interrupted]) => {
+    void Promise.all([listGames(), loadLatestResume(), currentPatient()])
+      .then(async ([items, interrupted, patient]) => {
+        setRegion(patient.region);
+        const history = await db.gameSessions.where("patientId").equals(patient.id).toArray();
+        setDaily(selectDailyGames(games, history).map((game) => game.key));
         setDefinitions(items);
         setResume(interrupted);
       })
@@ -40,8 +43,8 @@ export function GamesPage() {
             key: game.key,
             name: game.name,
             cognitive_domains: game.domains,
-            min_level: 1,
-            max_level: 10,
+            min_level: game.minDifficulty,
+            max_level: game.maxDifficulty,
             is_regional: true,
           })),
         );
@@ -52,6 +55,7 @@ export function GamesPage() {
   if (loading) return <p>{t("games.loadingList")}</p>;
   return (
     <section>
+      {i18n.resolvedLanguage !== "en" && <p role="status">{t("games.translationFallback")}</p>}
       <h1 className="mb-5 text-3xl font-bold">{t("games.title")}</h1>
       {failed && (
         <p className="mb-4 rounded-card bg-warning/20 p-4">
@@ -82,9 +86,18 @@ export function GamesPage() {
         />
         {t("games.challenge")}
       </label>
+      <section className="mb-6" aria-label={t("games.dailyTitle")}>
+        <h2 className="mb-3 text-2xl font-bold">{t("games.dailyTitle")}</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {daily.filter((key) => definitions.some((game) => game.key === key)).map((key) => {
+            const entry = games.find((game) => game.key === key)!;
+            return <Link key={key} className="min-h-touch rounded-card border-2 border-primary p-4" to={entry.route}>{t(entry.nameKey, { defaultValue: entry.name })}</Link>;
+          })}
+        </div>
+      </section>
       <div className="grid gap-4 sm:grid-cols-2">
         {definitions
-          .filter((item) => games.some((game) => game.key === item.key))
+          .filter((item) => games.some((game) => game.enabled && game.key === item.key))
           .map((game) => (
             <div key={game.key}>
               <Link
@@ -93,6 +106,8 @@ export function GamesPage() {
                 to={`/patient/games/${game.key}`}
               >
                 <span>{gameLabel(game.key, game.name, region)}</span>
+                <span className="mt-2 block text-base font-normal">{t(games.find((entry) => entry.key === game.key)!.descriptionKey, { defaultValue: game.name })}</span>
+                <span className="mt-2 block text-base font-normal">{t("games.duration", { minutes: games.find((entry) => entry.key === game.key)!.estimatedDurationMin })}</span>
                 {game.is_regional && (
                   <span className="ml-3 rounded-full bg-success/20 px-3 py-1 text-sm font-normal">
                     {t("games.regional")}
@@ -104,7 +119,7 @@ export function GamesPage() {
             </div>
           ))}
       </div>
-      {definitions.filter((item) => games.some((game) => game.key === item.key))
+      {definitions.filter((item) => games.some((game) => game.enabled && game.key === item.key))
         .length === 0 && <p>{t("games.empty")}</p>}
     </section>
   );

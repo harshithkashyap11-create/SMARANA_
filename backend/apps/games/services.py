@@ -1,14 +1,19 @@
+import logging
 import math
+from dataclasses import replace
 from typing import Any
 
+from django.conf import settings
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 
 from apps.accounts.models import User
 from apps.audit.services import audit
-from apps.games.dda import DdaConfig, DifficultyStateData, SessionSummary, next_difficulty
+from apps.games.dda import DdaConfig, DifficultyStateData, Reason, SessionSummary, next_difficulty
 from apps.games.models import DifficultyChange, DifficultyState, GameDefinition, GameSession
 from apps.patients.models import PatientProfile
+
+logger = logging.getLogger(__name__)
 
 METRIC_TYPES: dict[str, type | tuple[type, ...]] = {
     "accuracy": (int, float),
@@ -98,6 +103,12 @@ def save_session(
         state, _ = DifficultyState.objects.select_for_update().get_or_create(
             patient=patient, game=game, defaults={"level": game.min_level}
         )
+    if data.get("id"):
+        existing = GameSession.objects.filter(pk=data["id"]).first()
+        if existing:
+            if existing.patient_id != patient.id or existing.game_id != game.id:
+                raise ValidationError({"id": "Session identifier is unavailable."})
+            return existing, state, existing.difficulty_changes.first(), "dda.same_next_time"
     session_fields = {"id": data["id"]} if data.get("id") else {}
     session = GameSession.objects.create(
         **session_fields,
@@ -126,23 +137,68 @@ def save_session(
         guestMode=session.guest_mode,
         fatigueFlagged=bool(metrics.get("fatigue_flags")),
     )
-    result = next_difficulty(
-        DifficultyStateData(
-            level=state.level,
-            window=state.window,
-            lockedByDoctor=state.locked_by_doctor,
-            capLevel=min(
-                value
-                for value in (state.cap_level, patient.max_difficulty_level, game.max_level)
-                if value is not None
-            ),
-            minLevel=game.min_level,
-            maxLevel=game.max_level,
-            lockedByName=state.locked_by_name,
+    input_state = DifficultyStateData(
+        level=state.level,
+        window=state.window,
+        lockedByDoctor=state.locked_by_doctor,
+        capLevel=min(
+            value
+            for value in (state.cap_level, patient.max_difficulty_level, game.max_level)
+            if value is not None
         ),
-        summary,
-        DdaConfig(),
+        minLevel=game.min_level,
+        maxLevel=game.max_level,
+        lockedByName=state.locked_by_name,
     )
+    try:
+        result = next_difficulty(input_state, summary, DdaConfig())
+    except Exception:
+        from apps.games.dda import DdaResult, DifficultyChangeData
+
+        logger.exception("DDA failure; session saved with unchanged difficulty")
+        result = DdaResult(
+            input_state,
+            DifficultyChangeData(state.level, state.level, "hold", "Adaptive engine unavailable."),
+            "dda.same_next_time",
+        )
+    if getattr(settings, "DDA_MODEL_ARTIFACT", ""):
+        from apps.games.notebook_dda import recommend_for_patient
+
+        decision = recommend_for_patient(
+            patient,
+            game,
+            {
+                "difficulty": session.level,
+                "accuracy": metrics["accuracy"],
+                "reaction_time_ms": metrics["mean_reaction_ms"],
+                "errors": metrics["mistakes"],
+                "hints_used": metrics["hints_used"],
+                "early_exit": not metrics["completed"],
+                "rounds_completed": metrics["rounds"],
+                "session_duration_sec": metrics.get("duration_ms", 0) / 1000,
+            },
+            session.id,
+        )
+        target = max(
+            game.min_level,
+            min(
+                game.max_level,
+                input_state.capLevel or game.max_level,
+                state.level + decision["adjustment"],
+            ),
+        )
+        if state.locked_by_doctor:
+            target = state.level
+        reason: Reason = (
+            "promote" if target > state.level else "demote" if target < state.level else "hold"
+        )
+        result = replace(
+            result,
+            state=replace(result.state, level=target),
+            change=replace(result.change, toLevel=target, reasonCode=reason),
+        )
+        metrics["dda"] = {**decision, "final_difficulty": target}
+        session.save(update_fields=["metrics", "updated_at"])
     state.level, state.window = result.state.level, result.state.window
     state.save(update_fields=["level", "window", "updated_at"])
     change = None

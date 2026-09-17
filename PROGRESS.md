@@ -114,3 +114,22 @@ T112 fixes found during the screen/demo sweep:
 ## Next up
 - All Phase 10 cards through T112 are complete. Mentor acceptance and publication readiness are next; older backlog entries remain as recorded before this task.
 - Run the local website with `make local`. Authentic regional content and native-language editorial review remain publication requirements.
+
+## T113 — generated game integration repair (2026-09-17)
+
+Preserved the existing unfinished integration and unrelated voice work. The patient
+library now includes all supplied games and domain-balanced daily suggestions.
+Added authenticated, idempotent round checkpoints; connected next-round decisions
+to the existing conservative DDA; kept final sessions on encrypted Dexie/outbox
+and existing Django sync. Fixed Personal Memory imports, actual photo fields,
+consent/visibility, place-only modes, root item translations, timer cleanup,
+serialized exit/completion and interrupted-checkpoint recovery. Added supplied
+logic tests, 60 level/launch/exit cases, representative complete-session flows,
+transport and PostgreSQL API/fallback tests, and reusable caregiver summaries.
+
+See docs/game-integration.md and docs/dda-notebook-review.md for accurate evidence
+and remaining manual/model validation. The notebook's RF is not enabled: no
+trained artifact was supplied, and its feature/export contract has critical
+inconsistencies. A corrected optional offline export/runtime boundary is provided;
+missing/incompatible model dependencies/artifacts hold difficulty. No claim of
+validated RF inference or clinical benefit is made.

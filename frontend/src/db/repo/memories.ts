@@ -46,6 +46,7 @@ export const memoriesRepository = {
           occurred_on: string | null;
           place: string;
           summary: string;
+          visibility: string;
           people: CachedMemory["people"];
           media: CachedMemory["media"];
         }>

@@ -118,3 +118,10 @@ release blockers, verified workflows, and the required deployment sequence.
 `docker-compose.prod.yml` builds a static frontend and runs Gunicorn/Celery against
 externally provisioned PostgreSQL, Redis, private S3 and SMTP, behind HTTPS ingress.
 It has not yet been built and validated against those real production services.
+
+## Cognitive game integration
+
+See [the game integration guide](docs/game-integration.md) for all twelve supplied
+games, session persistence, daily selection and validation evidence.
+The [notebook review](docs/dda-notebook-review.md) explains the optional RF artifact
+contract and why the existing deterministic adaptive engine remains the default.
