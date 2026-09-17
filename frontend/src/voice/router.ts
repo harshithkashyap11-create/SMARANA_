@@ -11,7 +11,12 @@ export type Intent =
   | "speak_normally"
   | "help"
   | "sos"
-  | "switch_language";
+  | "switch_language"
+  | "stop_listening"
+  | "stop_game"
+  | "time_query"
+  | "date_query"
+  | "general_chat";
 export interface FamilyContext {
   familyMembers?: Array<{ name: string; relationship?: string }>;
   languageLocked?: boolean;
@@ -20,6 +25,18 @@ export interface RoutedIntent {
   intent: Intent;
   slots: Record<string, string>;
   requiresConfirm: boolean;
+  source?: "RULE" | "LOCAL_LLM" | "CLOUD_LLM";
+  confidence?: number;
+}
+export function parseReminderTime(value: string): string | null {
+  const match = value.trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
+  if (!match) return null;
+  let hour = Number(match[1]);
+  const minute = Number(match[2] ?? 0);
+  if (minute > 59 || hour > 23 || (match[3] && (hour < 1 || hour > 12)))
+    return null;
+  if (match[3]) hour = (hour % 12) + (match[3].toLowerCase() === "pm" ? 12 : 0);
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 const normalize = (value: string) =>
   value
@@ -73,7 +90,9 @@ const distance = (a: string, b: string): number => {
   return row[b.length] ?? 0;
 };
 export const isLanguageSwitchRequest = (utterance: string): boolean =>
-  /(?:भाषा|हिन्दी|हिंदी|अंग्रेज़ी|बंगाली|असमिया|स्पेनिश).*(?:बदल|करो)|(?:बदल).*(?:भाषा|हिन्दी|हिंदी)|(?:cambia|cambiar).*(?:idioma|español|inglés|hindi|bengalí|asamés)/u.test(normalize(utterance)) ||
+  /(?:भाषा|हिन्दी|हिंदी|अंग्रेज़ी|बंगाली|असमिया|स्पेनिश).*(?:बदल|करो)|(?:बदल).*(?:भाषा|हिन्दी|हिंदी)|(?:cambia|cambiar).*(?:idioma|español|inglés|hindi|bengalí|asamés)/u.test(
+    normalize(utterance),
+  ) ||
   /(switch|change).*(language|bengali|assamese|english|hindi|telugu|manipuri|meitei|mizo)|(?:ভাষা|বাংলা|অসমীয়া|ইংৰাজী|ইংরেজি).*(?:সলনি|বদল)|(?:সলনি|বদল).*(?:ভাষা|বাংলা|অসমীয়া|ইংৰাজী|ইংরেজি)/u.test(
     normalize(utterance),
   );
@@ -82,12 +101,53 @@ export function route(
   _language: VoiceLanguage,
   context: FamilyContext = {},
 ): RoutedIntent | null {
-  const text = normalize(utterance);
+  const text = normalize(utterance).replace(
+    /^(?:hey |hi |okay |ok )?sm[aā]rana\s*/u,
+    "",
+  );
   const make = (
     intent: Intent,
     slots: Record<string, string> = {},
     confirm = false,
   ): RoutedIntent => ({ intent, slots, requiresConfirm: confirm });
+  if (/^(?:stop listening|goodbye|exit|quit)$/u.test(text))
+    return make("stop_listening");
+  if (/^(?:stop|exit|quit|close) (?:the |my )?game$/u.test(text))
+    return make("stop_game");
+  if (/what(?: s| is)? (?:the )?time|current time/u.test(text))
+    return make("time_query");
+  if (/what(?: s| is)? (?:the )?date|today s date/u.test(text))
+    return make("date_query");
+  if (/(?:open|start|play).*(?:memory game|memory one)/u.test(text))
+    return make("start_game", { game: "memory_match" });
+  if (
+    /^(?:let s play|i want a game|can we play something|open a brain game)|(?:bored).*play/u.test(
+      text,
+    )
+  )
+    return make("start_game");
+  const navigation = text.match(
+    /(?:open|show|go to|take me to|take me) (?:my |the |your )?(home|patient dashboard|games|reminders|profile|progress|caregiver(?: details)?|settings|routine|memories|medicines|people)/u,
+  );
+  if (navigation?.[1])
+    return make("open_section", {
+      section:
+        (
+          {
+            "patient dashboard": "home",
+            "caregiver details": "caregiver",
+          } as Record<string, string>
+        )[navigation[1]] ?? navigation[1],
+    });
+  const englishReminder = text.match(
+    /remind me(?: to (.+?))? at (\d{1,2}(?::\d{2})?\s*(?:am|pm)?)$/u,
+  );
+  if (englishReminder?.[1] && englishReminder[2]) {
+    const time = parseReminderTime(englishReminder[2]);
+    return time
+      ? make("set_reminder", { title: englishReminder[1], time }, true)
+      : null;
+  }
   if (isLanguageSwitchRequest(text)) {
     if (context.languageLocked) return null;
     const choices: Array<[RegExp, VoiceLanguage]> = [
@@ -116,25 +176,46 @@ export function route(
   if (nativeSection && /(?:खोल|दिखा|जाओ|abre|abrir|muestra|ir a)/u.test(text))
     return make("open_section", { section: nativeSection[1] });
   if (/(?:आपातकाल|emergencia)/u.test(text)) return make("sos", {}, true);
-  if (/(?:मदद|उलझन|ayuda|confundido|confundida)/u.test(text)) return make("help");
-  if (/(?:धीरे बोल|habla despacio|hablar despacio)/u.test(text)) return make("speak_slowly");
-  if (/(?:सामान्य गति|सामान्य बोल|velocidad normal|habla normal)/u.test(text)) return make("speak_normally");
+  if (/(?:मदद|उलझन|ayuda|confundido|confundida)/u.test(text))
+    return make("help");
+  if (/(?:धीरे बोल|habla despacio|hablar despacio)/u.test(text))
+    return make("speak_slowly");
+  if (/(?:सामान्य गति|सामान्य बोल|velocidad normal|habla normal)/u.test(text))
+    return make("speak_normally");
   if (/(?:पढ़|lee esto|leer esto)/u.test(text)) return make("read_this");
-  if (/(?:अगला|आगे क्या|qué sigue|siguiente actividad|qué día|qué hora)/u.test(text)) return make("next_activity");
-  if (/(?:दवा|दवाइयाँ|medicamentos|medicinas)/u.test(text)) return make("medicines_today");
-  const nativeReminder = text.match(/(?:recuérdame|recuerdame) (?:que |a )?(.+?) a las ([0-9]{1,2}(?::[0-9]{2})?)/u)
-    ?? text.match(/(.+?) (?:के लिए )?([0-9]{1,2}(?::[0-9]{2})?) बजे याद दिला/u);
+  if (
+    /(?:अगला|आगे क्या|qué sigue|siguiente actividad|qué día|qué hora)/u.test(
+      text,
+    )
+  )
+    return make("next_activity");
+  if (/(?:दवा|दवाइयाँ|medicamentos|medicinas)/u.test(text))
+    return make("medicines_today");
+  const nativeReminder =
+    text.match(
+      /(?:recuérdame|recuerdame) (?:que |a )?(.+?) a las ([0-9]{1,2}(?::[0-9]{2})?)/u,
+    ) ??
+    text.match(/(.+?) (?:के लिए )?([0-9]{1,2}(?::[0-9]{2})?) बजे याद दिला/u);
   if (nativeReminder?.[1] && nativeReminder[2]) {
     const time = reminderTime(nativeReminder[2]);
-    return time ? make("set_reminder", { title: nativeReminder[1], time }, true) : null;
+    return time
+      ? make("set_reminder", { title: nativeReminder[1], time }, true)
+      : null;
   }
-  const nativeCall = text.match(/(?:llama a|llamar a) (.+)|(.+?) (?:को (?:फ़ोन|फोन|कॉल) करो)/u);
+  const nativeCall = text.match(
+    /(?:llama a|llamar a) (.+)|(.+?) (?:को (?:फ़ोन|फोन|कॉल) करो)/u,
+  );
   if (nativeCall) {
     const wanted = nativeCall[1] ?? nativeCall[2] ?? "";
-    const person = context.familyMembers?.find((member) => normalize(member.name) === wanted || normalize(member.relationship ?? "") === wanted);
+    const person = context.familyMembers?.find(
+      (member) =>
+        normalize(member.name) === wanted ||
+        normalize(member.relationship ?? "") === wanted,
+    );
     if (person) return make("call_person", { name: person.name }, true);
   }
-  if (/(?:खेल शुरू|खेलो|jugar|inicia un juego)/u.test(text)) return make("start_game");
+  if (/(?:खेल शुरू|खेलो|jugar|inicia un juego)/u.test(text))
+    return make("start_game");
   if (/^(help|i am confused|i m confused|সহায়|সাহায্য)/u.test(text))
     return make("help");
   if (/(emergency|need help now|জৰুৰী|জরুরি)/u.test(text))
@@ -184,7 +265,7 @@ export function route(
   const namedGame = Object.entries(gameKeys).find(([name]) =>
     text.includes(name),
   );
-  if (namedGame && /(?:play|start|খেল|খেলা|শুরু)/u.test(text))
+  if (namedGame && /(?:open|play|start|খেল|খেলা|শুরু)/u.test(text))
     return make("start_game", { game: namedGame[1] });
   const call = text.match(
     /(?:call|phone|ফোন কৰক|ফোন কর|কল কৰক|কল কর) (?:my )?(.+)/u,

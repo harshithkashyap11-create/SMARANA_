@@ -59,6 +59,10 @@ INSTALLED_APPS = [
 VOICE_ROUTER_ENDPOINT = env("VOICE_ROUTER_ENDPOINT", default="")
 VOICE_ROUTER_TOKEN = env("VOICE_ROUTER_TOKEN", default="")
 VOICE_LLM_FALLBACK = env.bool("VOICE_LLM_FALLBACK", default=False)
+LOCAL_LLM_PROVIDER = env("LOCAL_LLM_PROVIDER", default="")
+LOCAL_LLM_MODEL = env("LOCAL_LLM_MODEL", default="qwen2.5:1.5b")
+LOCAL_LLM_URL = env("LOCAL_LLM_URL", default="http://127.0.0.1:11434")
+LOCAL_LLM_TIMEOUT = env.int("LOCAL_LLM_TIMEOUT", default=8)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

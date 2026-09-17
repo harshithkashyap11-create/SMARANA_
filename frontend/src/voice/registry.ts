@@ -1,0 +1,30 @@
+/** Only routes that exist in the patient router. Never accept URLs from a model. */
+export const sectionRoutes: Record<string, string> = {
+  home: "/patient",
+  games: "/patient/games",
+  reminders: "/patient/routine",
+  routine: "/patient/routine",
+  profile: "/patient/settings",
+  settings: "/patient/settings",
+  progress: "/patient/progress",
+  caregiver: "/patient/people",
+  people: "/patient/people",
+  memories: "/patient/memories",
+  medicines: "/patient/medicines",
+  "calm-time": "/patient/calm",
+  sleep: "/patient/sleep",
+};
+export const gameKeysAllowed = new Set([
+  "memory_match",
+  "sequence_recall",
+  "object_sorting",
+  "tea_garden_attention",
+  "bihu_rhythm_recall",
+  "daily_life_sequencing",
+  "familiar_place_recall",
+  "who_is_this",
+  "word_pairs",
+  "festival_calendar",
+  "sound_match",
+  "spot_the_change",
+]);

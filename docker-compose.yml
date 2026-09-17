@@ -76,6 +76,15 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smarana}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-smarana_dev_password}
       MINIO_REGION: ${MINIO_REGION:-us-east-1}
+      LOCAL_LLM_PROVIDER: ${LOCAL_LLM_PROVIDER:-}
+      LOCAL_LLM_MODEL: ${LOCAL_LLM_MODEL:-qwen2.5:1.5b}
+      LOCAL_LLM_URL: ${LOCAL_LLM_URL:-http://host.docker.internal:11434}
+      LOCAL_LLM_TIMEOUT: ${LOCAL_LLM_TIMEOUT:-8}
+      VOICE_LLM_FALLBACK: ${VOICE_LLM_FALLBACK:-false}
+      VOICE_ROUTER_ENDPOINT: ${VOICE_ROUTER_ENDPOINT:-}
+      VOICE_ROUTER_TOKEN: ${VOICE_ROUTER_TOKEN:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
@@ -125,6 +134,7 @@ services:
     command: npm run dev -- --host 0.0.0.0
     environment:
       VITE_API_PROXY_TARGET: http://backend:8000
+      VITE_VOICE_LLM_FALLBACK: ${VITE_VOICE_LLM_FALLBACK:-1}
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:

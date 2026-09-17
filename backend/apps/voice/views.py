@@ -17,13 +17,25 @@ class RouteView(APIView):
     throttle_classes = [VoiceThrottle]
 
     def post(self, request: Request) -> Response:
-        if not settings.VOICE_LLM_FALLBACK:
+        if not settings.VOICE_LLM_FALLBACK and not settings.LOCAL_LLM_PROVIDER:
             return Response({"intent": None, "slots": {}, "confidence": 0})
-        result = safe_route(
-            str(request.data.get("utterance", "")), str(request.data.get("language", "en"))
-        )
+        utterance, language = request.data.get("utterance", ""), request.data.get("language", "en")
+        if (
+            not isinstance(utterance, str)
+            or not utterance.strip()
+            or len(utterance) > 500
+            or not isinstance(language, str)
+            or language not in {"en", "as", "bn", "hi", "te", "mni", "lus"}
+        ):
+            return Response({"detail": "Invalid voice request"}, status=400)
+        result = safe_route(utterance.strip(), language)
         if result is None:
             return Response({"intent": None, "slots": {}, "confidence": 0})
         return Response(
-            {"intent": result.intent, "slots": result.slots, "confidence": result.confidence}
+            {
+                "intent": result.intent,
+                "slots": result.slots,
+                "confidence": result.confidence,
+                "source": result.source,
+            }
         )

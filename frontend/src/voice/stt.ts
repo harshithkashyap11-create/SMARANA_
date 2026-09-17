@@ -1,9 +1,21 @@
 import type { SupportedLanguage } from "../shared/i18n";
 export type VoiceLanguage = SupportedLanguage;
 export const recognitionLocale = (language: VoiceLanguage): string =>
-  ({ en: "en-IN", as: "as-IN", bn: "bn-IN", hi: "hi-IN", te: "te-IN", mni: "mni-IN", lus: "lus-IN" })[language];
+  ({
+    en: "en-IN",
+    as: "as-IN",
+    bn: "bn-IN",
+    hi: "hi-IN",
+    te: "te-IN",
+    mni: "mni-IN",
+    lus: "lus-IN",
+  })[language];
 export interface SpeechToText {
-  start(onResult: (text: string) => void, onEnd?: () => void, onError?: (error: string) => void): void;
+  start(
+    onResult: (text: string) => void,
+    onEnd?: () => void,
+    onError?: (error: string) => void,
+  ): void;
   stop(): void;
 }
 type Recognition = {
@@ -31,7 +43,11 @@ export class BrowserSpeechToText implements SpeechToText {
 
   constructor(private language: VoiceLanguage) {}
 
-  start(onResult: (text: string) => void, onEnd?: () => void, onError?: (error: string) => void): void {
+  start(
+    onResult: (text: string) => void,
+    onEnd?: () => void,
+    onError?: (error: string) => void,
+  ): void {
     this.stop();
     const browser = window as unknown as {
       SpeechRecognition?: new () => Recognition;
@@ -45,7 +61,14 @@ export class BrowserSpeechToText implements SpeechToText {
     }
 
     const begin = (locale: string): void => {
-      const recognition = new Ctor();
+      let recognition: Recognition;
+      try {
+        recognition = new Ctor();
+      } catch {
+        onError?.("start-failed");
+        onEnd?.();
+        return;
+      }
       this.recognition = recognition;
       recognition.lang = locale;
       recognition.interimResults = false;
@@ -56,7 +79,7 @@ export class BrowserSpeechToText implements SpeechToText {
       };
       recognition.onresult = (event) => {
         if (this.recognition !== recognition) return;
-        const text = event.results[0]?.[0]?.transcript ?? "";
+        const text = (event.results[0]?.[0]?.transcript ?? "").trim();
         if (text) onResult(text);
         if (this.recognition === recognition) resetSilenceTimer();
       };
@@ -71,6 +94,13 @@ export class BrowserSpeechToText implements SpeechToText {
           this.triedFallback = true;
           this.clearTimer();
           recognition.onend = null;
+          recognition.onresult = null;
+          recognition.onerror = null;
+          try {
+            recognition.stop();
+          } catch {
+            /* Engine already ended. */
+          }
           begin(fallback);
         } else {
           this.clearTimer();
@@ -104,8 +134,16 @@ export class BrowserSpeechToText implements SpeechToText {
     this.clearTimer();
     const recognition = this.recognition;
     if (recognition) {
-      try { recognition.stop(); } catch { /* Already stopped by the browser. */ }
-      recognition.onend?.();
+      const end = recognition.onend;
+      recognition.onend = null;
+      recognition.onresult = null;
+      recognition.onerror = null;
+      try {
+        recognition.stop();
+      } catch {
+        /* Already stopped by the browser. */
+      }
+      end?.();
       this.recognition = undefined;
     }
   }

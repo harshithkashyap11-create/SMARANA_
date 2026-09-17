@@ -12,6 +12,8 @@ import { isLanguageSwitchRequest, route } from "../../voice/router";
 import { BrowserSpeechToText, type VoiceLanguage } from "../../voice/stt";
 import { BrowserTextToSpeech } from "../../voice/tts";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { VoiceConversation } from "../../voice/conversation";
+import { VoiceLoop, type VoiceState } from "../../voice/loop";
 
 export function TalkButton({
   onRecognised,
@@ -21,22 +23,40 @@ export function TalkButton({
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [listening, setListening] = useState(false);
+  const [phase, setPhase] = useState<VoiceState>("idle");
+  const loop = useRef<VoiceLoop>();
+  const conversation = useRef(new VoiceConversation());
+  const finishConfirmation = useRef<() => void>();
+  const handler = useRef<(value: string) => Promise<void>>();
   const [text, setText] = useState("");
+  const [response, setResponse] = useState("");
+  const [source, setSource] = useState("");
   const [error, setError] = useState("");
   const [request, setRequest] = useState("");
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState<{
     message: string;
-    action: () => void;
+    action: () => void | Promise<void>;
   } | null>(null);
   const language = (i18n.resolvedLanguage?.split("-")[0] ??
     "en") as VoiceLanguage;
   const playback = useRef<BrowserTextToSpeech>();
   const speech = useMemo(() => new BrowserSpeechToText(language), [language]);
 
-  useEffect(() => () => { speech.stop(); playback.current?.cancel(); }, [speech]);
+  useEffect(
+    () => () => {
+      loop.current?.stop();
+      speech.stop();
+      playback.current?.cancel();
+      finishConfirmation.current?.();
+    },
+    [speech],
+  );
 
   const handle = async (value: string): Promise<void> => {
+    const started = performance.now();
+    setResponse("");
+    setSource("RULE");
     setText(value);
     onRecognised?.(value);
     if (onRecognised) return;
@@ -49,26 +69,62 @@ export function TalkButton({
       (await getMeta("slowSpeech")) === "1",
     );
     playback.current = tts;
+    const speak = tts.speak.bind(tts);
+    tts.speak = async (message, options) => {
+      setResponse(message);
+      setPhase("speaking");
+      await speak(message, options);
+      setPhase("processing");
+    };
+    const contextual = conversation.current.resolve(value);
+    if (typeof contextual === "string") {
+      await tts.speak(contextual);
+      return;
+    }
     const languageLocked = (await getMeta("languageLocked")) === "1";
     const lockedLanguageRequest =
       languageLocked && isLanguageSwitchRequest(value);
     const command =
+      contextual ??
       route(value, language, { familyMembers: members, languageLocked }) ??
       (lockedLanguageRequest ? null : await routeWithFallback(value, language));
     if (!command) {
-      setError(t(lockedLanguageRequest ? "voice.languageLocked" : "voice.unknown"));
-      if (lockedLanguageRequest) {
-        await tts.speak(t("voice.languageLocked"));
-      }
+      setError(
+        t(lockedLanguageRequest ? "voice.languageLocked" : "voice.unknown"),
+      );
+      await tts.speak(
+        t(lockedLanguageRequest ? "voice.languageLocked" : "voice.unknown"),
+      );
       return;
     }
+    if (command.intent === "stop_listening") {
+      loop.current?.stop();
+      return;
+    }
+    setSource(command.source ?? "RULE");
+    if (import.meta.env.VITE_VOICE_DEBUG === "1")
+      console.debug("smarana.voice", {
+        language,
+        intent: command.intent,
+        confidence: command.confidence ?? 1,
+        source: command.source ?? "RULE",
+        parameters: command.slots,
+        latencyMs: Math.round(performance.now() - started),
+      });
+    conversation.current.remember(command);
+    let pendingConfirmation: Promise<void> | undefined;
     await performAction(command, {
       navigate,
       tts,
       routine: routineRepository,
       patientId: profile.id,
       mainText: document.querySelector("main")?.textContent ?? "",
-      confirm: (message, action) => setConfirmation({ message, action }),
+      confirm: (message, action) => {
+        pendingConfirmation = new Promise<void>((resolve) => {
+          finishConfirmation.current = resolve;
+        });
+        setConfirmation({ message, action });
+      },
       nextActivity: async () => {
         const orientation = await patientRepository.getOrientation();
         return orientation.next_activity
@@ -83,27 +139,42 @@ export function TalkButton({
         window.dispatchEvent(new Event("smarana:open-sos-confirm")),
       setSlowSpeech: async (slow) => saveComfortSettings({ slow_speech: slow }),
     });
+    await pendingConfirmation;
   };
+  useEffect(() => {
+    handler.current = handle;
+  });
   const toggle = (): void => {
-    if (listening) {
-      speech.stop();
-      setListening(false);
+    if (loop.current && phase !== "idle") {
+      loop.current.stop();
+      playback.current?.cancel();
       return;
     }
     setOpen(true);
     setText("");
     setError("");
     window.speechSynthesis?.cancel();
-    setListening(true);
-    speech.start(
-      (value) => {
-        setListening(false);
-        speech.stop();
-        void handle(value).catch(() => setError(t("voice.recognitionFailed")));
+    loop.current = new VoiceLoop(
+      speech,
+      async (value) => {
+        await handler.current?.(value);
       },
-      () => setListening(false),
-      (code) => setError(t(code === "unsupported" ? "voice.unsupported" : code === "not-allowed" || code === "service-not-allowed" ? "voice.permissionDenied" : "voice.recognitionFailed")),
+      (state) => {
+        setPhase(state);
+        setListening(state === "listening");
+      },
+      (code) =>
+        setError(
+          t(
+            code === "unsupported"
+              ? "voice.unsupported"
+              : code === "not-allowed" || code === "service-not-allowed"
+                ? "voice.permissionDenied"
+                : "voice.recognitionFailed",
+          ),
+        ),
     );
+    loop.current.start();
   };
   return (
     <>
@@ -120,22 +191,66 @@ export function TalkButton({
           className="fixed inset-x-4 bottom-24 z-40 mx-auto max-w-lg rounded-card bg-surface p-5 shadow-card"
           role="status"
         >
-          <strong>{listening ? t("voice.listening") : t("voice.heard")}</strong>
+          <strong>
+            {listening
+              ? t("voice.listening")
+              : phase === "processing"
+                ? "Thinking…"
+                : phase === "speaking"
+                  ? "Smarana is speaking…"
+                  : t("voice.heard")}
+          </strong>
+          {!navigator.onLine ? <p>Offline mode</p> : null}
           {text ? <p>{text}</p> : null}
+          {response ? <p>{response}</p> : null}
+          {source === "CLOUD_LLM" ? <p>Online assistant</p> : null}
           {error ? <p role="alert">{error}</p> : null}
-          <form className="mt-3 flex flex-wrap gap-2" onSubmit={(event) => {
-            event.preventDefault();
-            if (!request.trim()) return;
-            speech.stop();
-            setListening(false);
-            setError("");
-            void handle(request.trim()).catch(() => setError(t("voice.recognitionFailed")));
-            setRequest("");
-          }}>
-            <input aria-label={t("voice.request")} className="min-h-touch min-w-0 flex-1 rounded-card border p-2" value={request} onChange={(event) => setRequest(event.target.value)} />
-            <button className="min-h-touch rounded-card bg-primary px-4 text-primaryText" type="submit">{t("voice.send")}</button>
+          <form
+            className="mt-3 flex flex-wrap gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const entry = new FormData(event.currentTarget).get("request");
+              const submitted = typeof entry === "string" ? entry.trim() : "";
+              if (!submitted) return;
+              loop.current?.stop();
+              speech.stop();
+              setListening(false);
+              setError("");
+              setPhase("processing");
+              void handle(submitted)
+                .catch(() => setError(t("voice.recognitionFailed")))
+                .finally(() => setPhase("idle"));
+              setRequest("");
+            }}
+          >
+            <input
+              name="request"
+              aria-label={t("voice.request")}
+              className="min-h-touch min-w-0 flex-1 rounded-card border p-2"
+              value={request}
+              onChange={(event) => setRequest(event.target.value)}
+            />
+            <button
+              className="min-h-touch rounded-card bg-primary px-4 text-primaryText"
+              type="submit"
+            >
+              {t("voice.send")}
+            </button>
           </form>
-          <button className="mt-2 min-h-touch underline" type="button" onClick={() => { speech.stop(); setListening(false); setOpen(false); }}>{t("auth.back")}</button>
+          <button
+            className="mt-2 min-h-touch underline"
+            type="button"
+            onClick={() => {
+              loop.current?.stop();
+              speech.stop();
+              playback.current?.cancel();
+              finishConfirmation.current?.();
+              setListening(false);
+              setOpen(false);
+            }}
+          >
+            {t("auth.back")}
+          </button>
         </div>
       ) : null}
       <ConfirmDialog
@@ -145,10 +260,16 @@ export function TalkButton({
         noLabel={t("common.no")}
         ttsLabel={t("patient.listen")}
         onYes={() => {
-          confirmation?.action();
+          void Promise.resolve()
+            .then(() => confirmation?.action())
+            .catch(() => setError(t("voice.recognitionFailed")))
+            .finally(() => finishConfirmation.current?.());
           setConfirmation(null);
         }}
-        onNo={() => setConfirmation(null)}
+        onNo={() => {
+          setConfirmation(null);
+          finishConfirmation.current?.();
+        }}
       />
     </>
   );

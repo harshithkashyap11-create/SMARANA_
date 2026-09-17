@@ -89,3 +89,30 @@ def test_configured_router_handles_provider_outages_and_malformed_replies(
         "apps.voice.providers.urlopen", lambda *args, **kwargs: BytesIO(b"invalid json")
     )
     assert provider.route("help", "en") is None
+
+
+@override_settings(VOICE_LLM_FALLBACK=False, LOCAL_LLM_PROVIDER="ollama")
+def test_local_route_works_without_cloud_enabled(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
+    api.force_authenticate(care_scenario["patient"].user)
+    with patch(
+        "apps.voice.providers.provider.route",
+        return_value=ProviderResult("open_section", {"section": "progress"}, 0.91, "LOCAL_LLM"),
+    ):
+        response = api.post(
+            "/api/v1/voice/route/",
+            {"utterance": "how have I done in games", "language": "en"},
+            format="json",
+        )
+    assert response.status_code == 200
+    assert response.data["source"] == "LOCAL_LLM"
+
+
+@override_settings(VOICE_LLM_FALLBACK=True)
+def test_malformed_request_is_rejected(api: APIClient, care_scenario: CareScenario) -> None:
+    api.force_authenticate(care_scenario["patient"].user)
+    response = api.post(
+        "/api/v1/voice/route/", {"utterance": "hello", "language": ["en"]}, format="json"
+    )
+    assert response.status_code == 400

@@ -54,11 +54,21 @@ export class BrowserTextToSpeech implements TextToSpeech {
           if (this.pending === finish) this.pending = undefined;
           resolve();
         };
-        const timeout = window.setTimeout(finish, Math.max(10_000, sentence.length * 250));
+        const timeout = window.setTimeout(
+          () => {
+            speechSynthesis.cancel();
+            finish();
+          },
+          Math.max(10_000, sentence.length * 250),
+        );
         this.pending = finish;
         utterance.onend = finish;
         utterance.onerror = finish;
-        try { speechSynthesis.speak(utterance); } catch { finish(); }
+        try {
+          speechSynthesis.speak(utterance);
+        } catch {
+          finish();
+        }
       });
       if (isSlow && index < sentences.length - 1) {
         await new Promise<void>((resolve) => window.setTimeout(resolve, 400));
