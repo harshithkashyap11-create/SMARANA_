@@ -1,7 +1,9 @@
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+from django.apps.registry import Apps
 from django.db import migrations
 
 
-def seed(apps, schema_editor):
+def seed(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     Game = apps.get_model("games", "GameDefinition")
     Game.objects.update_or_create(
         key="who_is_this",

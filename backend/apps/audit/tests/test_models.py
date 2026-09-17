@@ -8,7 +8,7 @@ from apps.shared.tests.factories import CaregiverFactory
 
 @pytest.mark.django_db
 def test_audit_events_are_append_only() -> None:
-    user = CaregiverFactory()
+    user = CaregiverFactory.create()
     event = audit(user, "login", user)
 
     event.action = "update"
@@ -20,7 +20,7 @@ def test_audit_events_are_append_only() -> None:
 
 @pytest.mark.django_db
 def test_admin_lists_audit_events() -> None:
-    admin = CaregiverFactory(role=User.Role.ADMIN, is_staff=True, is_superuser=True)
+    admin = CaregiverFactory.create(role=User.Role.ADMIN, is_staff=True, is_superuser=True)
     event = audit(admin, "login", admin)
     client = Client()
     client.force_login(admin)

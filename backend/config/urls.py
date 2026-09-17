@@ -1,9 +1,12 @@
 """Root URL configuration."""
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django_otp.admin import OTPAdminSite
+
+# django-otp exposes no PEP 561 types for its admin integration.
+from django_otp.admin import OTPAdminSite  # type: ignore[import-untyped]
 from drf_spectacular.views import SpectacularAPIView
 from rest_framework.permissions import AllowAny
 

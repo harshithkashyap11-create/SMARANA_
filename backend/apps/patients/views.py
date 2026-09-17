@@ -6,7 +6,8 @@ from typing import Any
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -48,26 +49,26 @@ from apps.routines.services import (
     update_routine_item,
     upsert_medication,
 )
-from apps.shared.permissions import IsRole
+from apps.shared.permissions import authenticated_user, role_permission
 
 
-class PatientViewSet(ReadOnlyModelViewSet):
+class PatientViewSet(ReadOnlyModelViewSet[PatientProfile]):
     queryset = PatientProfile.objects.none()
     serializer_class = PatientCardSerializer
     permission_classes = [
         IsAuthenticated,
-        IsRole(User.Role.CAREGIVER, User.Role.DOCTOR, User.Role.PATIENT),
+        role_permission(User.Role.CAREGIVER, User.Role.DOCTOR, User.Role.PATIENT),
     ]
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
     def get_queryset(self) -> QuerySet[PatientProfile]:
         if getattr(self, "swagger_fake_view", False):
             return self.queryset
-        return patients_for(self.request.user)
+        return patients_for(authenticated_user(self.request))
 
     def _require_primary_caregiver(self, patient: PatientProfile) -> None:
         if not patient.care_assignments.filter(
-            caregiver=self.request.user, active=True, is_primary=True
+            caregiver=authenticated_user(self.request), active=True, is_primary=True
         ).exists():
             raise PermissionDenied("Only the primary caregiver can make this change.")
 
@@ -104,7 +105,7 @@ class PatientViewSet(ReadOnlyModelViewSet):
                 "photo_url": media_url(member.photo),
             }
 
-        payload = {
+        payload: dict[str, object] = {
             "greeting_key": greeting_key,
             "day": now.strftime("%A"),
             "date": now.strftime("%B %-d, %Y"),
@@ -164,12 +165,14 @@ class PatientViewSet(ReadOnlyModelViewSet):
         del args, kwargs
         patient = self.get_object()
         if request.method == "POST":
-            if request.user.role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
+            if authenticated_user(request).role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
                 raise PermissionDenied("Only care-team members can add routine items.")
             serializer = RoutineItemSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             item = create_routine_item(
-                actor=request.user, patient=patient, fields=dict(serializer.validated_data)
+                actor=authenticated_user(request),
+                patient=patient,
+                fields=dict(serializer.validated_data),
             )
             return Response(RoutineItemSerializer(item).data, status=status.HTTP_201_CREATED)
         return Response(
@@ -189,15 +192,15 @@ class PatientViewSet(ReadOnlyModelViewSet):
         del args, kwargs
         patient = self.get_object()
         item = get_object_or_404(patient.routine_items.all(), id=routine_item_id)
-        if request.user.role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
+        if authenticated_user(request).role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
             raise PermissionDenied("Only care-team members can change routine items.")
         if request.method == "DELETE":
-            delete_routine_item(actor=request.user, item=item)
+            delete_routine_item(actor=authenticated_user(request), item=item)
             return Response(status=status.HTTP_204_NO_CONTENT)
         serializer = RoutineItemSerializer(item, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         item = update_routine_item(
-            actor=request.user, item=item, fields=dict(serializer.validated_data)
+            actor=authenticated_user(request), item=item, fields=dict(serializer.validated_data)
         )
         return Response(RoutineItemSerializer(item).data)
 
@@ -229,7 +232,7 @@ class PatientViewSet(ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"], url_path="adherence")
     def adherence(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         del args, kwargs
-        if request.user.role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
+        if authenticated_user(request).role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
             raise PermissionDenied("Only care-team members can view adherence.")
         try:
             days = min(31, max(1, int(request.query_params.get("days", "7"))))
@@ -279,7 +282,7 @@ class PatientViewSet(ReadOnlyModelViewSet):
     def respond(self, request: Request, reminder_id: str, *args: Any, **kwargs: Any) -> Response:
         del args, kwargs
         patient = self.get_object()
-        if request.user.role != User.Role.PATIENT:
+        if authenticated_user(request).role != User.Role.PATIENT:
             raise PermissionDenied("Only the patient can respond to reminders.")
         reminder = get_object_or_404(patient.routine_reminders.all(), id=reminder_id)
         serializer = ReminderResponseInputSerializer(data=request.data)
@@ -292,12 +295,12 @@ class PatientViewSet(ReadOnlyModelViewSet):
         del args, kwargs
         patient = self.get_object()
         if request.method == "POST":
-            if request.user.role != User.Role.DOCTOR:
+            if authenticated_user(request).role != User.Role.DOCTOR:
                 raise PermissionDenied("Only doctors can prescribe medications.")
             serializer = MedicationSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             medication = upsert_medication(
-                actor=request.user,
+                actor=authenticated_user(request),
                 patient=patient,
                 fields=dict(serializer.validated_data),
             )
@@ -310,22 +313,24 @@ class PatientViewSet(ReadOnlyModelViewSet):
         del args, kwargs
         patient = self.get_object()
         if request.method == "GET":
-            if request.user.role == User.Role.CAREGIVER:
+            if authenticated_user(request).role == User.Role.CAREGIVER:
                 self._require_primary_caregiver(patient)
-            elif request.user.role != User.Role.PATIENT:
+            elif authenticated_user(request).role != User.Role.PATIENT:
                 raise PermissionDenied("This profile cannot be viewed by this role.")
             return Response(PatientProfileCaregiverSerializer(patient).data)
-        if request.user.role == User.Role.CAREGIVER:
+        if authenticated_user(request).role == User.Role.CAREGIVER:
             self._require_primary_caregiver(patient)
-            serializer_class = PatientProfileCaregiverSerializer
-        elif request.user.role == User.Role.DOCTOR:
+            serializer_class: (
+                type[PatientProfileCaregiverSerializer] | type[PatientProfileDoctorSerializer]
+            ) = PatientProfileCaregiverSerializer
+        elif authenticated_user(request).role == User.Role.DOCTOR:
             serializer_class = PatientProfileDoctorSerializer
         else:
             raise PermissionDenied("This profile cannot be changed by this role.")
         serializer = serializer_class(patient, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         patient = services.update_profile(
-            actor=request.user,
+            actor=authenticated_user(request),
             patient=patient,
             fields=dict(serializer.validated_data),
         )
@@ -336,12 +341,12 @@ class PatientViewSet(ReadOnlyModelViewSet):
         del args, kwargs
         patient = self.get_object()
         if request.method == "POST":
-            if request.user.role != User.Role.CAREGIVER:
+            if authenticated_user(request).role != User.Role.CAREGIVER:
                 raise PermissionDenied("Only caregivers can add family members.")
             serializer = FamilyMemberSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             member = services.create_family_member(
-                actor=request.user,
+                actor=authenticated_user(request),
                 patient=patient,
                 fields=dict(serializer.validated_data),
             )
@@ -350,7 +355,7 @@ class PatientViewSet(ReadOnlyModelViewSet):
         members = patient.family_members.all()
         serializer_class = (
             FamilyMemberDoctorSerializer
-            if request.user.role == User.Role.DOCTOR
+            if authenticated_user(request).role == User.Role.DOCTOR
             else FamilyMemberSerializer
         )
         return Response(serializer_class(members, many=True).data)
@@ -368,16 +373,16 @@ class PatientViewSet(ReadOnlyModelViewSet):
     ) -> Response:
         del args, kwargs
         patient = self.get_object()
-        if request.user.role != User.Role.CAREGIVER:
+        if authenticated_user(request).role != User.Role.CAREGIVER:
             raise PermissionDenied("Only caregivers can change family members.")
         member = get_object_or_404(FamilyMember.objects.filter(patient=patient), pk=family_id)
         if request.method == "DELETE":
-            services.delete_family_member(actor=request.user, member=member)
+            services.delete_family_member(actor=authenticated_user(request), member=member)
             return Response(status=status.HTTP_204_NO_CONTENT)
         serializer = FamilyMemberSerializer(member, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         member = services.update_family_member(
-            actor=request.user,
+            actor=authenticated_user(request),
             member=member,
             fields=dict(serializer.validated_data),
         )
@@ -387,29 +392,29 @@ class PatientViewSet(ReadOnlyModelViewSet):
     def consent(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         del args, kwargs
         patient = self.get_object()
-        if request.user.role == User.Role.CAREGIVER:
+        if authenticated_user(request).role == User.Role.CAREGIVER:
             self._require_primary_caregiver(patient)
-        elif request.user.role != User.Role.PATIENT:
+        elif authenticated_user(request).role != User.Role.PATIENT:
             raise PermissionDenied("Consent is controlled by the patient and primary caregiver.")
         consent, _ = ConsentSettings.objects.get_or_create(patient=patient)
         if request.method == "PATCH":
             serializer = ConsentSettingsSerializer(consent, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             consent = services.update_consent(
-                actor=request.user,
+                actor=authenticated_user(request),
                 consent=consent,
                 fields=dict(serializer.validated_data),
             )
         return Response(ConsentSettingsSerializer(consent).data)
 
-    def _wellness(self, request, kind, log_id=None):
+    def _wellness(self, request: Request, kind: str, log_id: str | None = None) -> Response:
         from rest_framework.exceptions import NotFound
 
         from apps.routines.serializers import MoodLogSerializer, SleepLogSerializer
         from apps.routines.wellness import save_log
 
         patient = self.get_object()
-        if request.user.role == User.Role.DOCTOR:
+        if authenticated_user(request).role == User.Role.DOCTOR:
             consent = getattr(patient, "consent", None)
             if not consent or not consent.share_mood_with_doctor:
                 raise NotFound()
@@ -419,44 +424,44 @@ class PatientViewSet(ReadOnlyModelViewSet):
         cls = MoodLogSerializer if kind == "mood" else SleepLogSerializer
         if request.method == "GET":
             return Response(cls(rows.order_by("-created_at"), many=True).data)
-        if log_id and request.user.role != User.Role.CAREGIVER:
+        if log_id and authenticated_user(request).role != User.Role.CAREGIVER:
             raise PermissionDenied("Only caregivers can correct logs.")
         obj = get_object_or_404(rows, id=log_id) if log_id else None
         serializer = cls(obj, data=request.data, partial=bool(log_id))
         serializer.is_valid(raise_exception=True)
         if obj and "id" in serializer.validated_data:
             serializer.validated_data.pop("id")
-        obj = save_log(serializer, patient, request.user)
-        return Response(cls(obj).data, status=200 if log_id else 201)
+        obj = save_log(serializer, patient, authenticated_user(request))
+        return Response(serializer.data, status=200 if log_id else 201)
 
     @action(detail=True, methods=["get", "post"], url_path="mood-logs")
-    def mood_logs(self, request, **kwargs):
+    def mood_logs(self, request: Request, **kwargs: object) -> Response:
         return self._wellness(request, "mood")
 
     @action(detail=True, methods=["get", "post"], url_path="sleep-logs")
-    def sleep_logs(self, request, **kwargs):
+    def sleep_logs(self, request: Request, **kwargs: object) -> Response:
         return self._wellness(request, "sleep")
 
     @action(detail=True, methods=["patch"], url_path=r"mood-logs/(?P<log_id>[^/.]+)")
-    def mood_log_detail(self, request, log_id, **kwargs):
+    def mood_log_detail(self, request: Request, log_id: str, **kwargs: object) -> Response:
         return self._wellness(request, "mood", log_id)
 
     @action(detail=True, methods=["patch"], url_path=r"sleep-logs/(?P<log_id>[^/.]+)")
-    def sleep_log_detail(self, request, log_id, **kwargs):
+    def sleep_log_detail(self, request: Request, log_id: str, **kwargs: object) -> Response:
         return self._wellness(request, "sleep", log_id)
 
     @action(detail=True, methods=["get"], url_path="timeline")
-    def timeline(self, request, **kwargs):
+    def timeline(self, request: Request, **kwargs: object) -> Response:
         from apps.patients.timeline import timeline
 
-        if request.user.role != User.Role.CAREGIVER:
+        if authenticated_user(request).role != User.Role.CAREGIVER:
             raise PermissionDenied("Caregiver access required.")
         return Response(timeline(self.get_object(), request.query_params))
 
     @action(detail=True, methods=["get"], url_path="care-team")
-    def care_team(self, request, **kwargs):
+    def care_team(self, request: Request, **kwargs: object) -> Response:
         patient = self.get_object()
-        if request.user.role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
+        if authenticated_user(request).role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
             raise PermissionDenied("Care team access required.")
         members = [
             a.caregiver
@@ -480,11 +485,11 @@ class PatientViewSet(ReadOnlyModelViewSet):
         )
 
     @action(detail=True, methods=["post"], url_path="routine-conflicts")
-    def routine_conflicts(self, request, **kwargs):
+    def routine_conflicts(self, request: Request, **kwargs: object) -> Response:
         from apps.routines.conflicts import conflicts
 
         patient = self.get_object()
-        if request.user.role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
+        if authenticated_user(request).role not in (User.Role.CAREGIVER, User.Role.DOCTOR):
             raise PermissionDenied("Care team access required.")
         item = (
             get_object_or_404(patient.routine_items.all(), id=request.data["item_id"])

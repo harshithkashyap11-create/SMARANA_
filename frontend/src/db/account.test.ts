@@ -40,6 +40,7 @@ vi.mock("dexie", () => ({
         },
       };
     }
+    use() { return this; }
     transaction(_mode: string, _table: unknown, run: () => Promise<void>) {
       return run();
     }

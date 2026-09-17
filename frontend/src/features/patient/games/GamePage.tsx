@@ -12,8 +12,9 @@ import { DexiePatientRepository } from "../../../db/repo/patient";
 import { currentPatient } from "./GamesPage";
 const challengeKey = `games-challenge:${new Date().toISOString().slice(0, 10)}`;
 export function GamePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [failed, setFailed] = useState(false);
+  const [contentFailed, setContentFailed] = useState(false);
   const { gameKey = "" } = useParams();
   const [data, setData] = useState<{
     game: GameDefinitionDto;
@@ -24,7 +25,10 @@ export function GamePage() {
   useEffect(() => {
     void Promise.all([listGames(), currentPatient()])
       .then(async ([items, patient]) => {
-        const content = await loadContentPack(patient.region, patient.language);
+        setFailed(false);
+        setContentFailed(false);
+        setData(null);
+        const content = await loadContentPack(patient.region, i18n.resolvedLanguage ?? patient.language).catch((error: unknown) => { setContentFailed(true); throw error; });
         const places = [
           ...(content.places ?? []),
           ...(patient.knownPlaces ?? []).map((title, index) => ({
@@ -60,7 +64,8 @@ export function GamePage() {
         });
       })
       .catch(() => setFailed(true));
-  }, [gameKey]);
+  }, [gameKey, t, i18n.resolvedLanguage]);
+  if (contentFailed) return <p role="status">{t("games.contentUnavailable")}</p>;
   if (failed) return <p>{t("games.unavailable")}</p>;
   if (!data) return <p>{t("games.loading")}</p>;
   const shared = {
@@ -79,10 +84,13 @@ export function GamePage() {
       return <p>{t("games.unavailable")}</p>;
     }
     return (
+      <>
+      {data.content.provenance?.source === "demo" && <p role="status">{t("games.demoContent")}</p>}
       <GamePlayer
         {...shared}
         module={module as unknown as GameModule<unknown>}
       />
+      </>
     );
   }
   return <p>{t("games.unavailable")}</p>;

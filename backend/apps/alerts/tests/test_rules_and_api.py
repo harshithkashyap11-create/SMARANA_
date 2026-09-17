@@ -5,7 +5,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework.test import APIClient
 
-from apps.accounts.models import DeviceSession
+from apps.accounts.models import DeviceSession, User
 from apps.alerts.models import Alert
 from apps.alerts.rules import (
     device_offline_3d,
@@ -32,7 +32,7 @@ from apps.sync.models import SyncRejection
 pytestmark = pytest.mark.django_db
 
 
-def client_for(user: object) -> APIClient:
+def client_for(user: User) -> APIClient:
     client = APIClient()
     client.force_authenticate(user=user)
     return client
@@ -40,7 +40,7 @@ def client_for(user: object) -> APIClient:
 
 @freeze_time("2026-09-15 02:00:00+05:30")
 def test_no_login_boundary_requires_more_than_48_hours() -> None:
-    patient = PatientFactory()
+    patient = PatientFactory.create()
     now = timezone.now()
     session = DeviceSession.objects.create(
         user=patient.user,
@@ -58,7 +58,7 @@ def test_no_login_boundary_requires_more_than_48_hours() -> None:
 
 @freeze_time("2026-09-15 02:00:00+05:30")
 def test_device_offline_rule_requires_more_than_three_days_and_names_last_seen() -> None:
-    patient = PatientFactory()
+    patient = PatientFactory.create()
     now = timezone.now()
     session = DeviceSession.objects.create(
         user=patient.user,
@@ -82,7 +82,7 @@ def test_device_offline_rule_requires_more_than_three_days_and_names_last_seen()
 
 @freeze_time("2026-09-15 02:00:00+05:30")
 def test_dead_lettered_sync_item_creates_an_info_alert_for_the_care_team() -> None:
-    patient = PatientFactory()
+    patient = PatientFactory.create()
     SyncRejection.objects.create(
         user=patient.user,
         patient_id=patient.id,
@@ -104,10 +104,10 @@ def test_dead_lettered_sync_item_creates_an_info_alert_for_the_care_team() -> No
 
 @freeze_time("2026-09-15 02:00:00+05:30")
 def test_three_missed_medicines_trigger_with_explanation() -> None:
-    patient = PatientFactory()
+    patient = PatientFactory.create()
     now = timezone.now()
     for days in (1, 2, 3):
-        reminder = ReminderFactory(
+        reminder = ReminderFactory.create(
             patient=patient,
             routine_item__patient=patient,
             routine_item__category="medicine",
@@ -122,7 +122,7 @@ def test_three_missed_medicines_trigger_with_explanation() -> None:
 
 @freeze_time("2026-09-15 02:00:00+05:30")
 def test_level_drop_requires_three_demotions_and_dedupe_updates_evidence() -> None:
-    patient = PatientFactory()
+    patient = PatientFactory.create()
     game = GameDefinition.objects.create(key="sequence", name="Sequence", min_level=1, max_level=10)
     state = DifficultyState.objects.create(patient=patient, game=game, level=2)
     DifficultyChange.objects.create(
@@ -164,12 +164,12 @@ def test_level_drop_requires_three_demotions_and_dedupe_updates_evidence() -> No
 
 
 def test_alert_actions_are_scoped_forwarded_and_audited() -> None:
-    patient = PatientFactory()
-    other = PatientFactory()
-    caregiver = CaregiverFactory()
-    doctor = DoctorFactory()
-    CareAssignmentFactory(patient=patient, caregiver=caregiver)
-    DoctorAssignmentFactory(patient=patient, doctor=doctor)
+    patient = PatientFactory.create()
+    other = PatientFactory.create()
+    caregiver = CaregiverFactory.create()
+    doctor = DoctorFactory.create()
+    CareAssignmentFactory.create(patient=patient, caregiver=caregiver)
+    DoctorAssignmentFactory.create(patient=patient, doctor=doctor)
     alert = raise_alert(
         patient=patient,
         rule_key="no_login_2d",

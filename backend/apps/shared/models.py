@@ -1,6 +1,6 @@
 """Abstract model mixins shared across bounded contexts."""
 
-from typing import Any
+from typing import TypeVar
 from uuid import uuid4
 
 from django.db import models
@@ -26,7 +26,10 @@ class TimeStamped(models.Model):
         abstract = True
 
 
-class SoftDeleteQuerySet(models.QuerySet[Any]):
+_Model = TypeVar("_Model", bound=models.Model)
+
+
+class SoftDeleteQuerySet(models.QuerySet[_Model]):
     """Soft-delete every selected record."""
 
     def delete(self) -> tuple[int, dict[str, int]]:
@@ -34,10 +37,10 @@ class SoftDeleteQuerySet(models.QuerySet[Any]):
         return count, {self.model._meta.label: count}
 
 
-class SoftDeleteManager(models.Manager[Any]):
+class SoftDeleteManager(models.Manager[_Model]):
     """Return only active records by default."""
 
-    def get_queryset(self) -> SoftDeleteQuerySet:
+    def get_queryset(self) -> SoftDeleteQuerySet[_Model]:
         return SoftDeleteQuerySet(self.model, using=self._db).filter(deleted_at__isnull=True)
 
 
@@ -65,6 +68,7 @@ class SoftDelete(models.Model):
     def restore(self, using: str | None = None) -> None:
         self.deleted_at = None
         self.save(using=using, update_fields=["deleted_at"])
+
 
 class OfflineCapable(UUIDModel, TimeStamped):
     """Fields required for records created on a disconnected device."""

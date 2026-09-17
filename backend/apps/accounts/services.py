@@ -116,18 +116,14 @@ def verify_pin(*, login_id: str, pin: str) -> User:
             if pin_matches:
                 credential.failed_attempts = 0
                 credential.locked_until = None
-                credential.save(
-                    update_fields=["failed_attempts", "locked_until", "updated_at"]
-                )
+                credential.save(update_fields=["failed_attempts", "locked_until", "updated_at"])
                 authenticated_user = credential.user
             else:
                 credential.failed_attempts += 1
                 if credential.failed_attempts >= PIN_FAILURE_LIMIT:
                     credential.locked_until = now + PIN_LOCK_DURATION
                     retry_after = int(PIN_LOCK_DURATION.total_seconds())
-                credential.save(
-                    update_fields=["failed_attempts", "locked_until", "updated_at"]
-                )
+                credential.save(update_fields=["failed_attempts", "locked_until", "updated_at"])
                 if retry_after is not None:
                     from apps.alerts.services import raise_alert
 
@@ -193,7 +189,10 @@ def refresh_session(*, refresh_token: str) -> IssuedTokens:
     except DeviceSession.DoesNotExist as exc:
         raise InvalidToken("Token is not bound to an active device session") from exc
 
-    if not session.user.is_active:
+    if not session.user.is_active or (
+        session.user.role in {User.Role.CAREGIVER, User.Role.DOCTOR}
+        and not session.user.is_approved
+    ):
         raise InvalidToken("User account is inactive")
 
     old_refresh.blacklist()

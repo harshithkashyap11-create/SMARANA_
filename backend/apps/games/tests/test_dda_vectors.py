@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -9,7 +10,7 @@ CASES = json.loads((Path(__file__).parents[4] / "shared" / "dda_cases.json").rea
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case["name"])
-def test_shared_vector(case: dict) -> None:
+def test_shared_vector(case: dict[str, Any]) -> None:
     result = next_difficulty(
         DifficultyStateData(**case["state"]),
         SessionSummary(**case["session"]),

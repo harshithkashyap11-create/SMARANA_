@@ -3,7 +3,7 @@
 from django.core.management.base import CommandError
 
 
-def validate_tags(kind, tags):
+def validate_tags(kind: str, tags: dict[str, object]) -> None:
     if "variants" not in tags:
         return
     variants = tags["variants"]

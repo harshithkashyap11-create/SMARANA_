@@ -11,6 +11,7 @@ from apps.accounts.models import DeviceSession, User
 from apps.audit.models import AuditEvent
 from apps.patients.models import CareAssignment
 from apps.shared.tests.factories import CareAssignmentFactory, CaregiverFactory, DoctorFactory
+from apps.shared.tests.types import CareScenario
 
 LOGIN_URL = "/api/v1/auth/login/"
 REFRESH_URL = "/api/v1/auth/refresh/"
@@ -68,9 +69,7 @@ def test_wrong_password_and_unknown_email_have_identical_response(api: APIClient
     base = {"password": "wrong-password", "device_id": "browser"}
 
     with patch("apps.accounts.services.check_password", wraps=check_password) as verifier:
-        wrong = api.post(
-            LOGIN_URL, {**base, "email_or_phone": "person@example.com"}, format="json"
-        )
+        wrong = api.post(LOGIN_URL, {**base, "email_or_phone": "person@example.com"}, format="json")
         assert verifier.call_count == 1
         verifier.reset_mock()
         unknown = api.post(
@@ -80,10 +79,14 @@ def test_wrong_password_and_unknown_email_have_identical_response(api: APIClient
 
     assert wrong.status_code == 401
     assert unknown.status_code == 401
-    assert wrong.data == unknown.data == {
-        "detail": "credentials_not_verified",
-        "code": "credentials_not_verified",
-    }
+    assert (
+        wrong.data
+        == unknown.data
+        == {
+            "detail": "credentials_not_verified",
+            "code": "credentials_not_verified",
+        }
+    )
     assert AuditEvent.objects.filter(action="login_failed").count() == 2
 
 
@@ -129,11 +132,13 @@ def test_refresh_rejects_deactivated_user_without_advancing_session(api: APIClie
 
 
 @pytest.mark.django_db
-def test_me_returns_only_active_assigned_patients(api: APIClient, care_scenario) -> None:
+def test_me_returns_only_active_assigned_patients(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     caregiver = care_scenario["caregiver"]
     patient = care_scenario["patient"]
     other_patient = care_scenario["other_patient"]
-    CareAssignmentFactory(patient=other_patient, caregiver=caregiver, active=False)
+    CareAssignmentFactory.create(patient=other_patient, caregiver=caregiver, active=False)
     api.force_authenticate(user=caregiver)
 
     response = api.get(ME_URL)
@@ -184,3 +189,41 @@ def test_logout_blacklists_refresh(api: APIClient) -> None:
     assert logout.status_code == 204
     assert reuse.status_code == 401
     assert DeviceSession.objects.filter(user=user).count() == 0
+
+
+@pytest.mark.django_db
+def test_expired_authorization_header_does_not_block_refresh(api: APIClient) -> None:
+    _professional(role=User.Role.CAREGIVER)
+    login = api.post(
+        LOGIN_URL,
+        {"email_or_phone": "person@example.com", "password": PASSWORD, "device_id": "phone"},
+        format="json",
+    )
+    api.credentials(HTTP_AUTHORIZATION="Bearer expired-or-malformed-token")
+    refreshed = api.post(REFRESH_URL, {"refresh": login.data["refresh"]}, format="json")
+    assert refreshed.status_code == 200
+    assert (
+        api.post(
+            LOGIN_URL,
+            {"email_or_phone": "person@example.com", "password": PASSWORD, "device_id": "phone"},
+            format="json",
+        ).status_code
+        == 200
+    )
+
+
+@pytest.mark.django_db
+def test_revoked_approval_blocks_access_and_refresh(api: APIClient) -> None:
+    user = _professional(role=User.Role.DOCTOR)
+    login = api.post(
+        LOGIN_URL,
+        {"email_or_phone": "person@example.com", "password": PASSWORD, "device_id": "clinic"},
+        format="json",
+    )
+    user.is_approved = False
+    user.save(update_fields=["is_approved"])
+    api.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['access']}")
+    assert api.get(ME_URL).status_code == 401
+    assert (
+        api.post(REFRESH_URL, {"refresh": login.data["refresh"]}, format="json").status_code == 401
+    )

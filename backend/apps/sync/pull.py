@@ -1,8 +1,9 @@
 """Patient-scoped sync snapshots, incremental changes, and deletion tombstones."""
 
-from datetime import timedelta
+from datetime import datetime, timedelta
+from typing import TypeVar
 
-from django.db.models import Q
+from django.db.models import Model, Q, QuerySet
 from django.utils import timezone
 
 from apps.clinical.models import ExerciseAssignment
@@ -10,7 +11,7 @@ from apps.games.models import DifficultyState, GameDefinition
 from apps.games.serializers import GameDefinitionSerializer
 from apps.memories.models import Memory
 from apps.memories.serializers import MemorySerializer
-from apps.patients.models import FamilyMember
+from apps.patients.models import FamilyMember, PatientProfile
 from apps.patients.serializers import FamilyMemberSerializer, PatientProfileCaregiverSerializer
 from apps.routines.models import Medication, Reminder, ReminderResponse, RoutineItem
 from apps.routines.serializers import (
@@ -22,13 +23,17 @@ from apps.routines.serializers import (
 )
 from apps.routines.services import materialise_reminders
 
+_Model = TypeVar("_Model", bound=Model)
 
-def pull_records(patient, since, server_time):
+
+def pull_records(
+    patient: PatientProfile, since: datetime | None, server_time: datetime
+) -> dict[str, object]:
     # Always materialise the horizon. Records created after the snapshot cursor are
     # harmless duplicates on the next pull and must never be skipped.
     materialise_reminders(patient, timezone.localdate(server_time), days=3)
 
-    def changed(queryset):
+    def changed(queryset: QuerySet[_Model]) -> QuerySet[_Model]:
         return queryset.filter(updated_at__gte=since) if since else queryset
 
     rules = RoutineItem.all_objects.filter(patient=patient)
@@ -70,8 +75,11 @@ def pull_records(patient, since, server_time):
         # cannot be lost merely because they don't update PatientProfile.
         "profile": [profile],
         "checkins": [
-            {"id": str(row.id), "requested_by": row.requested_by.display_name,
-             "answer": getattr(getattr(row, "response", None), "answer", None)}
+            {
+                "id": str(row.id),
+                "requested_by": row.requested_by.display_name,
+                "answer": getattr(getattr(row, "response", None), "answer", None),
+            }
             for row in changed(patient.checkins.all()).select_related("requested_by", "response")
         ],
         "sleep_logs": SleepLogSerializer(changed(patient.sleep_logs.all()), many=True).data,
@@ -132,6 +140,6 @@ def pull_records(patient, since, server_time):
                 ("memories", memories),
             )
             for row in rows.filter(deleted_at__isnull=False)
-            if since is None or row.deleted_at >= since
+            if row.deleted_at is not None and (since is None or row.deleted_at >= since)
         ],
     }

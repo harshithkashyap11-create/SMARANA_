@@ -10,7 +10,7 @@ from apps.patients.media import media_url
 from apps.patients.models import ConsentSettings, FamilyMember, PatientProfile
 
 
-class PatientCardSerializer(serializers.ModelSerializer):
+class PatientCardSerializer(serializers.ModelSerializer[PatientProfile]):
     name = serializers.CharField(source="user.display_name", read_only=True)
     age = serializers.SerializerMethodField()
     language = serializers.SerializerMethodField()
@@ -78,7 +78,7 @@ CAREGIVER_PROFILE_FIELDS = (
 )
 
 
-class PatientProfileCaregiverSerializer(serializers.ModelSerializer):
+class PatientProfileCaregiverSerializer(serializers.ModelSerializer[PatientProfile]):
     language = serializers.CharField(source="user.language")
 
     class Meta:
@@ -86,13 +86,13 @@ class PatientProfileCaregiverSerializer(serializers.ModelSerializer):
         fields = (*CAREGIVER_PROFILE_FIELDS, "language")
 
 
-class PatientProfileDoctorSerializer(serializers.ModelSerializer):
+class PatientProfileDoctorSerializer(serializers.ModelSerializer[PatientProfile]):
     class Meta:
         model = PatientProfile
         fields = ("session_cap_minutes", "max_difficulty_level")
 
 
-class FamilyMemberSerializer(serializers.ModelSerializer):
+class FamilyMemberSerializer(serializers.ModelSerializer[FamilyMember]):
     photo_url = serializers.SerializerMethodField()
     photo = serializers.ImageField(write_only=True, required=False)
 
@@ -117,7 +117,7 @@ class FamilyMemberSerializer(serializers.ModelSerializer):
         return media_url(obj.photo)
 
 
-class FamilyMemberDoctorSerializer(serializers.ModelSerializer):
+class FamilyMemberDoctorSerializer(serializers.ModelSerializer[FamilyMember]):
     photo_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -130,7 +130,7 @@ class FamilyMemberDoctorSerializer(serializers.ModelSerializer):
         return media_url(obj.photo)
 
 
-class ConsentSettingsSerializer(serializers.ModelSerializer):
+class ConsentSettingsSerializer(serializers.ModelSerializer[ConsentSettings]):
     class Meta:
         model = ConsentSettings
         fields = (
@@ -141,7 +141,7 @@ class ConsentSettingsSerializer(serializers.ModelSerializer):
         )
 
 
-class OrientationSerializer(serializers.Serializer):
+class OrientationSerializer(serializers.Serializer[dict[str, object]]):
     greeting_key = serializers.ChoiceField(choices=("morning", "afternoon", "evening"))
     day = serializers.CharField()
     date = serializers.CharField()
@@ -151,7 +151,7 @@ class OrientationSerializer(serializers.Serializer):
     family_member = serializers.DictField(allow_null=True)
 
 
-class ProgressSummarySerializer(serializers.Serializer):
+class ProgressSummarySerializer(serializers.Serializer[dict[str, object]]):
     completed_today = serializers.IntegerField()
     points = serializers.IntegerField()
     streak_days = serializers.IntegerField()

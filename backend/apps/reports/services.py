@@ -11,7 +11,12 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
-from weasyprint import HTML
+
+# WeasyPrint 70 has no PEP 561 types; validate PDF bytes below.
+from weasyprint import HTML  # type: ignore[import-untyped]
+
+# Untyped renderer response adapter.
+from weasyprint.urls import URLFetcherResponse  # type: ignore[import-untyped]
 
 from apps.accounts.models import User
 from apps.audit.services import audit
@@ -37,15 +42,22 @@ def chart(domains: list[dict[str, Any]]) -> str | None:
     return "data:image/png;base64," + base64.b64encode(image.getvalue()).decode()
 
 
-def local_resources(url: str, *args: Any, **kwargs: Any) -> Any:
+def local_resources(url: str, *args: object, **kwargs: object) -> object:
     if not url.startswith("data:image/png;base64,"):
         raise ValueError("External PDF resources are disabled")
-    return {"string": base64.b64decode(url.split(",", 1)[1]), "mime_type": "image/png"}
+    return URLFetcherResponse(
+        url,
+        body=base64.b64decode(url.split(",", 1)[1]),
+        headers={"Content-Type": "image/png"},
+    )
 
 
 def render_pdf(template: str, context: dict[str, Any]) -> bytes:
     html = render_to_string(template, context)
-    return HTML(string=html, url_fetcher=local_resources).write_pdf()
+    pdf: object = HTML(string=html, url_fetcher=local_resources).write_pdf()
+    if not isinstance(pdf, bytes):
+        raise TypeError("PDF renderer returned a non-byte result")
+    return pdf
 
 
 def report_pdf(patient: PatientProfile, actor: User, start: date, end: date) -> bytes:

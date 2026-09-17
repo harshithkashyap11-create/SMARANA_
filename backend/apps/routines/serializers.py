@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -11,7 +13,7 @@ from apps.routines.models import (
 )
 
 
-class RoutineItemSerializer(serializers.ModelSerializer):
+class RoutineItemSerializer(serializers.ModelSerializer[RoutineItem]):
     set_by = serializers.CharField(
         source="created_by.display_name", read_only=True, allow_null=True
     )
@@ -39,7 +41,7 @@ class RoutineItemSerializer(serializers.ModelSerializer):
         return sorted(set(value))
 
 
-class RoutineHistorySerializer(serializers.Serializer):
+class RoutineHistorySerializer(serializers.Serializer[object]):
     id = serializers.UUIDField()
     actor_name = serializers.CharField(allow_null=True)
     actor_role = serializers.CharField()
@@ -48,14 +50,22 @@ class RoutineHistorySerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
-class ReminderSerializer(serializers.ModelSerializer):
+class ReminderSerializer(serializers.ModelSerializer[Reminder]):
     title = serializers.CharField(source="routine_item.title")
     category = serializers.CharField(source="routine_item.category")
     note = serializers.CharField(source="routine_item.note")
 
     class Meta:
         model = Reminder
-        fields = ("id", "title", "category", "note", "scheduled_at", "status", "snoozed_until")
+        fields: tuple[str, ...] = (
+            "id",
+            "title",
+            "category",
+            "note",
+            "scheduled_at",
+            "status",
+            "snoozed_until",
+        )
 
 
 class AdherenceReminderSerializer(ReminderSerializer):
@@ -64,30 +74,30 @@ class AdherenceReminderSerializer(ReminderSerializer):
     class Meta(ReminderSerializer.Meta):
         fields = (*ReminderSerializer.Meta.fields, "responded_at")
 
-    def get_responded_at(self, obj: Reminder):
+    def get_responded_at(self, obj: Reminder) -> datetime | None:
         response = obj.responses.order_by("-responded_at").first()
         return response.responded_at if response else None
 
 
-class ReminderResponseInputSerializer(serializers.Serializer):
+class ReminderResponseInputSerializer(serializers.Serializer[dict[str, object]]):
     action = serializers.ChoiceField(choices=ReminderResponse.Action.choices)
     responded_at = serializers.DateTimeField()
     idempotency_key = serializers.UUIDField()
 
 
-class ReminderResponseSerializer(serializers.ModelSerializer):
+class ReminderResponseSerializer(serializers.ModelSerializer[ReminderResponse]):
     class Meta:
         model = ReminderResponse
         fields = ("id", "reminder", "action", "responded_at", "idempotency_key")
 
 
-class MedicationSerializer(serializers.ModelSerializer):
+class MedicationSerializer(serializers.ModelSerializer[Medication]):
     class Meta:
         model = Medication
         fields = ("id", "name", "dose", "times", "instructions", "active", "start_date", "end_date")
 
 
-class SleepLogSerializer(serializers.ModelSerializer):
+class SleepLogSerializer(serializers.ModelSerializer[SleepLog]):
     quality = serializers.IntegerField(min_value=1, max_value=5)
     device_updated_at = serializers.DateTimeField(required=False)
     id = serializers.UUIDField(
@@ -100,7 +110,7 @@ class SleepLogSerializer(serializers.ModelSerializer):
         read_only_fields = ("source",)
 
 
-class MoodLogSerializer(serializers.ModelSerializer):
+class MoodLogSerializer(serializers.ModelSerializer[MoodLog]):
     device_updated_at = serializers.DateTimeField(required=False)
     id = serializers.UUIDField(
         required=False, validators=[UniqueValidator(queryset=MoodLog.objects.all())]

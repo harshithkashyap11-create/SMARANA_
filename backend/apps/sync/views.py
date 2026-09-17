@@ -1,10 +1,15 @@
 from datetime import timedelta
+from typing import Any
 from uuid import UUID
 
-from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime, parse_time
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,7 +17,9 @@ from apps.accounts.models import DeviceSession, User
 from apps.games.models import DifficultyState, GameSession
 from apps.games.services import save_session
 from apps.memories.models import Memory, MemoryQuizAttempt
+from apps.patients.models import PatientProfile
 from apps.routines.models import Reminder, ReminderResponse, RoutineItem
+from apps.shared.permissions import authenticated_user
 
 from .models import IdempotencyRecord, SyncRejection
 
@@ -35,14 +42,18 @@ class PushView(APIView):
     permission_classes = [IsAuthenticated]
 
     @transaction.atomic
-    def post(self, request):
-        if request.user.role != User.Role.PATIENT:
+    def post(self, request: Request) -> Response:
+        if authenticated_user(request).role != User.Role.PATIENT:
             return Response({"detail": "Patient device required."}, status=403)
-        patient = request.user.patient_profile
+        patient = authenticated_user(request).patient_profile
         accepted, rejected = [], []
+        if not isinstance(request.data, dict):
+            return Response({"detail": "Expected an object."}, status=400)
         raw_items = request.data.get("items", [])
         if not isinstance(raw_items, list) or any(not isinstance(x, dict) for x in raw_items):
             return Response({"detail": "Items must be a list of objects."}, status=400)
+        if len(raw_items) > 100:
+            return Response({"detail": "Send at most 100 items per batch."}, status=400)
         items = sorted(
             raw_items,
             key=lambda x: 0 if x.get("model") == "game_session" else 1,
@@ -68,7 +79,7 @@ class PushView(APIView):
                 code = "forbidden"
             if code:
                 SyncRejection.objects.create(
-                    user=request.user,
+                    user=authenticated_user(request),
                     patient_id=patient.id,
                     model=model if isinstance(model, str) else "",
                     code=code,
@@ -93,19 +104,31 @@ class PushView(APIView):
                         raise ValueError("Object id does not match payload")
                     record, created = IdempotencyRecord.objects.get_or_create(
                         key=key,
-                        defaults={"user": request.user, "model": model, "object_id": object_id},
+                        defaults={
+                            "user": authenticated_user(request),
+                            "model": model,
+                            "object_id": object_id,
+                        },
                     )
                     if (
-                        record.user_id != request.user.id
+                        record.user_id != authenticated_user(request).id
                         or record.model != model
                         or record.object_id != object_id
                     ):
                         raise ValueError("Idempotency key belongs to another item")
                     if created:
-                        self._save(model, payload, patient, request.user)
-            except Exception:
+                        self._save(model, payload, patient, authenticated_user(request))
+            except (
+                ValueError,
+                TypeError,
+                KeyError,
+                IntegrityError,
+                ObjectDoesNotExist,
+                ValidationError,
+                DjangoValidationError,
+            ):
                 SyncRejection.objects.create(
-                    user=request.user,
+                    user=authenticated_user(request),
                     patient_id=patient.id,
                     model=model,
                     code="validation",
@@ -120,7 +143,7 @@ class PushView(APIView):
                 )
                 continue
             accepted.append({"outbox_id": outbox_id, "object_id": str(record.object_id)})
-        DeviceSession.objects.filter(user=request.user).update(
+        DeviceSession.objects.filter(user=authenticated_user(request)).update(
             last_seen_at=timezone.now(),
             last_push_had_rejections=bool(rejected),
         )
@@ -128,10 +151,20 @@ class PushView(APIView):
             {"accepted": accepted, "rejected": rejected, "server_time": timezone.now().isoformat()}
         )
 
-    def _save(self, model, p, patient, user):
+    def _save(self, model: str, p: dict[str, Any], patient: PatientProfile, user: User) -> None:
         from apps.alerts.models import SosEvent
 
-        owned_models = {
+        owned_models: dict[
+            str,
+            tuple[
+                type[ReminderResponse]
+                | type[GameSession]
+                | type[MemoryQuizAttempt]
+                | type[RoutineItem]
+                | type[SosEvent],
+                str,
+            ],
+        ] = {
             "reminder_response": (ReminderResponse, "reminder__patient_id"),
             "game_session": (GameSession, "patient_id"),
             "memory_quiz_attempt": (MemoryQuizAttempt, "patient_id"),
@@ -140,9 +173,9 @@ class PushView(APIView):
         }
         if model in owned_models:
             record_model, owner_field = owned_models[model]
-            existing = record_model.objects.filter(id=p["id"])
-            if existing.exists():
-                if not existing.filter(**{owner_field: patient.id}).exists():
+            owned_records = record_model.objects.filter(id=p["id"])
+            if owned_records.exists():
+                if not owned_records.filter(**{owner_field: patient.id}).exists():
                     raise ValueError("Object belongs to another patient")
                 # Append-only replay must never recompute DDA or replace server records.
                 return
@@ -171,7 +204,11 @@ class PushView(APIView):
         elif model == "reminder_response":
             if p.get("action") not in ReminderResponse.Action.values:
                 raise ValueError("Invalid reminder action")
-            reminder = Reminder.objects.filter(id=p["reminder_id"], patient=patient).first()
+            reminder = (
+                Reminder.objects.select_for_update()
+                .filter(id=p["reminder_id"], patient=patient)
+                .first()
+            )
             if reminder is None:
                 # A device may have generated this reminder beyond the cached horizon.
                 from apps.routines.services import materialise_reminders
@@ -182,6 +219,9 @@ class PushView(APIView):
                 scheduled_at = parse_datetime(p.get("scheduled_at", "")) or responded_at
                 materialise_reminders(patient, timezone.localdate(scheduled_at), days=1)
                 reminder = Reminder.objects.get(id=p["reminder_id"], patient=patient)
+            responded_at = parse_datetime(p["responded_at"])
+            if responded_at is None or timezone.is_naive(responded_at):
+                raise ValueError("Invalid response time")
             ReminderResponse.objects.get_or_create(
                 id=p["id"],
                 defaults={
@@ -211,6 +251,10 @@ class PushView(APIView):
                 },
             )
         elif model == "memory_quiz_attempt":
+            from apps.memories.serializers import AttemptInputSerializer
+
+            attempt_serializer = AttemptInputSerializer(data={**p, "idempotency_key": p["id"]})
+            attempt_serializer.is_valid(raise_exception=True)
             if (
                 p.get("memory_id")
                 and not Memory.objects.filter(id=p["memory_id"], patient=patient).exists()
@@ -220,7 +264,9 @@ class PushView(APIView):
                 id=p["id"],
                 defaults={
                     "patient": patient,
-                    "memory": Memory.objects.filter(id=p.get("memory_id"), patient=patient).first(),
+                    "memory": Memory.objects.filter(id=p["memory_id"], patient=patient).first()
+                    if p.get("memory_id")
+                    else None,
                     "question_type": p["question_type"],
                     "expected": p["expected"],
                     "given": p["given"],
@@ -232,6 +278,9 @@ class PushView(APIView):
                 },
             )
         elif model == "routine_item":
+            start_date = parse_date(p["start_date"])
+            if start_date is None:
+                raise ValueError("Invalid routine date")
             RoutineItem.objects.get_or_create(
                 id=p["id"],
                 defaults={
@@ -239,7 +288,7 @@ class PushView(APIView):
                     "title": p["title"],
                     "category": "custom",
                     "time_of_day": parse_time(p["time_of_day"]),
-                    "days_of_week": [parse_date(p["start_date"]).weekday()],
+                    "days_of_week": [start_date.weekday()],
                     "start_date": parse_date(p["start_date"]),
                     "end_date": parse_date(p["start_date"]),
                     "source": "patient",
@@ -315,10 +364,10 @@ class PushView(APIView):
 class PullView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        if request.user.role != User.Role.PATIENT:
+    def get(self, request: Request) -> Response:
+        if authenticated_user(request).role != User.Role.PATIENT:
             return Response({"detail": "Patient device required."}, status=403)
-        patient = request.user.patient_profile
+        patient = authenticated_user(request).patient_profile
         from .pull import pull_records
 
         since = request.query_params.get("since")

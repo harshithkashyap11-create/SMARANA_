@@ -1,3 +1,4 @@
+vi.mock("../../db/media", () => ({ privateMediaUrl: (url: string) => Promise.resolve(url) }));
 import {
   act,
   fireEvent,

@@ -10,6 +10,7 @@ from apps.games.models import DifficultyChange, GameDefinition, GameSession
 from apps.games.serializers import GameDefinitionSerializer, GameSessionInputSerializer
 from apps.games.services import save_session
 from apps.patients.selectors import patients_for
+from apps.shared.permissions import authenticated_user
 
 
 class GameList(APIView):
@@ -26,9 +27,9 @@ class PatientGameSessionList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, patient_id: str) -> Response:
-        if request.user.role not in {User.Role.CAREGIVER, User.Role.DOCTOR}:
+        if authenticated_user(request).role not in {User.Role.CAREGIVER, User.Role.DOCTOR}:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        patient = get_object_or_404(patients_for(request.user), id=patient_id)
+        patient = get_object_or_404(patients_for(authenticated_user(request)), id=patient_id)
         queryset = GameSession.objects.filter(patient=patient, guest_mode=False).select_related(
             "game"
         )
@@ -54,10 +55,10 @@ class PatientGameSessionList(APIView):
         )
 
     def post(self, request: Request, patient_id: str) -> Response:
-        queryset = patients_for(request.user)
-        if request.user.role != User.Role.PATIENT:
+        queryset = patients_for(authenticated_user(request))
+        if authenticated_user(request).role != User.Role.PATIENT:
             if (
-                request.user.role != User.Role.CAREGIVER
+                authenticated_user(request).role != User.Role.CAREGIVER
                 or request.data.get("guest_mode") is not True
             ):
                 return Response(status=status.HTTP_404_NOT_FOUND)
@@ -65,7 +66,7 @@ class PatientGameSessionList(APIView):
         serializer = GameSessionInputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         session, state, change, message_key = save_session(
-            patient, request.user, dict(serializer.validated_data)
+            patient, authenticated_user(request), dict(serializer.validated_data)
         )
         return Response(
             {
@@ -94,9 +95,9 @@ class PatientDifficultyChangeList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, patient_id: str) -> Response:
-        if request.user.role not in {User.Role.CAREGIVER, User.Role.DOCTOR}:
+        if authenticated_user(request).role not in {User.Role.CAREGIVER, User.Role.DOCTOR}:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        patient = get_object_or_404(patients_for(request.user), id=patient_id)
+        patient = get_object_or_404(patients_for(authenticated_user(request)), id=patient_id)
         rows = DifficultyChange.objects.filter(state__patient=patient).select_related("state__game")
         return Response(
             [

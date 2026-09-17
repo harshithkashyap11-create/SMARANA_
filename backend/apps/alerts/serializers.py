@@ -1,3 +1,5 @@
+from typing import Any
+
 from rest_framework import serializers
 
 from apps.alerts.models import Alert, CheckInResponse, NotificationPreference
@@ -30,7 +32,7 @@ class AlertSerializer(serializers.ModelSerializer[Alert]):
         ]
 
 
-class NotificationPreferenceSerializer(serializers.ModelSerializer):
+class NotificationPreferenceSerializer(serializers.ModelSerializer[NotificationPreference]):
     enabled = serializers.BooleanField(default=True)
 
     class Meta:
@@ -38,7 +40,7 @@ class NotificationPreferenceSerializer(serializers.ModelSerializer):
         fields = ["id", "channel", "rule_key", "enabled"]
         read_only_fields = ["id"]
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         channel = attrs.get("channel", getattr(self.instance, "channel", None))
         enabled = attrs.get("enabled", getattr(self.instance, "enabled", True))
         if channel in {"push", "sms"} and enabled:
@@ -54,9 +56,9 @@ class NotificationPreferenceSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class CheckInResponseSerializer(serializers.ModelSerializer):
+class CheckInResponseSerializer(serializers.ModelSerializer[CheckInResponse]):
     class Meta:
         model = CheckInResponse
         fields = ["id", "checkin", "answer", "responded_at", "device_updated_at"]
         extra_kwargs = {"id": {"read_only": False, "required": True}, "checkin": {"validators": []}}
-        validators = []
+        validators: list[object] = []

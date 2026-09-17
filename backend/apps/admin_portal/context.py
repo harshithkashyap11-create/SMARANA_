@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.http import HttpRequest
 from django.utils import timezone
 
 from apps.accounts.models import DeviceSession, User
@@ -7,7 +8,7 @@ from apps.alerts.models import Alert
 from apps.patients.models import CareAssignment, DoctorAssignment
 
 
-def admin_counts(request) -> dict[str, object]:
+def admin_counts(request: HttpRequest) -> dict[str, object]:
     if not request.path.startswith("/admin/") or not request.user.is_staff:
         return {}
     cutoff = timezone.now() - timedelta(days=7)

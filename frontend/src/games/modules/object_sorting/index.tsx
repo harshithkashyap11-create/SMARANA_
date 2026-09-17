@@ -1,3 +1,4 @@
+import { PrivateImage } from "../../../shared/ui/PrivateImage";
 /* eslint-disable react-refresh/only-export-components */
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
@@ -93,7 +94,7 @@ export function ObjectSortingRound({
               event.dataTransfer.setData("item-index", String(index))
             }
           >
-            <img
+            <PrivateImage
               alt={item.title}
               className="mx-auto h-16"
               src={item.imageUrl}

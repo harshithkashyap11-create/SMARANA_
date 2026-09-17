@@ -9,6 +9,7 @@ import {
   recordOfflineFailure,
   storeOfflineSecrets,
   unlockOffline,
+  lockOfflineStorage,
 } from "../../db/crypto";
 import { getMeta, setMeta } from "../../db/schema";
 import { Keypad } from "../../shared/ui";
@@ -68,7 +69,7 @@ export function PatientLoginPage() {
       });
       await storeOfflineSecrets(nextPin, session.refresh, session.user);
       await setMeta(LOGIN_ID_KEY, loginId.trim());
-      navigate("/patient", { replace: true });
+      void navigate("/patient", { replace: true });
     } catch (error) {
       const code = errorCode(error);
       if (code === "request_not_completed") {
@@ -76,20 +77,19 @@ export function PatientLoginPage() {
         if (lockedUntil) {
           setMessageKey("auth.locked_caregiver_told");
         } else {
+          const candidate = await unlockOffline(nextPin);
           const rememberedLogin = await getMeta(LOGIN_ID_KEY);
-          const unlocked =
-            rememberedLogin === loginId.trim()
-              ? await unlockOffline(nextPin)
-              : null;
+          const unlocked = rememberedLogin === loginId.trim() ? candidate : null;
           if (unlocked) {
             await clearOfflineFailures();
             resumeOfflineSession(unlocked.refreshToken, unlocked.user);
             window.addEventListener("online", () => void refreshSession(), {
               once: true,
             });
-            navigate("/patient", { replace: true });
+            void navigate("/patient", { replace: true });
             return;
           }
+          lockOfflineStorage();
           const newLock = await recordOfflineFailure();
           setMessageKey(
             newLock ? "auth.locked_caregiver_told" : "auth.pin_no_match",
@@ -120,7 +120,7 @@ export function PatientLoginPage() {
       <button
         className="min-h-touch self-start px-3 font-bold"
         type="button"
-        onClick={() => navigate("/")}
+        onClick={() => void navigate("/")}
       >
         ← {t("auth.back")}
       </button>

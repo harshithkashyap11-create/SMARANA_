@@ -1,4 +1,6 @@
 import Dexie, { type EntityTable } from "dexie";
+import { encryptedStorage, allowLegacyMigration, sensitive } from "./encryptedStorage";
+import { lockVault, vaultOwner } from "./vault";
 
 export interface MetaEntry {
   key: string;
@@ -253,6 +255,7 @@ class SmaranaDatabase extends Dexie {
       outbox: "&id, createdAt, nextAttemptAt, model, objectId",
       outboxDead: "&id, rejectedAt, model",
     });
+    this.use(encryptedStorage);
     this.version(7).stores({
       gameDefinitions: "&key",
     });
@@ -293,6 +296,7 @@ export async function setMeta(key: string, value: string): Promise<void> {
 }
 let sessionUserId: string | null = null;
 export function setSessionUser(userId: string | null): void {
+  if (vaultOwner() && vaultOwner() !== userId) lockVault();
   sessionUserId = userId;
 }
 export async function activeProfile(): Promise<
@@ -332,4 +336,37 @@ export async function activatePatient(
   });
   if (typeof window !== "undefined")
     window.dispatchEvent(new Event("smarana:session-ready"));
+}
+
+/** Rewrites legacy rows atomically only after the previous offline owner authenticates. */
+export async function migratePatientStorage(): Promise<void> {
+  if (!vaultOwner()) throw new Error("Offline storage is locked");
+  await db.transaction("rw", db.tables, async () => {
+    allowLegacyMigration(true);
+    try {
+      for (const table of db.tables) {
+        if (table.name === "gameDefinitions") continue;
+        const rows = await table.toArray() as Array<Record<string, unknown>>;
+        for (const row of rows) {
+          if (!sensitive(table.name, row)) continue;
+          if (row.userId && row.userId !== vaultOwner())
+            throw new Error("Legacy data must be unlocked by its owner before switching accounts");
+          await table.put(row);
+        }
+      }
+    } finally { allowLegacyMigration(false); }
+  });
+}
+/** Explicit deletion cannot silently discard pending or rejected writes. */
+export async function deleteLocalPatientData(discardPending = false): Promise<void> {
+  if (!discardPending && ((await db.outbox.count()) || (await db.outboxDead.count())))
+    throw new Error("Sync or explicitly discard pending records before deleting local data");
+  await db.transaction("rw", db.tables, async () => {
+    for (const table of db.tables) if (table.name !== "gameDefinitions") await table.clear();
+  });
+  const { lockOfflineStorage } = await import("./crypto");
+  lockOfflineStorage();
+  setSessionUser(null);
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("smarana:vault-locked"));
+  if (typeof caches !== "undefined") await caches.delete("smarana-media");
 }

@@ -1,27 +1,28 @@
 from django.contrib import admin
+from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.template.response import TemplateResponse
-from django.urls import path
+from django.urls import URLPattern, path
 
 from apps.content.models import ContentItem, Language, Region
 
 
 @admin.register(Region)
-class RegionAdmin(admin.ModelAdmin):
+class RegionAdmin(admin.ModelAdmin[Region]):
     list_display = ("code", "name", "enabled")
     list_filter = ("enabled",)
     search_fields = ("code", "name")
 
 
 @admin.register(Language)
-class LanguageAdmin(admin.ModelAdmin):
+class LanguageAdmin(admin.ModelAdmin[Language]):
     list_display = ("code", "name", "native_name", "enabled")
     list_filter = ("enabled",)
     search_fields = ("code", "name", "native_name")
 
 
 @admin.register(ContentItem)
-class ContentItemAdmin(admin.ModelAdmin):
+class ContentItemAdmin(admin.ModelAdmin[ContentItem]):
     list_display = ("title", "region", "kind", "review_status", "media_preview")
     list_filter = ("region", "kind", "review_status")
     search_fields = ("title",)
@@ -37,11 +38,11 @@ class ContentItemAdmin(admin.ModelAdmin):
         return "—"
 
     @admin.action(description="Mark selected content as reviewed")
-    def mark_reviewed(self, request: HttpRequest, queryset):  # type: ignore[no-untyped-def]
+    def mark_reviewed(self, request: HttpRequest, queryset: QuerySet[ContentItem]) -> None:
         queryset.update(review_status=ContentItem.ReviewStatus.REVIEWED, reviewed_by=request.user)
 
     @admin.action(description="Publish reviewed content")
-    def publish(self, request: HttpRequest, queryset):  # type: ignore[no-untyped-def]
+    def publish(self, request: HttpRequest, queryset: QuerySet[ContentItem]) -> None:
         invalid = queryset.exclude(review_status=ContentItem.ReviewStatus.REVIEWED)
         missing_reviewer = queryset.filter(reviewed_by__isnull=True)
         if invalid.exists() or missing_reviewer.exists():
@@ -51,7 +52,7 @@ class ContentItemAdmin(admin.ModelAdmin):
             return
         queryset.update(review_status=ContentItem.ReviewStatus.PUBLISHED)
 
-    def get_urls(self):  # type: ignore[no-untyped-def]
+    def get_urls(self) -> list[URLPattern]:
         return [
             path(
                 "missing-translations/",

@@ -6,6 +6,16 @@ import { ApiError } from "../../api/client";
 import type { RoleEnum } from "../../api/generated/models";
 import { useAuthStore } from "./authStore";
 
+function browserDeviceId(): string {
+  const key = "smarana:professional-device-id";
+  let id = window.localStorage.getItem(key);
+  if (!id) {
+    id = crypto.randomUUID();
+    window.localStorage.setItem(key, id);
+  }
+  return id;
+}
+
 function errorCode(error: unknown): string {
   if (
     error instanceof ApiError &&
@@ -35,14 +45,15 @@ export function ProfessionalLoginPage({ role }: { role: RoleEnum }) {
       const session = await login({
         email_or_phone: identifier,
         password,
-        device_id: "web-browser",
+        device_id: browserDeviceId(),
       });
       if (session.user.role !== role) {
         useAuthStore.getState().clearSession();
         setMessage(t("auth.roleMismatch"));
         return;
       }
-      navigate(role === "admin" ? "/admin/" : `/${role}`, { replace: true });
+      if (role === "admin") window.location.assign("/admin/");
+      else void navigate(`/${role}`, { replace: true });
     } catch (error) {
       setMessage(t(`auth.errors.${errorCode(error)}`));
     } finally {

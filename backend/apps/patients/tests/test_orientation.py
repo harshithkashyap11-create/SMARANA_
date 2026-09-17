@@ -3,31 +3,33 @@ from datetime import timedelta
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
+from freezegun.api import FrozenDateTimeFactory
 from rest_framework.test import APIClient
 
 from apps.shared.tests.factories import FamilyMemberFactory, ReminderFactory
+from apps.shared.tests.types import CareScenario
 
 
 @pytest.mark.django_db
 def test_orientation_returns_next_activity_and_deterministic_family_member(
-    api: APIClient, care_scenario, frozen_now
+    api: APIClient, care_scenario: CareScenario, frozen_now: FrozenDateTimeFactory
 ) -> None:
     del frozen_now
     patient = care_scenario["patient"]
     patient.home_label = "Guwahati home"
     patient.save(update_fields=["home_label"])
-    FamilyMemberFactory(
+    FamilyMemberFactory.create(
         patient=patient,
         name="Mina",
         photo=SimpleUploadedFile("mina.jpg", b"photo", content_type="image/jpeg"),
     )
-    ReminderFactory(
+    ReminderFactory.create(
         patient=patient,
         routine_item__patient=patient,
         routine_item__title="Morning tea",
         scheduled_at=timezone.now() + timedelta(hours=1),
     )
-    ReminderFactory(
+    ReminderFactory.create(
         patient=patient,
         routine_item__patient=patient,
         routine_item__title="Tomorrow",
@@ -48,7 +50,9 @@ def test_orientation_returns_next_activity_and_deterministic_family_member(
 
 
 @pytest.mark.django_db
-def test_orientation_has_nullable_optional_content(api: APIClient, care_scenario) -> None:
+def test_orientation_has_nullable_optional_content(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(user=patient.user)
 

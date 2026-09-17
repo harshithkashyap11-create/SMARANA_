@@ -1,7 +1,7 @@
 """Business operations for patient profiles, family, and consent."""
 
 from datetime import date
-from typing import Any, cast
+from typing import Any
 
 from django.db import transaction
 
@@ -50,7 +50,7 @@ def create_family_member(
     *, actor: User, patient: PatientProfile, fields: dict[str, Any]
 ) -> FamilyMember:
     with transaction.atomic():
-        member = cast(FamilyMember, FamilyMember.objects.create(patient=patient, **fields))
+        member = FamilyMember.objects.create(patient=patient, **fields)
         changes = {name: [None, _audit_value(value)] for name, value in fields.items()}
         audit(actor, "create", member, patient=patient, changes=changes)
     return member
@@ -72,12 +72,15 @@ def update_family_member(
 def delete_family_member(*, actor: User, member: FamilyMember) -> None:
     with transaction.atomic():
         member.delete()
+        deleted_at = member.deleted_at
+        if deleted_at is None:
+            raise RuntimeError("Soft deletion did not set its timestamp")
         audit(
             actor,
             "delete",
             member,
             patient=member.patient,
-            changes={"deleted_at": [None, member.deleted_at.isoformat()]},
+            changes={"deleted_at": [None, deleted_at.isoformat()]},
         )
 
 

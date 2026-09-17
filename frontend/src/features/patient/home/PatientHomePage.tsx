@@ -60,7 +60,7 @@ export function PatientHomePage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <BigButton
               onClick={() =>
-                navigate(`/patient/games/${interrupted.data?.gameKey}`)
+                void navigate(`/patient/games/${interrupted.data?.gameKey}`)
               }
             >
               {t("games.continue")}
@@ -72,7 +72,7 @@ export function PatientHomePage() {
                 if (!resume) return;
                 void abandonResume(resume).then(() => {
                   void interrupted.refetch();
-                  navigate(`/patient/games/${resume.gameKey}`);
+                  void navigate(`/patient/games/${resume.gameKey}`);
                 });
               }}
             >
@@ -91,7 +91,7 @@ export function PatientHomePage() {
               key={key}
               icon={<span aria-hidden="true">{icon}</span>}
               label={t(`home.tiles.${key}`)}
-              onClick={() => navigate(`/patient/${key}`)}
+              onClick={() => void navigate(`/patient/${key}`)}
             />
           ))}
         </div>

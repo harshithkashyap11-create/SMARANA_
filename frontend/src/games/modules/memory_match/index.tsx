@@ -1,3 +1,4 @@
+import { PrivateImage } from "../../../shared/ui/PrivateImage";
 /* eslint-disable react-refresh/only-export-components -- a game module intentionally colocates its renderer and pure rules. */
 import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
@@ -106,7 +107,7 @@ export function MemoryMatchRound({
               onClick={() => flip(card)}
             >
               {faceUp ? (
-                <img
+                <PrivateImage
                   alt={card.title}
                   className="h-20 w-full object-contain"
                   src={card.imageUrl}

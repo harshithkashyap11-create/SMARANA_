@@ -56,7 +56,7 @@ def raise_alert(
                 "updated_at",
             ]
         )
-    if _:
+    if _ or update_existing:
         from apps.alerts.notify import notify_alert
 
         notify_alert(alert)
@@ -111,6 +111,7 @@ def create_sos(
 ) -> tuple[SosEvent, bool]:
     """Create one event and one patient alert carrying all in-app recipients."""
 
+    patient = PatientProfile.objects.select_for_update().get(pk=patient.pk)
     existing = SosEvent.objects.filter(idempotency_key=idempotency_key).first()
     if existing:
         if existing.patient_id != patient.id:
@@ -142,6 +143,8 @@ def create_sos(
         title="Emergency help requested",
         explanation=f"The patient requested emergency help at {now.isoformat()}.",
         evidence={"sos_event_id": str(event.id), "recipient_ids": recipients},
+        triggered_at=event.triggered_at,
+        update_existing=True,
     )
     event.notified.append({"alert_id": str(alert.id)})
     event.save(update_fields=["notified", "updated_at"])

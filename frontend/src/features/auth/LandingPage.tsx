@@ -18,6 +18,7 @@ export function LandingPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-[720px] flex-col gap-6 px-4 py-8">
+      <p className="text-sm text-muted" role="note">{t("localization.notice")}</p>
       <header className="text-center">
         <div aria-hidden="true" className="text-5xl">
           ◉
@@ -32,17 +33,17 @@ export function LandingPage() {
         <IconTile
           icon="♥"
           label={t("landing.patient")}
-          onClick={() => navigate("/login/patient")}
+          onClick={() => void navigate("/login/patient")}
         />
         <IconTile
           icon="◎"
           label={t("landing.caregiver")}
-          onClick={() => navigate("/login/caregiver")}
+          onClick={() => void navigate("/login/caregiver")}
         />
         <IconTile
           icon="✚"
           label={t("landing.doctor")}
-          onClick={() => navigate("/login/doctor")}
+          onClick={() => void navigate("/login/doctor")}
         />
         <IconTile
           icon="⚙"

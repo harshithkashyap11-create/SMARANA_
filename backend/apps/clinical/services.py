@@ -12,6 +12,18 @@ from apps.patients.models import PatientProfile
 from apps.routines.models import RoutineItem
 
 
+def validate_note_reply(*, patient: PatientProfile, actor: User, data: dict[str, Any]) -> None:
+    reply = data.get("reply_to")
+    if reply is not None and (
+        reply.patient_id != patient.id
+        or (
+            actor.role != User.Role.DOCTOR
+            and reply.visibility == ClinicalNote.Visibility.DOCTOR_ONLY
+        )
+    ):
+        raise ValidationError({"reply_to": "Choose a visible note for this patient."})
+
+
 @transaction.atomic
 def create_note(*, patient: PatientProfile, actor: User, data: dict[str, Any]) -> ClinicalNote:
     if (
@@ -21,6 +33,7 @@ def create_note(*, patient: PatientProfile, actor: User, data: dict[str, Any]) -
         raise ValidationError({"category": "Caregivers can add caregiver feedback only."})
     if actor.role == User.Role.CAREGIVER:
         data["visibility"] = ClinicalNote.Visibility.CARE_TEAM
+    validate_note_reply(patient=patient, actor=actor, data=data)
     note = ClinicalNote.objects.create(patient=patient, author=actor, **data)
     audit(
         actor, "clinical_note.created", note, patient=patient, changes={"category": note.category}
@@ -34,6 +47,7 @@ def apply_dda_override(
 ) -> DdaOverride:
     if doctor.role != User.Role.DOCTOR:
         raise ValidationError("Only doctors can change difficulty.")
+    patient = PatientProfile.objects.select_for_update().get(pk=patient.pk)
     action = data["action"]
     value = data.get("value")
     if action not in DdaOverride.Action.values:
@@ -45,7 +59,11 @@ def apply_dda_override(
     )
     before = state.level
     if action == DdaOverride.Action.SET_LEVEL:
-        state.level = _checked_level(game, value)
+        state.level = min(
+            _checked_level(game, value),
+            state.cap_level or game.max_level,
+            patient.max_difficulty_level or game.max_level,
+        )
     elif action == DdaOverride.Action.LOCK:
         state.locked_by_doctor = True
         state.locked_by_name = doctor.display_name or doctor.username
@@ -84,6 +102,7 @@ def upsert_assignment(
     data: dict[str, Any],
     assignment: ExerciseAssignment | None = None,
 ) -> ExerciseAssignment:
+    patient = PatientProfile.objects.select_for_update().get(pk=patient.pk)
     if assignment is None:
         assignment = ExerciseAssignment.objects.create(patient=patient, doctor=doctor, **data)
     else:
@@ -103,6 +122,7 @@ def upsert_assignment(
                 "time_of_day": slot_times[assignment.time_slot],
                 "days_of_week": days,
                 "start_date": timezone.localdate(),
+                "end_date": assignment.review_date,
                 "note": assignment.notes,
                 "created_by": doctor,
                 "deleted_at": None,

@@ -12,13 +12,13 @@ pytestmark = pytest.mark.django_db
 
 
 def test_dashboard_is_scoped_counts_flags_and_computes_engagement() -> None:
-    doctor = DoctorFactory()
-    active = PatientFactory(user__display_name="Active patient")
-    quiet = PatientFactory(user__display_name="Quiet patient")
-    inactive = PatientFactory(user__display_name="Inactive patient")
-    unassigned = PatientFactory(user__display_name="Hidden patient")
+    doctor = DoctorFactory.create()
+    active = PatientFactory.create(user__display_name="Active patient")
+    quiet = PatientFactory.create(user__display_name="Quiet patient")
+    inactive = PatientFactory.create(user__display_name="Inactive patient")
+    unassigned = PatientFactory.create(user__display_name="Hidden patient")
     for patient in (active, quiet, inactive):
-        DoctorAssignmentFactory(doctor=doctor, patient=patient)
+        DoctorAssignmentFactory.create(doctor=doctor, patient=patient)
     game = GameDefinition.objects.create(key="memory", name="Memory")
     now = timezone.now()
     for patient, age in ((active, 3), (quiet, 7), (unassigned, 1)):
@@ -60,10 +60,10 @@ def test_dashboard_is_scoped_counts_flags_and_computes_engagement() -> None:
 
 
 def test_dashboard_rejects_non_doctor_and_unassigned_detail_is_404() -> None:
-    doctor = DoctorFactory()
-    assigned = PatientFactory()
-    hidden = PatientFactory()
-    DoctorAssignmentFactory(doctor=doctor, patient=assigned)
+    doctor = DoctorFactory.create()
+    assigned = PatientFactory.create()
+    hidden = PatientFactory.create()
+    DoctorAssignmentFactory.create(doctor=doctor, patient=assigned)
     client = APIClient()
     client.force_authenticate(doctor)
 

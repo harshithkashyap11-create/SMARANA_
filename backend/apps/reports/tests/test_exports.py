@@ -1,27 +1,33 @@
 from datetime import timedelta
 from io import BytesIO
+from typing import Literal
 
 import pytest
+from django.http import HttpResponse
 from django.utils import timezone
 from pypdf import PdfReader
+from rest_framework.test import APIClient
 
 from apps.audit.models import AuditEvent
 from apps.clinical.models import ClinicalBaseline, ClinicalNote
 from apps.games.models import GameDefinition, GameSession
 from apps.patients.models import FamilyMember
 from apps.routines.models import Medication
+from apps.shared.tests.types import CareScenario
 
 pytestmark = pytest.mark.django_db
 
 
-def text(response):
+def text(response: HttpResponse) -> str:
     assert response.status_code == 200
     assert response["Content-Type"] == "application/pdf"
     assert response["Cache-Control"] == "private, no-store"
     return "\n".join(x.extract_text() for x in PdfReader(BytesIO(response.content)).pages)
 
 
-def test_report_sections_visibility_audit_and_permissions(api, care_scenario):
+def test_report_sections_visibility_audit_and_permissions(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     ClinicalNote.objects.create(
         patient=patient,
@@ -59,7 +65,8 @@ def test_report_sections_visibility_audit_and_permissions(api, care_scenario):
             metrics={"completed": True, "accuracy": 0.8, "mean_reaction_ms": 1200},
         )
     url = f"/api/v1/patients/{patient.id}/report/"
-    for role in ["caregiver", "doctor"]:
+    roles: tuple[Literal["caregiver", "doctor"], ...] = ("caregiver", "doctor")
+    for role in roles:
         api.force_authenticate(care_scenario[role])
         response = api.get(url)
         content = text(response)
@@ -101,7 +108,9 @@ def test_report_sections_visibility_audit_and_permissions(api, care_scenario):
     assert "Report activity" not in content and "PRIVATE_DOCTOR_TEXT" not in content
 
 
-def test_emergency_card_contains_medications_allergies_contacts(api, care_scenario):
+def test_emergency_card_contains_medications_allergies_contacts(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     ClinicalBaseline.objects.create(
         patient=patient, allergies="Penicillin", recorded_by=care_scenario["doctor"]

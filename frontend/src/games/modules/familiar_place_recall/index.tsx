@@ -1,3 +1,4 @@
+import { PrivateImage } from "../../../shared/ui/PrivateImage";
 import { useTranslation } from "react-i18next";
 /* eslint-disable react-refresh/only-export-components */
 import type { ContentPack } from "../../../content/packs";
@@ -51,7 +52,7 @@ function PlaceRoundView({ round, onAnswer, onHint }: RoundProps<PlaceRound>) {
   return (
     <section>
       {round.imageUrl ? (
-        <img
+        <PrivateImage
           alt={t("newGames.scene")}
           src={round.imageUrl}
           className="mb-4 h-56 w-full rounded-card object-contain"

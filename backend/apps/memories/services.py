@@ -10,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 from apps.accounts.models import User
 from apps.audit.services import audit
 from apps.memories.models import Memory, MemoryMedia, MemoryQuizAttempt
-from apps.patients.models import PatientProfile
+from apps.patients.models import FamilyMember, PatientProfile
 
 
 def _options(correct: str, alternatives: list[str]) -> list[str]:
@@ -115,7 +115,7 @@ def media_url(memory: Memory) -> str | None:
     return first.file.url if first and first.file else None
 
 
-def media_url_for_family(member: Any) -> str | None:
+def media_url_for_family(member: FamilyMember) -> str | None:
     return member.photo.url if member.photo else None
 
 
@@ -124,6 +124,8 @@ def record_attempt(
     *, patient: PatientProfile, data: dict[str, Any]
 ) -> tuple[MemoryQuizAttempt, bool]:
     memory_id = data.pop("memory_id", None)
+    if memory_id and not Memory.objects.filter(id=memory_id, patient=patient).exists():
+        raise ValidationError({"memory_id": "Choose a memory for this patient."})
     idempotency_key = data.pop("idempotency_key")
     existing = MemoryQuizAttempt.objects.filter(idempotency_key=idempotency_key).first()
     if existing:

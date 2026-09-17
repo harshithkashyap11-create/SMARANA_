@@ -15,6 +15,7 @@ vi.mock("../../db/schema", () => ({
 }));
 
 vi.mock("../../db/crypto", () => ({
+  lockOfflineStorage: vi.fn(),
   clearOfflineFailures: vi.fn().mockResolvedValue(undefined),
   offlineLockedUntil: vi.fn().mockResolvedValue(null),
   recordOfflineFailure: vi.fn().mockResolvedValue(null),
@@ -109,7 +110,7 @@ test("shows gentle caregiver copy when the PIN is locked", async () => {
 
   expect(
     await screen.findByText(
-      "Let's take a break. Your caregiver has been told.",
+      "Let's take a break. Ask your caregiver for help.",
     ),
   ).toBeVisible();
 });

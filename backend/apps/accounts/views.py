@@ -1,5 +1,6 @@
 """Thin HTTP adapters for authentication and account preferences."""
 
+from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -34,9 +35,10 @@ from apps.accounts.services import (
     update_preferences,
     verify_pin,
 )
+from apps.accounts.throttles import LoginThrottle
 from apps.audit.services import audit
 from apps.shared.exceptions import UserFacingError
-from apps.shared.permissions import IsRole
+from apps.shared.permissions import authenticated_user, role_permission
 
 
 def _token_error() -> UserFacingError:
@@ -44,6 +46,12 @@ def _token_error() -> UserFacingError:
 
 
 class ProfessionalLoginView(APIView):
+    authentication_classes = []
+    throttle_classes = (
+        [LoginThrottle]
+        if not settings.DEBUG and getattr(settings, "LOGIN_THROTTLING", False)
+        else []
+    )
     permission_classes = [AllowAny]
 
     @extend_schema(request=ProfessionalLoginSerializer, responses={200: LoginResponseSerializer})
@@ -70,6 +78,12 @@ class ProfessionalLoginView(APIView):
 
 
 class PatientLoginView(APIView):
+    authentication_classes = []
+    throttle_classes = (
+        [LoginThrottle]
+        if not settings.DEBUG and getattr(settings, "LOGIN_THROTTLING", False)
+        else []
+    )
     permission_classes = [AllowAny]
 
     @extend_schema(
@@ -109,14 +123,14 @@ class PatientLoginView(APIView):
 
 
 class PatientPinResetView(APIView):
-    permission_classes = [IsAuthenticated, IsRole(User.Role.CAREGIVER)]
+    permission_classes = [IsAuthenticated, role_permission(User.Role.CAREGIVER)]
 
     @extend_schema(request=PatientPinResetSerializer, responses={204: None})
     def post(self, request: Request) -> Response:
         serializer = PatientPinResetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         reset_patient_pin(
-            caregiver=request.user,
+            caregiver=authenticated_user(request),
             patient_id=str(serializer.validated_data["patient_id"]),
             pin=serializer.validated_data["new_pin"],
         )
@@ -124,6 +138,12 @@ class PatientPinResetView(APIView):
 
 
 class RefreshView(APIView):
+    authentication_classes = []
+    throttle_classes = (
+        [LoginThrottle]
+        if not settings.DEBUG and getattr(settings, "LOGIN_THROTTLING", False)
+        else []
+    )
     permission_classes = [AllowAny]
 
     @extend_schema(request=RefreshSerializer, responses={200: RotatedTokenResponseSerializer})
@@ -145,7 +165,9 @@ class LogoutView(APIView):
         serializer = LogoutSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            logout_session(user=request.user, refresh_token=serializer.validated_data["refresh"])
+            logout_session(
+                user=authenticated_user(request), refresh_token=serializer.validated_data["refresh"]
+            )
         except (InvalidToken, TokenError) as exc:
             raise _token_error() from exc
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -156,7 +178,7 @@ class MeView(APIView):
 
     @extend_schema(responses={200: MeSerializer})
     def get(self, request: Request) -> Response:
-        user = request.user
+        user = authenticated_user(request)
         payload = {
             "user": UserSummarySerializer(user).data,
             "role": user.role,
@@ -173,10 +195,15 @@ class PreferenceView(APIView):
 
     @extend_schema(request=PreferenceSerializer, responses={200: PreferenceSerializer})
     def patch(self, request: Request) -> Response:
-        serializer = PreferenceSerializer(instance=request.user, data=request.data, partial=True)
+        serializer = PreferenceSerializer(
+            instance=authenticated_user(request), data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
-        previous = {field: str(getattr(request.user, field)) for field in serializer.validated_data}
-        user = update_preferences(user=request.user, **serializer.validated_data)
+        previous = {
+            field: str(getattr(authenticated_user(request), field))
+            for field in serializer.validated_data
+        }
+        user = update_preferences(user=authenticated_user(request), **serializer.validated_data)
         audit(
             user,
             "update",
@@ -184,9 +211,7 @@ class PreferenceView(APIView):
             patient=getattr(user, "patient_profile", None),
             changes={
                 "before": previous,
-                "after": {
-                    key: str(value) for key, value in serializer.validated_data.items()
-                },
+                "after": {key: str(value) for key, value in serializer.validated_data.items()},
             },
             request=request,
         )

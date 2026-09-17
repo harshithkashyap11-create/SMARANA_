@@ -1,3 +1,4 @@
+import { readEncryptedRecords } from "./encrypted-db";
 import { expect, test, type Page } from "@playwright/test";
 import demoPacks from "../src/content/demo-packs.json" with { type: "json" };
 
@@ -6,27 +7,7 @@ test.skip(
   "Requires the dedicated seeded local/CI backend",
 );
 const backend = process.env.SMARANA_BACKEND_URL ?? "http://127.0.0.1:8000";
-async function records(
-  page: Page,
-  store: string,
-): Promise<Array<Record<string, unknown>>> {
-  return page.evaluate(async (store) => {
-    const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open("smarana");
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(new Error("IndexedDB request failed"));
-    });
-    const values = await new Promise<Array<Record<string, unknown>>>(
-      (resolve, reject) => {
-        const request = db.transaction(store).objectStore(store).getAll();
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(new Error("IndexedDB request failed"));
-      },
-    );
-    db.close();
-    return values;
-  }, store);
-}
+const records = readEncryptedRecords;
 async function pin(page: Page) {
   for (const digit of "1234")
     await page.getByRole("button", { name: digit, exact: true }).click();
@@ -119,8 +100,29 @@ test("real reminder and completed offline game survive reload, upload, and repla
     (await records(page, "gameSessions")).find((x) => x.id === session.objectId)
       ?.metrics,
   ).toMatchObject({ completed: true, rounds: 5 });
+  const rawRows = await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("smarana");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error ?? new Error("Database inspection failed"));
+    });
+    const stores = ["profile", "routineItems", "gameSessions", "outbox"];
+    const rows = await Promise.all(stores.map((store) => new Promise<Array<Record<string, unknown>>>((resolve, reject) => {
+      const request = database.transaction(store).objectStore(store).getAll();
+      request.onsuccess = () => resolve(request.result as Array<Record<string, unknown>>);
+      request.onerror = () => reject(request.error ?? new Error("Raw inspection failed"));
+    })));
+    database.close();
+    return rows.flat();
+  });
+  expect(rawRows.length).toBeGreaterThan(0);
+  expect(rawRows.every((row) => Boolean(row.__sealed))).toBe(true);
+  expect(JSON.stringify(rawRows)).not.toContain("Morning tablet");
+  expect(JSON.stringify(rawRows)).not.toContain('"payload"');
+  expect(JSON.stringify(rawRows)).not.toContain('"metrics"');
   await page.reload();
   await page.getByRole("button", { name: /Patient/ }).click();
+  await page.getByLabel("Login ID").fill("RAO1234");
   await pin(page);
   await expect(page).toHaveURL(/(?<!login)\/patient$/);
   expect(

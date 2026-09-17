@@ -12,6 +12,7 @@ afterEach(() => {
 it("keeps the regional pack when the network is unavailable", async () => {
   const pack = {
     ...defaultPack,
+    provenance: { region: "ML", language: "en", source: "regional", nativeReview: "unreviewed" },
     dishes: [{ id: "local", title: "Regional dish", imageUrl: "" }],
   };
   cache.get.mockResolvedValue({ pack, version: "v1" });
@@ -19,7 +20,7 @@ it("keeps the regional pack when the network is unavailable", async () => {
   expect(await loadPack("ML", "en")).toBe(pack);
 });
 
-it("falls back per kind when a region has only dishes", () => {
+it("leaves unavailable kinds empty without borrowing English content", () => {
   const pack = packFromRemote({
     version: "v1",
     items: {
@@ -35,11 +36,24 @@ it("falls back per kind when a region has only dishes", () => {
     },
   });
   expect(pack.dishes[0]?.title).toBe("Regional dish");
-  expect(pack.festivals).toBe(defaultPack.festivals);
+  expect(pack.festivals).toEqual([]);
 });
 
 it("uses region-specific activity steps rather than the default tea sequence", () => {
   const steps = ["Pack rice", "Pack fruit", "Carry basket"].map((title, index) => ({ id: String(index), title, imageUrl: `/step-${index}.svg` }));
   const pack = packFromRemote({version: "v2", items: {activity: [{id: "picnic", title: "Picnic", image_url: null, audio_url: null, tags: {steps}}]}});
   expect(pack.activities[0]?.steps).toEqual(steps);
+});
+
+it("rejects missing regional translations instead of substituting an English demo", async () => {
+  cache.get.mockResolvedValue(undefined);
+  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("offline")));
+  await expect(loadPack("AS", "as")).rejects.toThrow("AS/as");
+  await expect(loadPack("XX", "en")).rejects.toThrow("XX/en");
+  expect((await loadPack("AS", "en")).provenance?.source).toBe("demo");
+});
+it("does not reuse a cached pack from another language", async () => {
+  cache.get.mockResolvedValue({ pack: { ...defaultPack, provenance: { region: "AS", language: "en" } } });
+  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("offline")));
+  await expect(loadPack("AS", "bn")).rejects.toThrow("AS/bn");
 });

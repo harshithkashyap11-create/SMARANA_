@@ -1,3 +1,4 @@
+import { PrivateImage } from "../../../shared/ui/PrivateImage";
 /* eslint-disable react-refresh/only-export-components */
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
@@ -62,7 +63,7 @@ export function DailyLifeSequencingRound({
               onClick={() => choose(step.id)}
             >
               {step.imageUrl ? (
-                <img
+                <PrivateImage
                   alt=""
                   src={step.imageUrl}
                   className="mr-3 inline-block h-16 w-16 object-contain"

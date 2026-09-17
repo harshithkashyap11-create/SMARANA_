@@ -1,3 +1,4 @@
+import { PrivateImage } from "../../../shared/ui/PrivateImage";
 /* eslint-disable react-refresh/only-export-components */
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -67,7 +68,7 @@ function ChoiceViewInner({ round, onAnswer, onHint }: RoundProps<ChoiceRound>) {
       </p>
       <div className="grid grid-cols-2 gap-3">
         {[round.image, round.secondImage].filter(Boolean).map((url, index) => (
-          <img
+          <PrivateImage
             key={index}
             src={url}
             alt={t("newGames.scene")}
@@ -102,7 +103,7 @@ function ChoiceViewInner({ round, onAnswer, onHint }: RoundProps<ChoiceRound>) {
               }}
             >
               {choice.imageUrl && (
-                <img
+                <PrivateImage
                   src={choice.imageUrl}
                   alt={choice.title}
                   className="h-32 w-full object-contain"

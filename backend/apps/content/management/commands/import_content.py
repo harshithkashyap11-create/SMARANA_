@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from django.core.files import File
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError, CommandParser
 from django.db import transaction
 
 from apps.content.models import ContentItem, Region
@@ -14,11 +14,11 @@ from apps.content.models import ContentItem, Region
 class Command(BaseCommand):
     help = "Import content/<STATE>/manifest.csv and its image/audio files idempotently."
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument("directory")
 
-    def handle(self, *args, **options):
-        directory = Path(options["directory"]).resolve()
+    def handle(self, *args: object, **options: object) -> None:
+        directory = Path(str(options["directory"])).resolve()
         manifest = directory / "manifest.csv"
         if not manifest.is_file():
             raise CommandError(f"No manifest found at {manifest}")
@@ -27,7 +27,7 @@ class Command(BaseCommand):
         except Region.DoesNotExist as exc:
             raise CommandError(f"Unknown region {directory.name}") from exc
 
-        def local_file(name):
+        def local_file(name: str | None) -> Path | None:
             if not name:
                 return None
             file = (directory / name).resolve()
@@ -52,6 +52,7 @@ class Command(BaseCommand):
             if any(not isinstance(x, str) for x in translations.values()):
                 raise CommandError("Translation values must be strings.")
             from apps.content.contracts import validate_tags
+
             validate_tags(row["kind"], tags)
             tags.update(
                 {

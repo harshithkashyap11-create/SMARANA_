@@ -1,3 +1,5 @@
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+from django.apps.registry import Apps
 from django.db import migrations
 
 
@@ -31,7 +33,7 @@ TARGETS = {
 }
 
 
-def seed(apps, schema_editor):
+def seed(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     del schema_editor
     Region = apps.get_model("content", "Region")
     Language = apps.get_model("content", "Language")

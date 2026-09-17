@@ -1,14 +1,17 @@
-"""Validated, patient-editable comfort settings with offline conflict ordering."""
+"""Validated patient comfort settings with offline conflict ordering."""
+
+from datetime import datetime
 
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 
+from apps.accounts.models import User
 from apps.audit.services import audit
 from apps.patients.models import PatientProfile
 
 
-class AccessibilityInput(serializers.Serializer):
+class AccessibilityInput(serializers.Serializer[dict[str, object]]):
     language_locked = serializers.BooleanField(required=False)
     slow_speech = serializers.BooleanField(required=False)
     font_scale = serializers.ChoiceField(choices=[1, 1.2, 1.4, 1.6], required=False)
@@ -16,7 +19,9 @@ class AccessibilityInput(serializers.Serializer):
 
 
 @transaction.atomic
-def save_accessibility(patient, user, settings, updated_at):
+def save_accessibility(
+    patient: PatientProfile, user: User, settings: dict[str, object], updated_at: datetime | None
+) -> None:
     if updated_at is None or timezone.is_naive(updated_at):
         raise serializers.ValidationError("A timezone-aware update timestamp is required.")
     serializer = AccessibilityInput(data=settings)

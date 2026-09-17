@@ -3,10 +3,11 @@
 import pytest
 
 from apps.patients.models import CareAssignment
+from apps.shared.tests.types import CareScenario
 
 
 @pytest.mark.django_db
-def test_care_scenario_scopes_caregiver_to_assigned_patient(care_scenario) -> None:
+def test_care_scenario_scopes_caregiver_to_assigned_patient(care_scenario: CareScenario) -> None:
     caregiver = care_scenario["caregiver"]
     patient = care_scenario["patient"]
     other_patient = care_scenario["other_patient"]

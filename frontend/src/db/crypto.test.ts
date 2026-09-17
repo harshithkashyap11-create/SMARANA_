@@ -10,7 +10,8 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock("./schema", () => ({
-  db: { meta: { bulkDelete: state.bulkDelete } },
+  db: { tables: [], meta: { bulkDelete: state.bulkDelete }, transaction: (_mode: string, _table: unknown, run: () => Promise<void>) => run() },
+  migratePatientStorage: vi.fn().mockResolvedValue(undefined),
   getMeta: vi.fn((key: string) => Promise.resolve(state.values.get(key))),
   setMeta: vi.fn((key: string, value: string) => {
     state.values.set(key, value);

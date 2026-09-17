@@ -1,5 +1,6 @@
 from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
@@ -15,7 +16,7 @@ class RouteView(APIView):
     permission_classes = [IsAuthenticated]
     throttle_classes = [VoiceThrottle]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         if not settings.VOICE_LLM_FALLBACK:
             return Response({"intent": None, "slots": {}, "confidence": 0})
         result = safe_route(

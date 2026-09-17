@@ -16,7 +16,7 @@ export function SupportiveEndScreen({
     <section className="space-y-5 text-center">
       <h1 className="text-3xl font-bold">{t(messageKey)}</h1>
       <BigButton onClick={onReplay}>{t("games.playAgain")}</BigButton>
-      <BigButton variant="secondary" onClick={() => navigate(homePath)}>
+      <BigButton variant="secondary" onClick={() => void navigate(homePath)}>
         {t("games.backHome")}
       </BigButton>
     </section>

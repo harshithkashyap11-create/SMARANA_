@@ -12,13 +12,19 @@ export function MemoryDetailPage() {
   const initialMemory = useLocation().state as CachedMemory | null;
   const { memoryId } = useParams();
   const [memory, setMemory] = useState(initialMemory);
+  const [loading, setLoading] = useState(!initialMemory);
+  const [loadProblem, setLoadProblem] = useState(false);
   const { t } = useTranslation();
   const speak = useTts();
   useEffect(() => {
+    let cancelled = false;
     if (!memory && memoryId)
       void memoriesRepository
         .get(memoryId)
-        .then((item) => setMemory(item ?? null));
+        .then((item) => { if (!cancelled) setMemory(item ?? null); })
+        .catch(() => { if (!cancelled) setLoadProblem(true); })
+        .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [memory, memoryId]);
   useEffect(() => {
     if (!memory) return;
@@ -30,7 +36,9 @@ export function MemoryDetailPage() {
       })
       .catch(() => undefined);
   }, [memory]);
-  if (!memory) return <p>{t("memories.loading")}</p>;
+  if (!memory) return <p role={loadProblem ? "alert" : "status"}>{t(
+    loading ? "memories.loading" : loadProblem ? "auth.errors.request_not_completed" : "memories.empty",
+  )}</p>;
   return (
     <article className="space-y-5">
       <h1 className="text-3xl font-bold">{memory.title}</h1>

@@ -7,6 +7,8 @@ import { i18n } from "../../../shared/i18n";
 import { MemoryDetailPage } from "./MemoryDetailPage";
 
 const speak = vi.fn();
+const getMemory = vi.fn<(id: string) => Promise<undefined>>();
+vi.mock("../../../db/repo/memories", () => ({ memoriesRepository: { get: (id: string) => getMemory(id) } }));
 vi.mock("../../../shared/hooks/useTts", () => ({ useTts: () => speak }));
 
 beforeEach(() => speak.mockClear());
@@ -16,4 +18,11 @@ it("reads the memory summary aloud", () => {
   render(<I18nextProvider i18n={i18n}><MemoryRouter initialEntries={[{ pathname: "/memory", state: memory }]}><Routes><Route path="/memory" element={<MemoryDetailPage />} /></Routes></MemoryRouter></I18nextProvider>);
   fireEvent.click(screen.getByRole("button", { name: "Read to me" }));
   expect(speak).toHaveBeenCalledWith(memory.summary);
+});
+
+
+it("finishes loading when a memory no longer exists", async () => {
+  getMemory.mockResolvedValueOnce(undefined);
+  render(<I18nextProvider i18n={i18n}><MemoryRouter initialEntries={["/memories/missing"]}><Routes><Route path="/memories/:memoryId" element={<MemoryDetailPage />} /></Routes></MemoryRouter></I18nextProvider>);
+  expect(await screen.findByText("Nothing here yet. Priya can add this for you.")).toBeVisible();
 });

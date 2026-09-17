@@ -1,5 +1,6 @@
 """Audited wellness entry and correction."""
 
+from typing import Any
 from uuid import uuid4
 
 from django.db import transaction
@@ -12,11 +13,17 @@ from apps.routines.models import MoodLog, SleepLog
 from apps.routines.serializers import MoodLogSerializer, SleepLogSerializer
 
 
+def log_snapshot(instance: MoodLog | SleepLog) -> dict[str, Any]:
+    if isinstance(instance, MoodLog):
+        return dict(MoodLogSerializer(instance).data)
+    return dict(SleepLogSerializer(instance).data)
+
+
 @transaction.atomic
 def save_log(
     serializer: MoodLogSerializer | SleepLogSerializer, patient: PatientProfile, actor: User
 ) -> MoodLog | SleepLog:
-    before = dict(serializer.__class__(serializer.instance).data) if serializer.instance else None
+    before = log_snapshot(serializer.instance) if serializer.instance else None
     obj = serializer.save(
         patient=patient,
         source=serializer.instance.source if serializer.instance else actor.role,
@@ -32,6 +39,6 @@ def save_log(
         "wellness.corrected" if before else "wellness.created",
         obj,
         patient=patient,
-        changes={"before": before, "after": dict(serializer.__class__(obj).data)},
+        changes={"before": before, "after": log_snapshot(obj)},
     )
     return obj

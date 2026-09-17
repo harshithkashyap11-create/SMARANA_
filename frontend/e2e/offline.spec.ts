@@ -1,3 +1,4 @@
+import { readEncryptedRecords } from "./encrypted-db";
 import { expect, test, type Page } from "@playwright/test";
 
 const patientId = "patient-offline-e2e";
@@ -26,14 +27,30 @@ async function seedOfflineData(page: Page) {
           reject(open.error ?? new Error("Unable to open IndexedDB"));
         open.onsuccess = () => resolve(open.result);
       });
-      const put = (store: string, value: unknown) =>
-        new Promise<void>((resolve, reject) => {
-          const tx = db.transaction(store, "readwrite");
-          tx.objectStore(store).put(value);
-          tx.oncomplete = () => resolve();
-          tx.onerror = () =>
-            reject(tx.error ?? new Error(`Unable to write ${store}`));
+      const read = (store: string, key: string) => new Promise<{ value: string }>((resolve, reject) => {
+        const r = db.transaction(store).objectStore(store).get(key); r.onsuccess = () => resolve(r.result as { value: string }); r.onerror = () => reject(r.error ?? new Error("IndexedDB failed"));
+      });
+      const secrets = JSON.parse((await read("meta", "pinVerifier")).value) as { owner: string; salt: string; keyIv: string; wrappedKey: string };
+      const bytes = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+      const material = await crypto.subtle.importKey("raw", new TextEncoder().encode("1234"), "PBKDF2", false, ["deriveKey"]);
+      const wrapping = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: bytes(secrets.salt), iterations: 210000, hash: "SHA-256" }, material, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+      const key = await crypto.subtle.importKey("raw", await crypto.subtle.decrypt({ name: "AES-GCM", iv: bytes(secrets.keyIv) }, wrapping, bytes(secrets.wrappedKey)), "AES-GCM", false, ["encrypt"]);
+      const b64 = (v: ArrayBuffer | Uint8Array) => btoa(String.fromCharCode(...new Uint8Array(v)));
+      const put = async (store: string, value: Record<string, unknown>) => {
+        let persisted = value;
+        const publicMeta = new Set(["patientId", "patientUserId", "pinVerifier", "refreshTokenEncrypted"]);
+        if (store !== "gameDefinitions" && !(store === "meta" && publicMeta.has(String(value.key)))) {
+          const primary = store === "meta" ? "key" : "id";
+          const iv = crypto.getRandomValues(new Uint8Array(12));
+          const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: new TextEncoder().encode(`${secrets.owner}:${store}:${String(value[primary])}`) }, key, new TextEncoder().encode(JSON.stringify(value)));
+          const indexed: Record<string, unknown> = {};
+          for (const field of [primary, "patientId", "reminderId", "createdAt", "nextAttemptAt", "model", "objectId", "gameKey", "synced"]) if (field in value) indexed[field] = value[field];
+          persisted = { ...indexed, __sealed: { version: 1, owner: secrets.owner, iv: b64(iv), ciphertext: b64(ciphertext) } };
+        }
+        await new Promise<void>((resolve, reject) => {
+          const tx = db.transaction(store, "readwrite"); tx.objectStore(store).put(persisted); tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error ?? new Error("IndexedDB failed"));
         });
+      };
       await put("profile", {
         id: patientId,
         name: "Rao",
@@ -130,7 +147,7 @@ async function enterPatientPin(page: Page) {
 
 async function unlockOfflinePatientSession(page: Page) {
   await page.getByRole("button", { name: /Patient/ }).click();
-  await expect(page.getByLabel("Login ID")).toHaveValue("RAO1234");
+  await page.getByLabel("Login ID").fill("RAO1234");
   await enterPatientPin(page);
   await expect(page).toHaveURL(/(?<!login)\/patient$/);
 }
@@ -145,6 +162,11 @@ test("offline reminder and game records survive reload and sync once", async ({
   context,
 }) => {
   test.setTimeout(60_000);
+  // Mock credentials must never reach a live backend through ancillary requests.
+  // Register first so the explicit workflow routes below take precedence.
+  await page.route("**/api/v1/**", (route) =>
+    route.fulfill({ status: 503, json: { detail: "Outside this mocked workflow" } }),
+  );
   const pushed: PushItem[] = [];
   const acceptedKeys = new Set<string>();
   const acceptedObjects = new Set<string>();
@@ -254,31 +276,11 @@ test("offline reminder and game records survive reload and sync once", async ({
   await openRoutineFromPatientHome(page);
   await expect(page.getByText("Working offline")).toBeVisible();
   await expect(page.getByText("Morning tablet")).toBeVisible();
-  const local = await page.evaluate(async () => {
-    const open = indexedDB.open("smarana");
-    const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      open.onerror = () =>
-        reject(open.error ?? new Error("Unable to open IndexedDB"));
-      open.onsuccess = () => resolve(open.result);
-    });
-    const all = <T>(store: string) =>
-      new Promise<T[]>((resolve, reject) => {
-        const tx = db.transaction(store, "readonly");
-        const request = tx.objectStore(store).getAll();
-        request.onsuccess = () => resolve(request.result as T[]);
-        request.onerror = () =>
-          reject(request.error ?? new Error(`Unable to read ${store}`));
-      });
-    const result = {
-      outbox: await all<{ model: string; objectId: string }>("outbox"),
-      responses: await all<{ reminderId: string; action: string }>(
-        "reminderResponses",
-      ),
-      sessions: await all<{ id: string }>("gameSessions"),
-    };
-    db.close();
-    return result;
-  });
+  const local = {
+    outbox: await readEncryptedRecords(page, "outbox"),
+    responses: await readEncryptedRecords(page, "reminderResponses"),
+    sessions: await readEncryptedRecords(page, "gameSessions"),
+  };
   const reminderResponse = local.outbox.find(
     (item) => item.model === "reminder_response",
   );
@@ -306,7 +308,7 @@ test("offline reminder and game records survive reload and sync once", async ({
     })
     .toEqual(
       expect.arrayContaining([
-        `reminder_response:${reminderResponse?.objectId}`,
+        `reminder_response:${String(reminderResponse?.objectId)}`,
         `game_session:${gameSessionId}`,
       ]),
     );
@@ -331,7 +333,7 @@ test("offline reminder and game records survive reload and sync once", async ({
   expect(acceptedObjects).toEqual(
     new Set([
       `game_session:${gameSessionId}`,
-      `reminder_response:${reminderResponse?.objectId}`,
+      `reminder_response:${String(reminderResponse?.objectId)}`,
     ]),
   );
   const gameSessionPushes = pushed.filter((item) =>

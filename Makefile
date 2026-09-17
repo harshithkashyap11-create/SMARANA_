@@ -8,7 +8,7 @@ down:
 
 test:
 	docker compose run --build --rm -e DJANGO_SETTINGS_MODULE=config.settings.test backend pytest -q
-	docker compose run --build --rm --no-deps frontend npm test
+	docker compose run --build --rm --no-deps frontend npm test -- --run
 
 lint:
 	docker compose run --build --rm --no-deps backend ruff check .

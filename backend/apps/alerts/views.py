@@ -1,3 +1,6 @@
+from uuid import UUID
+
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -11,6 +14,7 @@ from apps.alerts.models import Alert, SosEvent
 from apps.alerts.serializers import AlertSerializer
 from apps.alerts.services import acknowledge_alert, create_sos, dismiss_alert, forward_alert
 from apps.patients.selectors import patients_for
+from apps.shared.permissions import authenticated_user
 
 
 class PatientSosView(APIView):
@@ -18,7 +22,8 @@ class PatientSosView(APIView):
 
     def post(self, request: Request, patient_id: str) -> Response:
         patient = get_object_or_404(
-            patients_for(request.user).filter(user=request.user), id=patient_id
+            patients_for(authenticated_user(request)).filter(user=authenticated_user(request)),
+            id=patient_id,
         )
         key = request.data.get("idempotency_key")
         if not key:
@@ -40,16 +45,16 @@ class SosAcknowledgeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request: Request, sos_id: str) -> Response:
-        if request.user.role != User.Role.CAREGIVER:
+        if authenticated_user(request).role != User.Role.CAREGIVER:
             return Response(status=status.HTTP_404_NOT_FOUND)
         event = get_object_or_404(
             SosEvent.objects.filter(
-                patient__care_assignments__caregiver=request.user,
+                patient__care_assignments__caregiver=authenticated_user(request),
                 patient__care_assignments__active=True,
             ),
             id=sos_id,
         )
-        event.acknowledged_by = request.user
+        event.acknowledged_by = authenticated_user(request)
         event.acknowledged_at = timezone.now()
         event.resolution_note = str(request.data.get("note", ""))
         event.save(
@@ -57,16 +62,16 @@ class SosAcknowledgeView(APIView):
         )
         event.patient.alerts.filter(evidence__sos_event_id=str(event.id)).update(
             status="acknowledged",
-            acknowledged_by=request.user,
+            acknowledged_by=authenticated_user(request),
             acknowledged_at=event.acknowledged_at,
         )
         return Response({"id": str(event.id), "status": "acknowledged"})
 
 
-def scoped_alerts(request: Request):
-    return Alert.objects.filter(patient__in=patients_for(request.user)).select_related(
-        "forwarded_to"
-    )
+def scoped_alerts(request: Request) -> QuerySet[Alert]:
+    return Alert.objects.filter(
+        patient__in=patients_for(authenticated_user(request))
+    ).select_related("forwarded_to")
 
 
 class AlertListView(APIView):
@@ -77,7 +82,7 @@ class AlertListView(APIView):
         patient_id = request.query_params.get("patient")
         alert_status = request.query_params.get("status")
         if patient_id:
-            queryset = queryset.filter(patient_id=patient_id)
+            queryset = queryset.filter(patient_id=UUID(patient_id))
         if alert_status:
             queryset = queryset.filter(status=alert_status)
         return Response(AlertSerializer(queryset, many=True).data)
@@ -91,11 +96,11 @@ class AlertActionView(APIView):
         alert = get_object_or_404(scoped_alerts(request), id=alert_id)
         note = str(request.data.get("note", ""))
         if self.action == "acknowledge":
-            if request.user.role != User.Role.CAREGIVER:
+            if authenticated_user(request).role != User.Role.CAREGIVER:
                 return Response(status=status.HTTP_404_NOT_FOUND)
-            acknowledge_alert(alert, request.user, note)
+            acknowledge_alert(alert, authenticated_user(request), note)
         elif self.action == "forward":
-            if request.user.role != User.Role.CAREGIVER:
+            if authenticated_user(request).role != User.Role.CAREGIVER:
                 return Response(status=status.HTTP_404_NOT_FOUND)
             assignment = (
                 alert.patient.doctor_assignments.filter(active=True)
@@ -107,11 +112,11 @@ class AlertActionView(APIView):
                     {"doctor": ["No doctor is currently assigned."]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            forward_alert(alert, request.user, assignment.doctor)
+            forward_alert(alert, authenticated_user(request), assignment.doctor)
         elif self.action == "dismiss":
-            if request.user.role != User.Role.DOCTOR:
+            if authenticated_user(request).role != User.Role.DOCTOR:
                 return Response(status=status.HTTP_404_NOT_FOUND)
-            dismiss_alert(alert, request.user, note)
+            dismiss_alert(alert, authenticated_user(request), note)
         return Response(AlertSerializer(alert).data)
 
 
@@ -130,70 +135,83 @@ class AlertDismissView(AlertActionView):
 class NotificationPreferenceListView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         from apps.alerts.models import NotificationPreference
         from apps.alerts.serializers import NotificationPreferenceSerializer
 
         return Response(
             NotificationPreferenceSerializer(
-                NotificationPreference.objects.filter(user=request.user), many=True
+                NotificationPreference.objects.filter(user=authenticated_user(request)), many=True
             ).data
         )
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         from apps.alerts.serializers import NotificationPreferenceSerializer
 
         serializer = NotificationPreferenceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         from apps.alerts.services import save_notification_preference
 
-        row = save_notification_preference(request.user, serializer.validated_data)
+        row = save_notification_preference(authenticated_user(request), serializer.validated_data)
         return Response(NotificationPreferenceSerializer(row).data, status=201)
 
 
 class NotificationPreferenceDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, preference_id):
+    def get(self, request: Request, preference_id: str) -> Response:
         from apps.alerts.models import NotificationPreference
         from apps.alerts.serializers import NotificationPreferenceSerializer
 
-        row = get_object_or_404(NotificationPreference, id=preference_id, user=request.user)
+        row = get_object_or_404(
+            NotificationPreference, id=preference_id, user=authenticated_user(request)
+        )
         return Response(NotificationPreferenceSerializer(row).data)
 
-    def patch(self, request, preference_id):
+    def patch(self, request: Request, preference_id: str) -> Response:
         from apps.alerts.models import NotificationPreference
         from apps.alerts.serializers import NotificationPreferenceSerializer
 
-        row = get_object_or_404(NotificationPreference, id=preference_id, user=request.user)
+        row = get_object_or_404(
+            NotificationPreference, id=preference_id, user=authenticated_user(request)
+        )
         serializer = NotificationPreferenceSerializer(row, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         from apps.audit.services import audit
 
-        audit(request.user, "notification.preference", row, changes=serializer.validated_data)
+        audit(
+            authenticated_user(request),
+            "notification.preference",
+            row,
+            changes=serializer.validated_data,
+        )
         return Response(serializer.data)
 
-    def delete(self, request, preference_id):
+    def delete(self, request: Request, preference_id: str) -> Response:
         from apps.alerts.models import NotificationPreference
 
-        row = get_object_or_404(NotificationPreference, id=preference_id, user=request.user)
+        row = get_object_or_404(
+            NotificationPreference, id=preference_id, user=authenticated_user(request)
+        )
         # Keep preference history; deleting disables this channel/rule.
         row.enabled = False
         row.save(update_fields=["enabled", "updated_at"])
         from apps.audit.services import audit
 
-        audit(request.user, "notification.preference", row, changes={"enabled": False})
+        audit(
+            authenticated_user(request), "notification.preference", row, changes={"enabled": False}
+        )
         return Response(status=204)
 
 
 class CheckInView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, patient_id):
+    def get(self, request: Request, patient_id: str) -> Response:
         from apps.alerts.models import CheckIn
 
-        patient = get_object_or_404(patients_for(request.user), id=patient_id)
+        patient = get_object_or_404(patients_for(authenticated_user(request)), id=patient_id)
         return Response(
             [
                 {
@@ -207,11 +225,11 @@ class CheckInView(APIView):
             ]
         )
 
-    def post(self, request, patient_id):
+    def post(self, request: Request, patient_id: str) -> Response:
         from apps.alerts.services import request_checkin
 
-        if request.user.role != User.Role.CAREGIVER:
+        if authenticated_user(request).role != User.Role.CAREGIVER:
             return Response(status=404)
-        patient = get_object_or_404(patients_for(request.user), id=patient_id)
-        row = request_checkin(patient, request.user)
+        patient = get_object_or_404(patients_for(authenticated_user(request)), id=patient_id)
+        row = request_checkin(patient, authenticated_user(request))
         return Response({"id": str(row.id)}, status=201)

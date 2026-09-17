@@ -1,104 +1,104 @@
 {
   "app": {
-    "eyebrow": "TODO: Your gentle daily companion",
-    "title": "TODO: Smārana",
-    "welcome": "TODO: A calm place for memories and daily support."
+    "eyebrow": "আপনার প্রতিদিনের সহায়ক",
+    "title": "Smārana",
+    "welcome": "স্মৃতি ও দৈনন্দিন সহায়ের জন্য একটি শান্ত জায়গা।"
   },
   "auth": {
-    "back": "TODO: Back",
-    "emailOrPhone": "TODO: Email or phone",
-    "password": "TODO: Password",
-    "signIn": "TODO: Sign in",
-    "signingIn": "TODO: Signing in…",
-    "patientPinTitle": "TODO: Enter your PIN",
-    "patientPinHelp": "TODO: Use the keypad below.",
-    "loginId": "TODO: Login ID",
-    "pinKeypad": "TODO: PIN keypad",
-    "backspace": "TODO: Backspace",
-    "pinEntered": "TODO: {{count}} of 4 PIN digits entered",
-    "pin_no_match": "TODO: That didn't match. Try again.",
-    "locked_caregiver_told": "TODO: Let's take a break. Your caregiver has been told.",
-    "logout": "TODO: Log out",
-    "navigation": "TODO: Navigation",
-    "dashboard": "TODO: Dashboard",
-    "roleMismatch": "TODO: Please use the sign-in page for your role.",
+    "back": "পিছনে",
+    "emailOrPhone": "ইমেল বা ফোন",
+    "password": "পাসওয়ার্ড",
+    "signIn": "প্রবেশ করুন",
+    "signingIn": "প্রবেশ করা হচ্ছে…",
+    "patientPinTitle": "আপনার PIN দিন",
+    "patientPinHelp": "নিচের সংখ্যার বোতাম ব্যবহার করুন।",
+    "loginId": "প্রবেশের পরিচয়",
+    "pinKeypad": "PIN সংখ্যার বোতাম",
+    "backspace": "শেষ অঙ্ক মুছুন",
+    "pinEntered": "PIN-এর ৪টি অঙ্কের {{count}}টি দেওয়া হয়েছে",
+    "pin_no_match": "মেলেনি। আবার চেষ্টা করুন।",
+    "locked_caregiver_told": "একটু বিশ্রাম নিন। আপনার যত্ন নেওয়া ব্যক্তির সাহায্য নিন।",
+    "logout": "বেরিয়ে যান",
+    "navigation": "পাতা নির্বাচন",
+    "dashboard": "মূল পাতা",
+    "roleMismatch": "অনুগ্রহ করে আপনার ভূমিকার প্রবেশের পাতা ব্যবহার করুন।",
     "loginTitle": {
-      "caregiver": "TODO: Caregiver sign in",
-      "doctor": "TODO: Doctor sign in",
-      "admin": "TODO: Admin sign in"
+      "caregiver": "যত্ন নেওয়া ব্যক্তির প্রবেশ",
+      "doctor": "চিকিৎসকের প্রবেশ",
+      "admin": "প্রশাসকের প্রবেশ"
     },
     "layout": {
-      "caregiver": "TODO: Caregiver dashboard",
-      "doctor": "TODO: Doctor dashboard",
-      "admin": "TODO: Admin",
-      "patient": "TODO: Home"
+      "caregiver": "যত্ন নেওয়া ব্যক্তির মূল পাতা",
+      "doctor": "চিকিৎসকের মূল পাতা",
+      "admin": "প্রশাসক",
+      "patient": "মূল পাতা"
     },
     "errors": {
-      "awaiting_approval": "TODO: Your account is awaiting verification.",
-      "credentials_not_verified": "TODO: Those details didn't match. Try again.",
-      "request_not_completed": "TODO: Something didn't work. Let's try again."
+      "awaiting_approval": "আপনার অ্যাকাউন্ট যাচাইয়ের অপেক্ষায় আছে।",
+      "credentials_not_verified": "তথ্য মেলেনি। আবার চেষ্টা করুন।",
+      "request_not_completed": "কাজটি সম্পূর্ণ হয়নি। আবার চেষ্টা করুন।"
     }
   },
   "patient": {
-    "title": "TODO: Smārana",
-    "talk": "TODO: Talk",
-    "listen": "TODO: Listen",
-    "navigation": "TODO: Patient navigation",
+    "title": "Smārana",
+    "talk": "কথা বলুন",
+    "listen": "শুনুন",
+    "navigation": "রোগীর পাতা নির্বাচন",
     "nav": {
-      "home": "TODO: Home",
-      "play": "TODO: Play",
-      "wellness": "TODO: Wellness",
-      "family": "TODO: Family",
-      "settings": "TODO: Settings"
+      "home": "মূল পাতা",
+      "play": "খেলুন",
+      "wellness": "সুস্থতা",
+      "family": "পরিবার",
+      "settings": "সেটিংস"
     },
     "idle": {
-      "title": "TODO: Are you still there?",
-      "yes": "TODO: Yes, I'm here",
-      "no": "TODO: No, finish for now"
+      "title": "আপনি কি এখনও এখানে আছেন?",
+      "yes": "হ্যাঁ, আমি এখানে আছি",
+      "no": "না, এখন শেষ করি"
     }
   },
   "home": {
-    "greeting_morning": "TODO: Good morning, {{name}}",
-    "greeting_afternoon": "TODO: Good afternoon, {{name}}",
-    "greeting_evening": "TODO: Good evening, {{name}}",
-    "familyPhoto": "TODO: {{name}}, your {{relationship}}",
-    "nextActivity": "TODO: Next activity",
-    "noNextActivity": "TODO: Nothing planned right now. Enjoy your day.",
-    "choose": "TODO: What would you like to do?",
-    "placeholder": "TODO: This section will be ready soon.",
+    "greeting_morning": "সুপ্রভাত, {{name}}",
+    "greeting_afternoon": "শুভ অপরাহ্ণ, {{name}}",
+    "greeting_evening": "শুভ সন্ধ্যা, {{name}}",
+    "familyPhoto": "{{name}}, আপনার {{relationship}}",
+    "nextActivity": "পরের কাজ",
+    "noNextActivity": "এখন কোনো কাজ ঠিক করা নেই। দিনটি ভালো কাটান।",
+    "choose": "আপনি কী করতে চান?",
+    "placeholder": "এই অংশ শিগগিরই তৈরি হবে।",
     "tiles": {
-      "games": "TODO: Games",
-      "medicines": "TODO: Medicines",
-      "sleep": "TODO: Sleep",
-      "memories": "TODO: Memories",
-      "calm": "TODO: Calm",
-      "people": "TODO: My people",
-      "progress": "TODO: Progress",
-      "routine": "TODO: Today's routine",
-      "settings": "TODO: Settings"
+      "games": "খেলা",
+      "medicines": "ওষুধ",
+      "sleep": "ঘুম",
+      "memories": "স্মৃতি",
+      "calm": "শান্তি",
+      "people": "আমার আপনজন",
+      "progress": "অগ্রগতি",
+      "routine": "আজকের কাজের তালিকা",
+      "settings": "সেটিংস"
     }
   },
   "routine": {
-    "title": "TODO: Today's routine",
-    "empty": "TODO: Nothing is planned right now.",
-    "takenDone": "TODO: Marked as taken.",
-    "savedOnDevice": "Saved safely on this device.",
-    "undo": "TODO: Undo",
-    "skipTitle": "TODO: Do you want to skip this medicine?",
-    "skipYes": "TODO: Yes, skip",
-    "cancel": "TODO: Go back",
-    "callCaregiver": "TODO: Call Priya",
+    "title": "আজকের কাজের তালিকা",
+    "empty": "এখন কোনো কাজ ঠিক করা নেই।",
+    "takenDone": "ওষুধ নেওয়া হয়েছে বলে চিহ্নিত করা হলো।",
+    "savedOnDevice": "এই যন্ত্রে নিরাপদে রাখা হয়েছে।",
+    "undo": "আগের অবস্থায় ফিরুন",
+    "skipTitle": "আপনি কি এই ওষুধটি বাদ দিতে চান?",
+    "skipYes": "হ্যাঁ, বাদ দিন",
+    "cancel": "ফিরে যান",
+    "callCaregiver": "যত্ন নেওয়া ব্যক্তিকে ফোন করুন",
     "actions": {
-      "taken": "TODO: Taken",
-      "later": "TODO: Remind me later",
-      "skipped": "TODO: Skip",
-      "help": "TODO: I need help"
+      "taken": "নেওয়া হয়েছে",
+      "later": "পরে মনে করিয়ে দিন",
+      "skipped": "বাদ দিন",
+      "help": "আমার সাহায্য দরকার"
     }
   },
   "medicines": {
-    "title": "TODO: My medicines",
-    "nextDose": "TODO: Next dose",
-    "askPriya": "TODO: Ask Priya"
+    "title": "আমার ওষুধ",
+    "nextDose": "পরের মাত্রা",
+    "askPriya": "যত্ন নেওয়া ব্যক্তিকে জিজ্ঞেস করুন"
   },
   "memories": {
     "title": "আমার স্মৃতি",
@@ -145,77 +145,79 @@
     "queued": "আপনার অনুরোধ এই ডিভাইসে রাখা আছে। সংযোগ ফিরলে জানানো হবে। নিচে পরিবারকে ফোন করতে পারেন।"
   },
   "progress": {
-    "title": "TODO: My progress",
-    "loading": "TODO: One moment…",
-    "completed": "TODO: You completed {{count}} things today",
-    "points": "TODO: {{count}} points",
-    "streak": "TODO: Days going well",
-    "streakLabel": "TODO: {{count}} day streak",
-    "next": "TODO: What's next"
+    "title": "আমার অগ্রগতি",
+    "loading": "একটু অপেক্ষা করুন…",
+    "completed": "আজ আপনি {{count}}টি কাজ সম্পূর্ণ করেছেন",
+    "points": "{{count}} পয়েন্ট",
+    "streak": "ভালো কাটানো দিন",
+    "streakLabel": "একটানা {{count}} দিন",
+    "next": "এর পরে কী"
   },
   "games": {
-    "title": "TODO: Games",
-    "challenge": "TODO: Looking for a challenge today?",
-    "loading": "TODO: Getting the game ready…",
-    "round": "TODO: Round {{current}} of {{total}}",
-    "playAgain": "TODO: Play again",
-    "backHome": "TODO: Back home",
-    "resumeTitle": "TODO: Continue your game?",
-    "continue": "TODO: Continue",
-    "startOver": "TODO: Start over",
-    "loadingList": "TODO: Getting your games ready…",
-    "offlineList": "TODO: Here are the games saved on this device.",
-    "regional": "TODO: From your region",
-    "empty": "TODO: Games will be ready here soon.",
+    "title": "খেলা",
+    "challenge": "আজ একটু চ্যালেঞ্জ নিতে চান?",
+    "loading": "খেলা তৈরি হচ্ছে…",
+    "round": "{{total}}টি পর্বের {{current}} নম্বর পর্ব",
+    "playAgain": "আবার খেলুন",
+    "backHome": "মূল পাতায় ফিরুন",
+    "resumeTitle": "খেলা চালিয়ে যেতে চান?",
+    "continue": "চালিয়ে যান",
+    "startOver": "নতুন করে শুরু করুন",
+    "loadingList": "আপনার খেলাগুলি তৈরি হচ্ছে…",
+    "offlineList": "এই যন্ত্রে রাখা খেলাগুলি এখানে আছে।",
+    "regional": "আপনার অঞ্চল থেকে",
+    "empty": "খেলাগুলি এখানে শিগগিরই তৈরি হবে।",
     "rhythmAssam": "অসমের ছন্দ অনুশীলন",
     "rhythmMeghalaya": "মেঘালয়ের ছন্দ অনুশীলন",
     "rhythmGeneric": "ছন্দ অনুশীলন",
     "unavailable": "এই খেলা এখন নেই। অন্য একটি বেছে নিন।",
     "practice": "একটি খেলা চেষ্টা করুন (অনুশীলন)",
-    "practiceBanner": "অনুশীলন — রাওয়ের অগ্রগতিতে কিছু রাখা হবে না"
+    "practiceBanner": "অনুশীলন — রাওয়ের অগ্রগতিতে কিছু রাখা হবে না",
+    "contentUnavailable": "এই অঞ্চল ও ভাষার বিষয়বস্তু পাওয়া যাচ্ছে না। অনুগ্রহ করে অন্য একটি কাজ বাছুন।",
+    "demoContent": "ইংরেজি অনুশীলনের বিষয়বস্তু। মাতৃভাষী ও চিকিৎসা বিশেষজ্ঞের পর্যালোচনা নথিভুক্ত হয়নি।"
   },
   "dda": {
-    "harder_next_time": "TODO: Great job! Next time will be a little more interesting.",
-    "same_next_time": "TODO: Nice work. Same fun next time.",
-    "easier_next_time": "TODO: Today's game will be a bit easier so you can enjoy playing.",
-    "thanks_for_playing": "TODO: Thanks for playing. Rest whenever you like."
+    "harder_next_time": "ভালো করেছেন! পরের খেলা একটু বেশি আকর্ষণীয় হবে।",
+    "same_next_time": "ভালো করেছেন। পরের খেলাতেও একই আনন্দ।",
+    "easier_next_time": "আনন্দ করে খেলতে আজকের খেলা একটু সহজ হবে।",
+    "thanks_for_playing": "খেলার জন্য ধন্যবাদ। ইচ্ছে হলে বিশ্রাম নিন।"
   },
   "game": {
-    "correct": "TODO: Yes!",
-    "its_here": "TODO: It's here",
-    "show_me": "TODO: Show me"
+    "correct": "হ্যাঁ!",
+    "its_here": "এখানেই আছে",
+    "show_me": "আমাকে দেখান"
   },
   "health": {
-    "title": "TODO: Connection",
-    "loading": "TODO: One moment…",
-    "ok": "TODO: Backend OK",
-    "unavailable": "TODO: Something didn't work. Let's try again."
+    "title": "সংযোগ",
+    "loading": "একটু অপেক্ষা করুন…",
+    "ok": "পরিষেবার সংযোগ ঠিক আছে",
+    "unavailable": "কাজটি সম্পূর্ণ হয়নি। আবার চেষ্টা করুন।"
   },
   "landing": {
-    "tagline": "TODO: Gentle support for every day.",
-    "chooseRole": "TODO: Choose how you use Smārana",
-    "patient": "TODO: Patient",
-    "caregiver": "TODO: Caregiver",
-    "doctor": "TODO: Doctor",
-    "admin": "TODO: Admin",
-    "settings": "TODO: Comfort settings",
-    "language": "TODO: Language",
-    "theme": "TODO: Change theme",
-    "textSize": "TODO: Change text size"
+    "tagline": "প্রতিদিনের জন্য সহজ সহায়তা।",
+    "chooseRole": "আপনি স্মারণা কীভাবে ব্যবহার করেন বেছে নিন",
+    "patient": "রোগী",
+    "caregiver": "যত্ন নেওয়া ব্যক্তি",
+    "doctor": "চিকিৎসক",
+    "admin": "প্রশাসক",
+    "settings": "আরামের সেটিংস",
+    "language": "ভাষা",
+    "theme": "রঙের ধরন বদলান",
+    "textSize": "লেখার আকার বদলান"
   },
   "preferences": {
-    "title": "TODO: Make this comfortable",
-    "themeValue": "TODO: Theme: {{theme}}",
+    "title": "আরামদায়ক করে নিন",
+    "themeValue": "রঙের ধরন: {{theme}}",
     "themes": {
-      "light": "TODO: Light",
-      "dark": "TODO: Dark"
+      "light": "হালকা",
+      "dark": "গাঢ়"
     },
-    "fontScale": "TODO: Text size: {{scale}}",
+    "fontScale": "লেখার আকার: {{scale}}",
     "scales": {
-      "comfortable": "TODO: Comfortable",
-      "large": "TODO: Large",
-      "larger": "TODO: Larger",
-      "largest": "TODO: Largest"
+      "comfortable": "আরামদায়ক",
+      "large": "বড়",
+      "larger": "আরও বড়",
+      "largest": "সবচেয়ে বড়"
     }
   },
   "settings": {
@@ -271,34 +273,34 @@
     "stop": "থামুন"
   },
   "newGames": {
-    "person": "TODO: Who is this?",
-    "relationship": "TODO: How are they related to you?",
-    "word": "TODO: Which word goes with",
-    "festival": "TODO: Which season, month or state goes with",
-    "sound": "TODO: Listen, then choose the pictures in order.",
-    "change": "TODO: Tap the things that changed.",
-    "scene": "TODO: A familiar scene",
-    "replaySound": "TODO: Hear it again",
-    "save": "TODO: ☆ Favourite",
-    "saved": "TODO: ★ Favourite",
-    "suggestion": "TODO: Something to enjoy",
-    "showMe": "TODO: Show me",
-    "remember": "TODO: Take a moment to remember the pairs."
+    "person": "ইনি কে?",
+    "relationship": "ইনি আপনার কে হন?",
+    "word": "কোন শব্দের সঙ্গে মিল আছে",
+    "festival": "কোন ঋতু, মাস বা রাজ্যের সঙ্গে মিল আছে",
+    "sound": "শুনুন, তারপর ক্রম অনুযায়ী ছবি বাছুন।",
+    "change": "বদলে যাওয়া জিনিসগুলিতে চাপুন।",
+    "scene": "একটি চেনা দৃশ্য",
+    "replaySound": "আবার শুনুন",
+    "save": "☆ প্রিয়",
+    "saved": "★ প্রিয়",
+    "suggestion": "উপভোগ করার মতো কিছু",
+    "showMe": "আমাকে দেখান",
+    "remember": "জোড়াগুলি মনে রাখতে একটু সময় নিন।"
   },
   "walkthrough": {
-    "home": "TODO: Choose a section to enjoy an activity.",
-    "games": "TODO: Tap a game to play at your own pace.",
-    "memories": "TODO: Tap a photograph to hear its story.",
-    "medicines": "TODO: See your medicines and tell us when you have taken them.",
-    "people": "TODO: Tap a familiar person to see their details.",
-    "calm": "TODO: Choose a sound or take a gentle breathing break.",
-    "routine": "TODO: See your activities for today.",
-    "progress": "TODO: See the activities you have enjoyed.",
-    "settings": "TODO: Choose the text size and voice that feel comfortable.",
-    "replay": "TODO: Replay instructions",
-    "gotIt": "TODO: Got it",
-    "instructions": "TODO: Instructions",
-    "sleep": "Choose your sleep times and how you feel."
+    "home": "কিছু করতে একটি অংশ বাছুন।",
+    "games": "নিজের সুবিধামতো খেলতে একটি খেলায় চাপুন।",
+    "memories": "ছবির গল্প শুনতে ছবিতে চাপুন।",
+    "medicines": "আপনার ওষুধ দেখুন এবং নেওয়ার পরে জানান।",
+    "people": "চেনা মানুষের তথ্য দেখতে তাঁদের ছবিতে চাপুন।",
+    "calm": "একটি শব্দ বাছুন বা ধীরে শ্বাস নিয়ে বিশ্রাম নিন।",
+    "routine": "আজকের কাজগুলি দেখুন।",
+    "progress": "আপনার উপভোগ করা কাজগুলি দেখুন।",
+    "settings": "আরামদায়ক লেখার আকার ও কণ্ঠ বাছুন।",
+    "replay": "নির্দেশনা আবার শুনুন",
+    "gotIt": "বুঝেছি",
+    "instructions": "নির্দেশনা",
+    "sleep": "শোওয়া ও ওঠার সময় এবং মনের অবস্থা বাছুন।"
   },
   "confused": {
     "button": "আমি বিভ্রান্ত বোধ করছি / একটু বিরতি চাই",
@@ -308,7 +310,7 @@
     "calm": "শান্ত সময়",
     "call": "আমার পরিচর্যাকারীকে ফোন করুন",
     "resume": "আমি প্রস্তুত",
-    "shortButton": "I need a break"
+    "shortButton": "আমার একটু বিশ্রাম দরকার"
   },
   "wellness": {
     "title": "ঘুম ও মনের অবস্থা",
@@ -327,26 +329,44 @@
     "retry": "রাখতে পারিনি। আবার চেষ্টা করুন।"
   },
   "checkin": {
-    "question": "{{name}} asks: Are you okay?",
-    "okay": "I am okay",
-    "help": "I need help"
+    "question": "{{name}} জিজ্ঞেস করছেন: আপনি কি ঠিক আছেন?",
+    "okay": "আমি ঠিক আছি",
+    "help": "আমার সাহায্য দরকার"
   },
   "gameInstructions": {
-    "hiddenCard": "Hidden card",
-    "showMe": "💡 Show me",
-    "watch": "Watch and remember",
-    "choose": "Choose in the same order",
-    "sort": "Choose an item, then its group",
-    "listen": "Listen and remember",
-    "replay": "Hear it again",
-    "tap": "Tap the tea leaves",
-    "finish": "All done",
-    "find": "Find: {{items}}",
-    "timeRemaining": "Time remaining",
-    "yourTurn": "Your turn",
-    "tapRhythm": "Tap the rhythm",
-    "place": "Which place do you recognise?",
-    "findPlace": "Find {{place}}.",
-    "noGroup": "Does not belong"
+    "hiddenCard": "ঢাকা কার্ড",
+    "showMe": "💡 আমাকে দেখান",
+    "watch": "দেখুন ও মনে রাখুন",
+    "choose": "একই ক্রমে বাছুন",
+    "sort": "একটি জিনিস, তারপর তার দল বাছুন",
+    "listen": "শুনুন ও মনে রাখুন",
+    "replay": "আবার শুনুন",
+    "tap": "চা পাতায় চাপুন",
+    "finish": "সব হয়েছে",
+    "find": "খুঁজুন: {{items}}",
+    "timeRemaining": "বাকি সময়",
+    "yourTurn": "আপনার পালা",
+    "tapRhythm": "তাল অনুযায়ী চাপুন",
+    "place": "আপনি কোন জায়গাটি চিনতে পারছেন?",
+    "findPlace": "{{place}} খুঁজুন।",
+    "noGroup": "এই দলের নয়",
+    "tapButton": "চাপুন",
+    "hint": "ইঙ্গিত"
+  },
+  "localization": {
+    "notice": "প্রদর্শনীর অনুবাদ: মাতৃভাষী ও চিকিৎসা বিশেষজ্ঞের পর্যালোচনা এখনও প্রয়োজন।"
+  },
+  "gameNames": {
+    "memory_match": "স্মৃতির জোড়া মেলান",
+    "sequence_recall": "ক্রম মনে রাখুন",
+    "object_sorting": "জিনিসের দল বাছুন",
+    "tea_garden_attention": "চা বাগানে মনোযোগ",
+    "daily_life_sequencing": "প্রতিদিনের কাজের ক্রম",
+    "familiar_place_recall": "চেনা জায়গা মনে করুন",
+    "who_is_this": "ইনি কে?",
+    "word_pairs": "শব্দের জোড়া",
+    "festival_calendar": "উৎসবের দিনপঞ্জি",
+    "sound_match": "শব্দ মেলান",
+    "spot_the_change": "বদলে যাওয়া জিনিস খুঁজুন"
   }
 }

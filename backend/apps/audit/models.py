@@ -1,7 +1,11 @@
 """Immutable records of meaningful account and patient-data activity."""
 
+from collections.abc import Iterable
+from typing import NoReturn
+
 from django.conf import settings
 from django.db import models
+from django.db.models.base import ModelBase
 
 from apps.shared.models import UUIDModel
 
@@ -42,10 +46,21 @@ class AuditEvent(UUIDModel):
     def __str__(self) -> str:
         return f"{self.action} {self.target_model} at {self.created_at:%Y-%m-%d %H:%M}"
 
-    def save(self, *args, **kwargs) -> None:
+    def save(
+        self,
+        force_insert: bool | tuple[ModelBase, ...] = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: Iterable[str] | None = None,
+    ) -> None:
         if not self._state.adding:
             raise RuntimeError("Audit events are append-only.")
-        super().save(*args, **kwargs)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
-    def delete(self, *args, **kwargs) -> None:
+    def delete(self, using: str | None = None, keep_parents: bool = False) -> NoReturn:
         raise RuntimeError("Audit events cannot be deleted.")

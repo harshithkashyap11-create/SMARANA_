@@ -16,36 +16,37 @@ from apps.patients.models import (
 from apps.routines.models import Reminder, RoutineItem
 
 
-class UserFactory(DjangoModelFactory):
+class UserFactory(DjangoModelFactory[User]):
     class Meta:
         model = User
 
     username = factory.Sequence(lambda number: f"user{number}")
     display_name = factory.Sequence(lambda number: f"User {number}")
     role = User.Role.PATIENT
-    password = factory.django.Password("test-password")
+    # factory-boy 3.3 Password works at runtime but is absent from types-factory-boy 0.4.
+    password = factory.django.Password("test-password")  # type: ignore[attr-defined]
 
 
-class PatientCredentialFactory(DjangoModelFactory):
+class PatientCredentialFactory(DjangoModelFactory[PatientCredential]):
     class Meta:
         model = PatientCredential
 
-    user = factory.SubFactory(UserFactory, role=User.Role.PATIENT)
+    user: factory.SubFactory[object, User] = factory.SubFactory(UserFactory, role=User.Role.PATIENT)
     login_id = factory.Sequence(lambda number: f"PATIENT{number:04d}")
     pin_hash = factory.LazyFunction(lambda: make_password("1234", hasher="argon2"))
 
 
-class PatientFactory(DjangoModelFactory):
+class PatientFactory(DjangoModelFactory[PatientProfile]):
     class Meta:
         model = PatientProfile
         skip_postgeneration_save = True
 
-    user = factory.SubFactory(UserFactory, role=User.Role.PATIENT)
+    user: factory.SubFactory[object, User] = factory.SubFactory(UserFactory, role=User.Role.PATIENT)
 
     @factory.post_generation
     def credential(self, create: bool, extracted: object, **kwargs: object) -> None:
         if create:
-            PatientCredentialFactory(user=self.user, **kwargs)
+            PatientCredentialFactory.create(user=self.user, **kwargs)
 
 
 class CaregiverFactory(UserFactory):
@@ -58,56 +59,58 @@ class DoctorFactory(UserFactory):
     is_approved = True
 
 
-class CareAssignmentFactory(DjangoModelFactory):
+class CareAssignmentFactory(DjangoModelFactory[CareAssignment]):
     class Meta:
         model = CareAssignment
 
-    patient = factory.SubFactory(PatientFactory)
-    caregiver = factory.SubFactory(CaregiverFactory)
+    patient: factory.SubFactory[object, PatientProfile] = factory.SubFactory(PatientFactory)
+    caregiver: factory.SubFactory[object, User] = factory.SubFactory(CaregiverFactory)
     is_primary = False
 
 
-class DoctorAssignmentFactory(DjangoModelFactory):
+class DoctorAssignmentFactory(DjangoModelFactory[DoctorAssignment]):
     class Meta:
         model = DoctorAssignment
 
-    patient = factory.SubFactory(PatientFactory)
-    doctor = factory.SubFactory(DoctorFactory)
+    patient: factory.SubFactory[object, PatientProfile] = factory.SubFactory(PatientFactory)
+    doctor: factory.SubFactory[object, User] = factory.SubFactory(DoctorFactory)
 
 
-class FamilyMemberFactory(DjangoModelFactory):
+class FamilyMemberFactory(DjangoModelFactory[FamilyMember]):
     class Meta:
         model = FamilyMember
 
-    patient = factory.SubFactory(PatientFactory)
+    patient: factory.SubFactory[object, PatientProfile] = factory.SubFactory(PatientFactory)
     name = factory.Sequence(lambda number: f"Family member {number}")
     relationship = FamilyMember.Relationship.FRIEND
 
 
-class ConsentSettingsFactory(DjangoModelFactory):
+class ConsentSettingsFactory(DjangoModelFactory[ConsentSettings]):
     class Meta:
         model = ConsentSettings
 
-    patient = factory.SubFactory(PatientFactory)
+    patient: factory.SubFactory[object, PatientProfile] = factory.SubFactory(PatientFactory)
 
 
-class RoutineItemFactory(DjangoModelFactory):
+class RoutineItemFactory(DjangoModelFactory[RoutineItem]):
     class Meta:
         model = RoutineItem
 
-    patient = factory.SubFactory(PatientFactory)
+    patient: factory.SubFactory[object, PatientProfile] = factory.SubFactory(PatientFactory)
     title = "Tea with family"
     category = RoutineItem.Category.CUSTOM
     time_of_day = factory.LazyFunction(lambda: timezone.localtime().time())
-    days_of_week = factory.LazyFunction(list)
+    days_of_week: factory.LazyFunction[list[int]] = factory.LazyFunction(list)
     start_date = factory.LazyFunction(timezone.localdate)
     source = RoutineItem.Source.SYSTEM
 
 
-class ReminderFactory(DjangoModelFactory):
+class ReminderFactory(DjangoModelFactory[Reminder]):
     class Meta:
         model = Reminder
 
-    routine_item = factory.SubFactory(RoutineItemFactory)
-    patient = factory.SelfAttribute("routine_item.patient")
+    routine_item: factory.SubFactory[object, RoutineItem] = factory.SubFactory(RoutineItemFactory)
+    patient: factory.SelfAttribute[object, PatientProfile] = factory.SelfAttribute(
+        "routine_item.patient"
+    )
     scheduled_at = factory.LazyFunction(timezone.now)

@@ -1,9 +1,11 @@
 """Notification channels for urgent care-team alerts."""
 
+import logging
 from dataclasses import dataclass
 from typing import Protocol
 
 from django.core.mail import send_mail
+from django.db import transaction
 from django.utils import timezone
 
 from apps.accounts.models import User
@@ -41,7 +43,10 @@ class Email:
         return True
 
 
+@transaction.atomic
 def notify_alert(alert: Alert) -> Alert:
+    original = alert
+    alert = Alert.objects.select_for_update().get(pk=alert.pk)
     recipients = [
         assignment.caregiver
         for assignment in alert.patient.care_assignments.filter(active=True).select_related(
@@ -52,7 +57,8 @@ def notify_alert(alert: Alert) -> Alert:
     if alert.severity == Alert.Severity.HIGH or alert.rule_key == Alert.RuleKey.SOS:
         channels.append(Email())
     sent = list(alert.notified)
-    already = {(row.get("user_id"), row.get("channel")) for row in sent}
+    incident = alert.evidence.get("sos_event_id") if alert.rule_key == Alert.RuleKey.SOS else None
+    already = {(row.get("user_id"), row.get("channel"), row.get("incident_id")) for row in sent}
     for recipient in recipients:
         for channel in channels:
             preference = NotificationPreference.objects.filter(
@@ -60,17 +66,28 @@ def notify_alert(alert: Alert) -> Alert:
             ).first()
             if preference is not None and not preference.enabled:
                 continue
-            key = (str(recipient.id), channel.name)
-            if key in already or not channel.send(alert, recipient):
+            key = (str(recipient.id), channel.name, incident)
+            if key in already:
+                continue
+            try:
+                delivered = channel.send(alert, recipient)
+            except Exception:
+                logging.getLogger(__name__).exception(
+                    "Alert delivery failed channel=%s", channel.name
+                )
+                continue
+            if not delivered:
                 continue
             sent.append(
                 {
                     "user_id": str(recipient.id),
                     "channel": channel.name,
+                    "incident_id": incident,
                     "at": timezone.now().isoformat(),
                 }
             )
             already.add(key)
     alert.notified = sent
     alert.save(update_fields=["notified", "updated_at"])
+    original.notified = sent
     return alert

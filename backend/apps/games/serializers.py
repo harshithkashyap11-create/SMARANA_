@@ -3,13 +3,13 @@ from rest_framework import serializers
 from apps.games.models import GameDefinition
 
 
-class GameDefinitionSerializer(serializers.ModelSerializer):
+class GameDefinitionSerializer(serializers.ModelSerializer[GameDefinition]):
     class Meta:
         model = GameDefinition
         fields = ["id", "key", "name", "cognitive_domains", "min_level", "max_level", "is_regional"]
 
 
-class GameSessionInputSerializer(serializers.Serializer):
+class GameSessionInputSerializer(serializers.Serializer[dict[str, object]]):
     game_key = serializers.SlugField()
     seed = serializers.CharField(max_length=64)
     level = serializers.IntegerField(min_value=1, max_value=10)
@@ -24,7 +24,7 @@ class GameSessionInputSerializer(serializers.Serializer):
             raise serializers.ValidationError("Game is unavailable.")
         return value
 
-    def validate_metrics(self, value: object) -> dict:
+    def validate_metrics(self, value: object) -> dict[str, object]:
         if not isinstance(value, dict):
             raise serializers.ValidationError("Expected an object.")
         return value

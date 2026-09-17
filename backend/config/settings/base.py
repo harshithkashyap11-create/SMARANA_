@@ -3,8 +3,11 @@
 from datetime import timedelta
 from pathlib import Path
 
-import environ
+import django_stubs_ext
+import environ  # type: ignore[import-untyped]  # django-environ exposes no PEP 561 types.
 from celery.schedules import crontab
+
+django_stubs_ext.monkeypatch()
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 PROJECT_ROOT = BASE_DIR.parent
@@ -59,6 +62,7 @@ VOICE_LLM_FALLBACK = env.bool("VOICE_LLM_FALLBACK", default=False)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "apps.shared.middleware.PrivateApiCacheMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -136,9 +140,10 @@ AWS_DEFAULT_ACL = None
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
 
-REST_FRAMEWORK = {
+REST_FRAMEWORK: dict[str, object] = {
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "apps.accounts.authentication.ApprovedJWTAuthentication",
     ],
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_PAGINATION_CLASS": "apps.shared.pagination.StandardPagination",
@@ -164,6 +169,10 @@ CELERY_BROKER_URL = env("REDIS_URL", default="redis://redis:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_BEAT_SCHEDULE = {
+    "retry-alert-notifications": {
+        "task": "apps.alerts.tasks.retry_alert_notifications",
+        "schedule": 60.0,
+    },
     "materialise-reminders-daily": {
         "task": "apps.routines.tasks.materialise_all_reminders",
         "schedule": crontab(hour=0, minute=5),

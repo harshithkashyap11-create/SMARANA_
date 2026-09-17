@@ -1,8 +1,10 @@
 """Purely described alert rules backed by assignment-scoped patient history."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
+from uuid import UUID
 
 from apps.accounts.models import DeviceSession
 from apps.alerts.models import Alert
@@ -164,7 +166,14 @@ def low_mood_3d(patient: PatientProfile, now: datetime) -> AlertDraft | None:
     )
 
 
-RULES = (no_login_2d, missed_meds_3in7, level_drop_x3, device_offline_3d, sync_error, low_mood_3d)
+RULES: tuple[Callable[[PatientProfile, datetime], AlertDraft | None], ...] = (
+    no_login_2d,
+    missed_meds_3in7,
+    level_drop_x3,
+    device_offline_3d,
+    sync_error,
+    low_mood_3d,
+)
 
 
 def evaluate(patient: PatientProfile, now: datetime) -> list[AlertDraft]:
@@ -178,7 +187,7 @@ def reaction_time_worsening(patient: PatientProfile, now: datetime) -> AlertDraf
     from apps.games.models import GameSession
 
     start, split = now - timedelta(days=14), now - timedelta(days=7)
-    grouped = {}
+    grouped: dict[UUID, tuple[list[GameSession], list[GameSession]]] = {}
     for row in GameSession.objects.filter(
         patient=patient, guest_mode=False, ended_at__gte=start, ended_at__lte=now
     ).select_related("game"):

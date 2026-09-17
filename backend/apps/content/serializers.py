@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.content.models import ContentItem
 
 
-class ContentItemSerializer(serializers.ModelSerializer):
+class ContentItemSerializer(serializers.ModelSerializer[ContentItem]):
     image_url = serializers.SerializerMethodField()
     audio_url = serializers.SerializerMethodField()
 

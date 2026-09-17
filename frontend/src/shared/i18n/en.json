@@ -17,7 +17,7 @@
     "backspace": "Backspace",
     "pinEntered": "{{count}} of 4 PIN digits entered",
     "pin_no_match": "That didn't match. Try again.",
-    "locked_caregiver_told": "Let's take a break. Your caregiver has been told.",
+    "locked_caregiver_told": "Let's take a break. Ask your caregiver for help.",
     "logout": "Log out",
     "navigation": "Navigation",
     "dashboard": "Dashboard",
@@ -172,7 +172,9 @@
     "rhythmGeneric": "Rhythm practice",
     "unavailable": "This game is unavailable. Please choose another.",
     "practice": "Try a game (practice)",
-    "practiceBanner": "Practice — nothing is saved to Rao’s progress"
+    "practiceBanner": "Practice — nothing is saved to Rao’s progress",
+    "contentUnavailable": "Content for this region and language is unavailable. Please choose another activity.",
+    "demoContent": "English practice content. Native-speaker and clinical review have not been recorded."
   },
   "dda": {
     "harder_next_time": "Great job! Next time will be a little more interesting.",
@@ -347,6 +349,24 @@
     "tapRhythm": "Tap the rhythm",
     "place": "Which place do you recognise?",
     "findPlace": "Find {{place}}.",
-    "noGroup": "Does not belong"
+    "noGroup": "Does not belong",
+    "tapButton": "Tap",
+    "hint": "Hint"
+  },
+  "localization": {
+    "notice": "Demo translations: native-speaker and clinical review are still required."
+  },
+  "gameNames": {
+    "memory_match": "Memory Match",
+    "sequence_recall": "Sequence Recall",
+    "object_sorting": "Object Sorting",
+    "tea_garden_attention": "Tea Garden Attention",
+    "daily_life_sequencing": "Daily Life Sequencing",
+    "familiar_place_recall": "Familiar Place Recall",
+    "who_is_this": "Who Is This?",
+    "word_pairs": "Word Pairs",
+    "festival_calendar": "Festival Calendar",
+    "sound_match": "Sound Match",
+    "spot_the_change": "Spot the Change"
   }
 }

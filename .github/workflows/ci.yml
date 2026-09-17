@@ -71,12 +71,19 @@ jobs:
       - name: Install backend dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
 
+      - name: Audit backend dependencies
+        run: python -m pip install pip-audit && pip-audit -r requirements.txt
+
       - name: Lint backend
         run: ruff check . --output-format=github
 
-      - name: Type-check service modules
-        shell: bash
-        run: find apps -type f -name services.py -print0 | xargs -0 --no-run-if-empty mypy --strict
+      - name: Type-check all backend modules and tests
+        run: mypy --strict apps config conftest.py manage.py
+
+      - name: Check migrations and Django configuration
+        run: |
+          python manage.py makemigrations --check --dry-run
+          python manage.py check
 
       - name: Test backend
         run: pytest -q
@@ -103,6 +110,9 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Audit frontend dependencies
+        run: npm audit --audit-level=low
+
       - name: Lint frontend
         run: npm run lint
 
@@ -112,8 +122,11 @@ jobs:
       - name: Test frontend
         run: npm test -- --run
 
-      - name: Check locale catalogs
-        run: npm run i18n:check
+      - name: Check locale catalogs and regression checks
+        run: |
+          npm run i18n:check
+          node --test scripts/check-i18n.test.mjs
+          npm run copy:check
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -125,7 +138,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Test patient accessibility and offline roundtrip
-        run: npx playwright test e2e/a11y.spec.ts e2e/offline.spec.ts
+        run: npx playwright test e2e/a11y.spec.ts e2e/offline.spec.ts e2e/localization.spec.ts
 
   offline-real:
     name: Real offline backend roundtrip

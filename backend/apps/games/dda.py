@@ -1,7 +1,7 @@
 """Pure dynamic-difficulty function shared conceptually with the web client."""
 
 from dataclasses import asdict, dataclass, replace
-from typing import Literal
+from typing import Literal, TypedDict, cast
 
 Reason = Literal[
     "promote", "hold", "demote", "doctor_lock", "cap", "insufficient_data", "guest", "fatigue_hold"
@@ -22,10 +22,23 @@ class SessionSummary:
     fatigueFlagged: bool
 
 
+class SummaryRecord(TypedDict):
+    level: int
+    accuracy: float
+    meanReactionMs: float
+    mistakes: int
+    hintsUsed: int
+    rounds: int
+    completed: bool
+    challengeMode: bool
+    guestMode: bool
+    fatigueFlagged: bool
+
+
 @dataclass(frozen=True)
 class DifficultyStateData:
     level: int
-    window: list[dict]
+    window: list[SummaryRecord]
     lockedByDoctor: bool
     capLevel: int | None
     minLevel: int
@@ -84,7 +97,7 @@ def next_difficulty(
             "Guest sessions do not affect difficulty.",
             "dda.thanks_for_playing",
         )
-    window = [*state.window, asdict(session)][-config.windowSize :]
+    window = [*state.window, cast(SummaryRecord, asdict(session))][-config.windowSize :]
     updated = replace(state, window=window)
     if state.lockedByDoctor:
         name = state.lockedByName or "the care team"

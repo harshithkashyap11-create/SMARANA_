@@ -4,6 +4,7 @@ import pytest
 from django.utils import timezone
 from rest_framework.test import APIClient
 
+from apps.accounts.models import User
 from apps.audit.models import AuditEvent
 from apps.games.models import DifficultyChange, DifficultyState, GameDefinition, GameSession
 from apps.shared.tests.factories import CareAssignmentFactory, CaregiverFactory, PatientFactory
@@ -11,17 +12,17 @@ from apps.shared.tests.factories import CareAssignmentFactory, CaregiverFactory,
 pytestmark = pytest.mark.django_db
 
 
-def client_for(user: object) -> APIClient:
+def client_for(user: User) -> APIClient:
     client = APIClient()
     client.force_authenticate(user=user)
     return client
 
 
 def test_caregiver_reads_scoped_sessions_and_difficulty_changes() -> None:
-    patient = PatientFactory()
-    other = PatientFactory()
-    caregiver = CaregiverFactory()
-    CareAssignmentFactory(patient=patient, caregiver=caregiver)
+    patient = PatientFactory.create()
+    other = PatientFactory.create()
+    caregiver = CaregiverFactory.create()
+    CareAssignmentFactory.create(patient=patient, caregiver=caregiver)
     game = GameDefinition.objects.create(key="memory", name="Memory", min_level=1, max_level=10)
     now = timezone.now()
     session = GameSession.objects.create(
@@ -51,9 +52,9 @@ def test_caregiver_reads_scoped_sessions_and_difficulty_changes() -> None:
 
 
 def test_caregiver_note_requires_feedback_category_and_is_audited() -> None:
-    patient = PatientFactory()
-    caregiver = CaregiverFactory()
-    CareAssignmentFactory(patient=patient, caregiver=caregiver)
+    patient = PatientFactory.create()
+    caregiver = CaregiverFactory.create()
+    CareAssignmentFactory.create(patient=patient, caregiver=caregiver)
     client = client_for(caregiver)
     url = f"/api/v1/patients/{patient.id}/notes/"
     rejected = client.post(

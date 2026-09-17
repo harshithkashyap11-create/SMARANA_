@@ -9,15 +9,16 @@ from apps.audit.models import AuditEvent
 from apps.patients.media import media_url
 from apps.patients.models import ConsentSettings, FamilyMember
 from apps.shared.tests.factories import CareAssignmentFactory, FamilyMemberFactory
+from apps.shared.tests.types import CareScenario
 
 
-def _patient_url(care_scenario: dict[str, object], suffix: str) -> str:
+def _patient_url(care_scenario: CareScenario, suffix: str) -> str:
     return f"/api/v1/patients/{care_scenario['patient'].id}/{suffix}/"
 
 
 @pytest.mark.django_db
 def test_primary_caregiver_updates_life_history_but_not_doctor_fields(
-    api: APIClient, care_scenario
+    api: APIClient, care_scenario: CareScenario
 ) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(care_scenario["caregiver"])
@@ -38,7 +39,9 @@ def test_primary_caregiver_updates_life_history_but_not_doctor_fields(
 
 
 @pytest.mark.django_db
-def test_doctor_updates_caps_but_not_life_history(api: APIClient, care_scenario) -> None:
+def test_doctor_updates_caps_but_not_life_history(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(care_scenario["doctor"])
 
@@ -56,8 +59,10 @@ def test_doctor_updates_caps_but_not_life_history(api: APIClient, care_scenario)
 
 
 @pytest.mark.django_db
-def test_non_primary_caregiver_cannot_patch_profile(api: APIClient, care_scenario) -> None:
-    CareAssignmentFactory(
+def test_non_primary_caregiver_cannot_patch_profile(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
+    CareAssignmentFactory.create(
         patient=care_scenario["patient"],
         caregiver=care_scenario["other_caregiver"],
         is_primary=False,
@@ -72,7 +77,7 @@ def test_non_primary_caregiver_cannot_patch_profile(api: APIClient, care_scenari
 
 
 @pytest.mark.django_db
-def test_unassigned_profile_is_404(api: APIClient, care_scenario) -> None:
+def test_unassigned_profile_is_404(api: APIClient, care_scenario: CareScenario) -> None:
     api.force_authenticate(care_scenario["caregiver"])
     response = api.patch(
         f"/api/v1/patients/{care_scenario['other_patient'].id}/profile/",
@@ -83,7 +88,9 @@ def test_unassigned_profile_is_404(api: APIClient, care_scenario) -> None:
 
 
 @pytest.mark.django_db
-def test_family_crud_is_audited_and_delete_is_soft(api: APIClient, care_scenario) -> None:
+def test_family_crud_is_audited_and_delete_is_soft(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     api.force_authenticate(care_scenario["caregiver"])
     url = _patient_url(care_scenario, "family")
     created = api.post(
@@ -112,8 +119,8 @@ def test_family_crud_is_audited_and_delete_is_soft(api: APIClient, care_scenario
 
 
 @pytest.mark.django_db
-def test_doctor_family_list_omits_phone(api: APIClient, care_scenario) -> None:
-    FamilyMemberFactory(patient=care_scenario["patient"], phone="+91 999")
+def test_doctor_family_list_omits_phone(api: APIClient, care_scenario: CareScenario) -> None:
+    FamilyMemberFactory.create(patient=care_scenario["patient"], phone="+91 999")
     api.force_authenticate(care_scenario["doctor"])
 
     response = api.get(_patient_url(care_scenario, "family"))
@@ -125,8 +132,10 @@ def test_doctor_family_list_omits_phone(api: APIClient, care_scenario) -> None:
 
 
 @pytest.mark.django_db
-def test_patient_can_read_family_but_not_create(api: APIClient, care_scenario) -> None:
-    FamilyMemberFactory(patient=care_scenario["patient"])
+def test_patient_can_read_family_but_not_create(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
+    FamilyMemberFactory.create(patient=care_scenario["patient"])
     api.force_authenticate(care_scenario["patient"].user)
 
     read = api.get(_patient_url(care_scenario, "family"))
@@ -141,7 +150,9 @@ def test_patient_can_read_family_but_not_create(api: APIClient, care_scenario) -
 
 
 @pytest.mark.django_db
-def test_patient_and_primary_caregiver_can_update_consent(api: APIClient, care_scenario) -> None:
+def test_patient_and_primary_caregiver_can_update_consent(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     url = _patient_url(care_scenario, "consent")
     api.force_authenticate(care_scenario["patient"].user)
     patient_update = api.patch(url, {"use_memories_in_quiz": True}, format="json")
@@ -158,8 +169,10 @@ def test_patient_and_primary_caregiver_can_update_consent(api: APIClient, care_s
 
 
 @pytest.mark.django_db
-def test_non_primary_caregiver_cannot_patch_consent(api: APIClient, care_scenario) -> None:
-    CareAssignmentFactory(
+def test_non_primary_caregiver_cannot_patch_consent(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
+    CareAssignmentFactory.create(
         patient=care_scenario["patient"],
         caregiver=care_scenario["other_caregiver"],
         is_primary=False,
@@ -176,7 +189,7 @@ def test_non_primary_caregiver_cannot_patch_consent(api: APIClient, care_scenari
 
 
 @pytest.mark.django_db
-def test_doctor_cannot_read_consent(api: APIClient, care_scenario) -> None:
+def test_doctor_cannot_read_consent(api: APIClient, care_scenario: CareScenario) -> None:
     api.force_authenticate(care_scenario["doctor"])
     response = api.get(_patient_url(care_scenario, "consent"))
     assert response.status_code == 403

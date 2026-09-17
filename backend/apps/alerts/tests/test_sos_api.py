@@ -1,23 +1,24 @@
 import pytest
 from rest_framework.test import APIClient
 
+from apps.accounts.models import User
 from apps.alerts.models import Alert, SosEvent
 from apps.shared.tests.factories import CareAssignmentFactory, CaregiverFactory, PatientFactory
 
 pytestmark = pytest.mark.django_db
 
 
-def client_for(user: object) -> APIClient:
+def client_for(user: User) -> APIClient:
     client = APIClient()
     client.force_authenticate(user=user)
     return client
 
 
 def test_sos_is_idempotent_and_acknowledgement_is_assignment_scoped() -> None:
-    patient = PatientFactory()
-    caregiver = CaregiverFactory()
-    outsider = CaregiverFactory()
-    CareAssignmentFactory(patient=patient, caregiver=caregiver)
+    patient = PatientFactory.create()
+    caregiver = CaregiverFactory.create()
+    outsider = CaregiverFactory.create()
+    CareAssignmentFactory.create(patient=patient, caregiver=caregiver)
     url = f"/api/v1/patients/{patient.id}/sos/"
     payload = {"idempotency_key": "sos-once"}
     first = client_for(patient.user).post(url, payload, format="json")

@@ -17,7 +17,10 @@ void i18n.use(initReactI18next).init({
     bn: { translation: bn },
   },
   lng: "en",
-  fallbackLng: "en",
+  fallbackLng: false,
+  supportedLngs: [...supportedLanguages],
+  load: "languageOnly",
+  returnEmptyString: false,
   interpolation: { escapeValue: false },
   initImmediate: false,
 });

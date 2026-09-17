@@ -33,9 +33,10 @@ export default defineConfig({
       },
       workbox: {
         clientsClaim: true,
+        skipWaiting: true,
         globPatterns: ["**/*.{html,js,css,woff2,svg,png,jpg,jpeg,webp,mp3,wav}"],
         runtimeCaching: [
-          { urlPattern: /\/media\//, handler: "CacheFirst", options: { cacheName: "smarana-media", expiration: { maxEntries: 500, maxAgeSeconds: 2592000 } } },
+          { urlPattern: /\/media\//, handler: "NetworkOnly" },
           { urlPattern: /\/api\/v1\/content\/pack/, handler: "StaleWhileRevalidate", options: { cacheName: "smarana-content" } },
           { urlPattern: /\/api\/v1\/patients\//, handler: "NetworkOnly" },
         ],

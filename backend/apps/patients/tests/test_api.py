@@ -3,6 +3,7 @@
 import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
+from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.shared.tests.factories import (
@@ -10,16 +11,17 @@ from apps.shared.tests.factories import (
     DoctorAssignmentFactory,
     PatientFactory,
 )
+from apps.shared.tests.types import CareScenario
 
 LIST_URL = "/api/v1/patients/"
 
 
-def _ids(response) -> set[str]:
+def _ids(response: Response) -> set[str]:
     return {item["id"] for item in response.data["results"]}
 
 
 @pytest.mark.django_db
-def test_caregiver_sees_only_assigned_patient(api: APIClient, care_scenario) -> None:
+def test_caregiver_sees_only_assigned_patient(api: APIClient, care_scenario: CareScenario) -> None:
     api.force_authenticate(user=care_scenario["caregiver"])
 
     response = api.get(LIST_URL)
@@ -29,7 +31,7 @@ def test_caregiver_sees_only_assigned_patient(api: APIClient, care_scenario) -> 
 
 
 @pytest.mark.django_db
-def test_doctor_sees_only_assigned_patient(api: APIClient, care_scenario) -> None:
+def test_doctor_sees_only_assigned_patient(api: APIClient, care_scenario: CareScenario) -> None:
     api.force_authenticate(user=care_scenario["doctor"])
 
     response = api.get(LIST_URL)
@@ -39,7 +41,7 @@ def test_doctor_sees_only_assigned_patient(api: APIClient, care_scenario) -> Non
 
 
 @pytest.mark.django_db
-def test_patient_sees_only_self(api: APIClient, care_scenario) -> None:
+def test_patient_sees_only_self(api: APIClient, care_scenario: CareScenario) -> None:
     api.force_authenticate(user=care_scenario["patient"].user)
 
     response = api.get(LIST_URL)
@@ -49,7 +51,7 @@ def test_patient_sees_only_self(api: APIClient, care_scenario) -> None:
 
 
 @pytest.mark.django_db
-def test_unassigned_patient_detail_is_404(api: APIClient, care_scenario) -> None:
+def test_unassigned_patient_detail_is_404(api: APIClient, care_scenario: CareScenario) -> None:
     api.force_authenticate(user=care_scenario["caregiver"])
 
     response = api.get(f"{LIST_URL}{care_scenario['other_patient'].id}/")
@@ -58,7 +60,9 @@ def test_unassigned_patient_detail_is_404(api: APIClient, care_scenario) -> None
 
 
 @pytest.mark.django_db
-def test_patient_retrieves_self_but_not_another_patient(api: APIClient, care_scenario) -> None:
+def test_patient_retrieves_self_but_not_another_patient(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(user=patient.user)
 
@@ -71,13 +75,13 @@ def test_patient_retrieves_self_but_not_another_patient(api: APIClient, care_sce
 
 
 @pytest.mark.django_db
-def test_inactive_assignments_are_excluded(api: APIClient, care_scenario) -> None:
-    CareAssignmentFactory(
+def test_inactive_assignments_are_excluded(api: APIClient, care_scenario: CareScenario) -> None:
+    CareAssignmentFactory.create(
         patient=care_scenario["other_patient"],
         caregiver=care_scenario["caregiver"],
         active=False,
     )
-    DoctorAssignmentFactory(
+    DoctorAssignmentFactory.create(
         patient=care_scenario["other_patient"],
         doctor=care_scenario["doctor"],
         active=False,
@@ -93,7 +97,7 @@ def test_inactive_assignments_are_excluded(api: APIClient, care_scenario) -> Non
 
 
 @pytest.mark.django_db
-def test_admin_is_forbidden_from_patient_api(api: APIClient, care_scenario) -> None:
+def test_admin_is_forbidden_from_patient_api(api: APIClient, care_scenario: CareScenario) -> None:
     api.force_authenticate(user=care_scenario["admin"])
 
     response = api.get(LIST_URL)
@@ -102,14 +106,14 @@ def test_admin_is_forbidden_from_patient_api(api: APIClient, care_scenario) -> N
 
 
 @pytest.mark.django_db
-def test_patient_list_query_count_is_constant(api: APIClient, care_scenario) -> None:
+def test_patient_list_query_count_is_constant(api: APIClient, care_scenario: CareScenario) -> None:
     caregiver = care_scenario["caregiver"]
     api.force_authenticate(user=caregiver)
     with CaptureQueriesContext(connection) as baseline:
         first = api.get(LIST_URL)
 
     for _ in range(3):
-        CareAssignmentFactory(patient=PatientFactory(), caregiver=caregiver)
+        CareAssignmentFactory.create(patient=PatientFactory.create(), caregiver=caregiver)
     with CaptureQueriesContext(connection) as expanded:
         second = api.get(LIST_URL)
 

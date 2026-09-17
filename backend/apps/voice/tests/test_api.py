@@ -1,15 +1,21 @@
+from typing import cast
 from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
+from pytest_django.fixtures import Settings
+from rest_framework.test import APIClient
 
+from apps.shared.tests.types import CareScenario
 from apps.voice.providers import ProviderResult
 
 pytestmark = pytest.mark.django_db
 
 
 @override_settings(VOICE_LLM_FALLBACK=True)
-def test_low_confidence_provider_result_is_not_returned(api, care_scenario) -> None:
+def test_low_confidence_provider_result_is_not_returned(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     api.force_authenticate(care_scenario["patient"].user)
     with patch(
         "apps.voice.providers.provider.route",
@@ -26,7 +32,9 @@ def test_low_confidence_provider_result_is_not_returned(api, care_scenario) -> N
 
 
 @override_settings(VOICE_LLM_FALLBACK=True)
-def test_provider_can_only_return_allowlisted_structured_intent(api, care_scenario) -> None:
+def test_provider_can_only_return_allowlisted_structured_intent(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     api.force_authenticate(care_scenario["patient"].user)
     with patch(
         "apps.voice.providers.provider.route",
@@ -42,11 +50,13 @@ def test_provider_can_only_return_allowlisted_structured_intent(api, care_scenar
 
 
 @override_settings(VOICE_LLM_FALLBACK=True)
-def test_provider_cannot_return_unstructured_slots(api, care_scenario) -> None:
+def test_provider_cannot_return_unstructured_slots(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     api.force_authenticate(care_scenario["patient"].user)
     with patch(
         "apps.voice.providers.provider.route",
-        return_value=ProviderResult("open_section", {"section": 3}, 0.99),
+        return_value=ProviderResult("open_section", cast(dict[str, str], {"section": 3}), 0.99),
     ):
         response = api.post(
             "/api/v1/voice/route/",
@@ -57,7 +67,9 @@ def test_provider_cannot_return_unstructured_slots(api, care_scenario) -> None:
     assert response.data == {"intent": None, "slots": {}, "confidence": 0}
 
 
-def test_configured_router_handles_provider_outages_and_malformed_replies(settings, monkeypatch):
+def test_configured_router_handles_provider_outages_and_malformed_replies(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
     import json
     from io import BytesIO
 
@@ -71,7 +83,8 @@ def test_configured_router_handles_provider_outages_and_malformed_replies(settin
             json.dumps({"intent": "help", "slots": {}, "confidence": 0.9}).encode()
         ),
     )
-    assert provider.route("help", "en").intent == "help"
+    result = provider.route("help", "en")
+    assert result is not None and result.intent == "help"
     monkeypatch.setattr(
         "apps.voice.providers.urlopen", lambda *args, **kwargs: BytesIO(b"invalid json")
     )

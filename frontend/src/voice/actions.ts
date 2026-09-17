@@ -33,11 +33,11 @@ export async function performAction(
     return;
   }
   if (command.intent === "open_section") {
-    context.navigate(`/patient/${command.slots.section}`);
+    void context.navigate(`/patient/${command.slots.section}`);
     return;
   }
   if (command.intent === "start_game") {
-    context.navigate(
+    void context.navigate(
       command.slots.game
         ? `/patient/games/${command.slots.game}`
         : "/patient/games",
@@ -77,7 +77,7 @@ export async function performAction(
     return;
   }
   if (command.intent === "help") {
-    context.navigate("/patient");
+    void context.navigate("/patient");
     return;
   }
   if (command.intent === "call_person") {

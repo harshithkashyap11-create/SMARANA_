@@ -1,6 +1,5 @@
 """Tests for the custom user model."""
 
-from typing import cast
 from uuid import UUID
 
 import pytest
@@ -11,7 +10,7 @@ from apps.shared.tests.factories import UserFactory
 
 @pytest.mark.django_db
 def test_user_factory_creates_patient_user() -> None:
-    user = cast(User, UserFactory())
+    user = UserFactory.create()
 
     assert isinstance(user.id, UUID)
     assert user.role == User.Role.PATIENT

@@ -1,12 +1,16 @@
+from typing import Any
+
 import pytest
 from django.utils import timezone
+from rest_framework.test import APIClient
 
 from apps.games.models import DifficultyState, GameDefinition, GameSession
+from apps.shared.tests.types import CareScenario
 
 pytestmark = pytest.mark.django_db
 
 
-def payload() -> dict:
+def payload() -> dict[str, Any]:
     return {
         "game_key": "memory_match",
         "seed": "stable-seed",
@@ -28,7 +32,9 @@ def payload() -> dict:
     }
 
 
-def test_patient_session_creates_minimum_difficulty_state(api, care_scenario) -> None:
+def test_patient_session_creates_minimum_difficulty_state(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(patient.user)
     response = api.post(f"/api/v1/patients/{patient.id}/game-sessions/", payload(), format="json")
@@ -40,7 +46,7 @@ def test_patient_session_creates_minimum_difficulty_state(api, care_scenario) ->
     assert GameSession.objects.filter(patient=patient).exists()
 
 
-def test_invalid_metrics_are_rejected(api, care_scenario) -> None:
+def test_invalid_metrics_are_rejected(api: APIClient, care_scenario: CareScenario) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(patient.user)
     invalid = payload()
@@ -50,7 +56,9 @@ def test_invalid_metrics_are_rejected(api, care_scenario) -> None:
     assert GameSession.objects.count() == 0
 
 
-def test_patient_cannot_create_another_patients_session(api, care_scenario) -> None:
+def test_patient_cannot_create_another_patients_session(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     other = care_scenario["other_patient"]
     api.force_authenticate(patient.user)
@@ -58,7 +66,7 @@ def test_patient_cannot_create_another_patients_session(api, care_scenario) -> N
     assert response.status_code == 404
 
 
-def test_authenticated_users_can_list_catalog(api, care_scenario) -> None:
+def test_authenticated_users_can_list_catalog(api: APIClient, care_scenario: CareScenario) -> None:
     api.force_authenticate(care_scenario["caregiver"])
     response = api.get("/api/v1/games/")
     assert response.status_code == 200
@@ -77,3 +85,38 @@ def test_authenticated_users_can_list_catalog(api, care_scenario) -> None:
         "sound_match",
     }
     assert GameDefinition.objects.count() >= 12
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("accuracy", "invalid"),
+        ("accuracy", True),
+        ("rounds", -1),
+        ("mean_reaction_ms", -10),
+        ("mistakes", 1.5),
+    ],
+)
+def test_invalid_numeric_metrics_return_400(
+    api: APIClient, care_scenario: CareScenario, field: str, value: object
+) -> None:
+    patient = care_scenario["patient"]
+    api.force_authenticate(patient.user)
+    data = payload()
+    data["metrics"][field] = value
+    result = api.post(f"/api/v1/patients/{patient.id}/game-sessions/", data, format="json")
+    assert result.status_code == 400
+    assert not GameSession.objects.exists()
+
+
+def test_session_end_before_start_returns_400(api: APIClient, care_scenario: CareScenario) -> None:
+    from datetime import timedelta
+
+    patient = care_scenario["patient"]
+    api.force_authenticate(patient.user)
+    data = payload()
+    data["ended_at"] = (timezone.now() - timedelta(days=1)).isoformat()
+    assert (
+        api.post(f"/api/v1/patients/{patient.id}/game-sessions/", data, format="json").status_code
+        == 400
+    )

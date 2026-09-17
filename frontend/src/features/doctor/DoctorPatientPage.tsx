@@ -33,7 +33,7 @@ export function DoctorPatientPage() {
   return (
     <section className="space-y-5">
       <header>
-        <button type="button" onClick={() => navigate("/doctor")}>
+        <button type="button" onClick={() => void navigate("/doctor")}>
           ← All patients
         </button>
         <h1 className="mt-2 text-3xl font-bold">{patient.data.name}</h1>
@@ -51,7 +51,7 @@ export function DoctorPatientPage() {
             className="whitespace-nowrap rounded-full px-4 py-2 aria-[current=page]:bg-primary aria-[current=page]:text-white"
             key={key}
             type="button"
-            onClick={() => navigate(`/doctor/patients/${patientId}/${key}`)}
+            onClick={() => void navigate(`/doctor/patients/${patientId}/${key}`)}
           >
             {label}
           </button>

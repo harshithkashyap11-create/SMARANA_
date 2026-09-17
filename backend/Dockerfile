@@ -17,6 +17,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY --chown=smarana:smarana . .
 
+RUN mkdir -p /app/staticfiles && chown smarana:smarana /app/staticfiles
+
 USER smarana
 
 EXPOSE 8000

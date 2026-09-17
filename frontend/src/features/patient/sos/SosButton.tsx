@@ -8,6 +8,8 @@ import type { CachedFamilyMember } from "../../../db/schema";
 export function SosButton() {
   const { t } = useTranslation();
   const timer = useRef<number>();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [sent, setSent] = useState(false);
   const [shared, setShared] = useState(false);
@@ -46,6 +48,7 @@ export function SosButton() {
         <button
           aria-label={t("sos.label")}
           className="patient-sos-button fixed bottom-24 right-4 z-20 rounded-full bg-warn text-bg font-bold shadow-card"
+          disabled={busy}
           type="button"
           onClick={(event) => {
             if (event.detail === 0) setConfirm(true);
@@ -57,6 +60,7 @@ export function SosButton() {
           {t("sos.label")}
         </button>
       )}
+      {error && <p role="alert">{t("auth.errors.request_not_completed")}</p>}
       <ConfirmDialog
         noLabel={t("sos.no")}
         open={confirm}
@@ -66,11 +70,13 @@ export function SosButton() {
         onNo={() => setConfirm(false)}
         onYes={() => {
           setConfirm(false);
+          setBusy(true);
+          setError(false);
           void sendSos().then(async (shared) => {
             setShared(shared);
-            setContacts(await patientRepository.getFamilyMembers());
             setSent(true);
-          });
+            setContacts(await patientRepository.getFamilyMembers().catch(() => []));
+          }).catch(() => setError(true)).finally(() => setBusy(false));
         }}
       />
     </>

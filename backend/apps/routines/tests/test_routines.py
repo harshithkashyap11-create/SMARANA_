@@ -19,7 +19,7 @@ from apps.shared.tests.factories import (
 
 @pytest.fixture
 def item(db: object) -> RoutineItem:
-    patient = PatientFactory()
+    patient = PatientFactory.create()
     return RoutineItem.objects.create(
         patient=patient,
         title="Morning tablet",
@@ -53,8 +53,8 @@ def test_respond_is_idempotent_and_scoped_to_patient(item: RoutineItem) -> None:
     assert client.post(url, payload, format="json").status_code == 201
     assert client.post(url, payload, format="json").status_code == 201
     assert ReminderResponse.objects.count() == 1
-    caregiver = CaregiverFactory()
-    CareAssignmentFactory(patient=item.patient, caregiver=caregiver)
+    caregiver = CaregiverFactory.create()
+    CareAssignmentFactory.create(patient=item.patient, caregiver=caregiver)
     client.force_authenticate(caregiver)
     assert client.post(url, payload, format="json").status_code == 403
 
@@ -95,8 +95,8 @@ def test_progress_contract_has_no_clinical_keys(item: RoutineItem) -> None:
 
 @pytest.mark.django_db
 def test_adherence_is_scoped_and_returns_medicine_statuses(item: RoutineItem) -> None:
-    caregiver = CaregiverFactory()
-    CareAssignmentFactory(patient=item.patient, caregiver=caregiver)
+    caregiver = CaregiverFactory.create()
+    CareAssignmentFactory.create(patient=item.patient, caregiver=caregiver)
     reminder = materialise_reminders(item.patient, timezone.localdate(), 1)[0]
     reminder.status = Reminder.Status.TAKEN
     reminder.save()
@@ -113,17 +113,17 @@ def test_adherence_is_scoped_and_returns_medicine_statuses(item: RoutineItem) ->
     assert response.data["summary"]["taken"] == 1
     assert response.data["days"][-1]["reminders"][0]["responded_at"] is not None
 
-    unassigned = CaregiverFactory()
+    unassigned = CaregiverFactory.create()
     client.force_authenticate(unassigned)
     assert client.get(f"/api/v1/patients/{item.patient.id}/adherence/").status_code == 404
 
 
 @pytest.mark.django_db
 def test_caregiver_cannot_edit_doctor_item_and_history_is_audited(item: RoutineItem) -> None:
-    caregiver = CaregiverFactory()
-    doctor = DoctorFactory(display_name="Dr. Deka")
-    CareAssignmentFactory(patient=item.patient, caregiver=caregiver)
-    DoctorAssignmentFactory(patient=item.patient, doctor=doctor)
+    caregiver = CaregiverFactory.create()
+    doctor = DoctorFactory.create(display_name="Dr. Deka")
+    CareAssignmentFactory.create(patient=item.patient, caregiver=caregiver)
+    DoctorAssignmentFactory.create(patient=item.patient, doctor=doctor)
     item.source = RoutineItem.Source.DOCTOR
     item.created_by = doctor
     item.save()
@@ -144,8 +144,8 @@ def test_caregiver_cannot_edit_doctor_item_and_history_is_audited(item: RoutineI
 
 @pytest.mark.django_db
 def test_doctor_cannot_edit_caregiver_item(item: RoutineItem) -> None:
-    doctor = DoctorFactory()
-    DoctorAssignmentFactory(patient=item.patient, doctor=doctor)
+    doctor = DoctorFactory.create()
+    DoctorAssignmentFactory.create(patient=item.patient, doctor=doctor)
     item.source = RoutineItem.Source.CAREGIVER
     item.save()
     client = APIClient()
@@ -161,8 +161,8 @@ def test_doctor_cannot_edit_caregiver_item(item: RoutineItem) -> None:
 
 @pytest.mark.django_db
 def test_caregiver_delete_soft_deletes_own_item(item: RoutineItem) -> None:
-    caregiver = CaregiverFactory()
-    CareAssignmentFactory(patient=item.patient, caregiver=caregiver)
+    caregiver = CaregiverFactory.create()
+    CareAssignmentFactory.create(patient=item.patient, caregiver=caregiver)
     item.source = RoutineItem.Source.CAREGIVER
     item.created_by = caregiver
     item.save()

@@ -1,3 +1,6 @@
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+from django.apps.registry import Apps
+
 # Generated for the Smārana games engine.
 import uuid
 
@@ -28,7 +31,7 @@ GAMES = [
 ]
 
 
-def seed_games(apps, schema_editor):
+def seed_games(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     game = apps.get_model("games", "GameDefinition")
     for key, name, domains, regional in GAMES:
         game.objects.update_or_create(

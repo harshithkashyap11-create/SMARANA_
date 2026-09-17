@@ -1,3 +1,4 @@
+import { PrivateImage } from "../../../../shared/ui/PrivateImage";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -62,7 +63,7 @@ export function MemoryQuizPage() {
   return (
     <section className="space-y-5">
       {question?.media_url ? (
-        <img
+        <PrivateImage
           alt=""
           className="h-56 w-full rounded-card object-cover"
           src={question.media_url}
@@ -82,13 +83,13 @@ export function MemoryQuizPage() {
       ) : null}
       <BigButton
         variant="secondary"
-        onClick={() => navigate("/patient/memories")}
+        onClick={() => void navigate("/patient/memories")}
       >
         {t("quiz.enough")}
       </BigButton>
       <BreakPrompt
         open={breakOpen}
-        onBreak={() => navigate("/patient/memories")}
+        onBreak={() => void navigate("/patient/memories")}
         onContinue={() => {
           suppressUntil.current = events.current.length + 3;
           setBreakOpen(false);

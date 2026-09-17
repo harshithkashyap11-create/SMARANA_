@@ -89,9 +89,7 @@ def upsert_medication(
         raise UserFacingError("doctor_required", status_code=403)
     before = _medication_snapshot(medication) if medication else None
     if medication is None:
-        medication = Medication.objects.create(
-            patient=patient, prescribed_by=actor, **fields
-        )
+        medication = Medication.objects.create(patient=patient, prescribed_by=actor, **fields)
     else:
         for field, value in fields.items():
             setattr(medication, field, value)
@@ -187,12 +185,20 @@ def materialise_reminders(
 def record_response(
     *, reminder: Reminder, action: str, responded_at: datetime, idempotency_key: UUID
 ) -> ReminderResponse:
+    reminder = Reminder.objects.select_for_update().get(pk=reminder.pk)
     response, created = ReminderResponse.objects.get_or_create(
         idempotency_key=idempotency_key,
         defaults={"reminder": reminder, "action": action, "responded_at": responded_at},
     )
+    if response.reminder_id != reminder.id:
+        raise UserFacingError("request_key_in_use", status_code=400)
     if created:
-        reminder.status = action
-        reminder.snoozed_until = responded_at + timedelta(minutes=15) if action == "later" else None
+        latest = reminder.responses.order_by("-responded_at", "-created_at").first()
+        if latest is None:
+            raise RuntimeError("A created reminder response must be queryable")
+        reminder.status = latest.action
+        reminder.snoozed_until = (
+            latest.responded_at + timedelta(minutes=15) if latest.action == "later" else None
+        )
         reminder.save(update_fields=["status", "snoozed_until", "updated_at"])
     return response

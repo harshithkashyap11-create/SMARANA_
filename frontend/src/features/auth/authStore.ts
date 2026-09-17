@@ -21,6 +21,9 @@ import {
 } from "../../api/client";
 import {
   clearOfflineSecrets,
+  revokeOfflineAccess,
+  storeOfflineSecrets,
+  lockOfflineStorage,
   updateEncryptedRefreshToken,
 } from "../../db/crypto";
 
@@ -54,6 +57,7 @@ function applySession(session: LoginResponse): void {
 }
 
 function clearSession(): void {
+  lockOfflineStorage();
   setSessionUser(null);
   refreshToken = null;
   setApiAccessToken(null);
@@ -86,7 +90,7 @@ async function refreshAccessToken(): Promise<string | null> {
         [400, 401, 403].includes(error.status)
       ) {
         clearSession();
-        await clearOfflineSecrets();
+        await revokeOfflineAccess();
       }
       return null;
     } finally {
@@ -112,7 +116,7 @@ export const useAuthStore = create<AuthState>(() => ({
     const session = await v1AuthPatientLoginCreate(credentials, {
       skipAuthRefresh: true,
     });
-    applySession(session);
+    setApiAccessToken(session.access);
     try {
       const patients = await apiClient<{ results: Array<{ id: string }> }>(
         "/api/v1/patients/",
@@ -120,6 +124,8 @@ export const useAuthStore = create<AuthState>(() => ({
       );
       const patient = patients.results[0];
       if (!patient) throw new Error("Patient profile unavailable");
+      await storeOfflineSecrets(credentials.pin, session.refresh, session.user);
+      applySession(session);
       await activatePatient(patient.id, session.user.id);
     } catch (error) {
       clearSession();
@@ -157,4 +163,5 @@ export const useAuthStore = create<AuthState>(() => ({
   },
 }));
 
+if (typeof window !== "undefined") window.addEventListener("smarana:vault-locked", clearSession);
 setApiRefreshHandler(refreshAccessToken);

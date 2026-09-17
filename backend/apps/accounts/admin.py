@@ -2,6 +2,8 @@
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.db.models import QuerySet
+from django.http import HttpRequest
 
 from apps.alerts.services import raise_alert
 from apps.audit.services import audit
@@ -9,13 +11,13 @@ from apps.audit.services import audit
 from .models import DeviceSession, DoctorProfile, User
 
 
-class DoctorProfileInline(admin.StackedInline):
+class DoctorProfileInline(admin.StackedInline[DoctorProfile, User]):
     model = DoctorProfile
     extra = 0
 
 
 @admin.register(User)
-class SmaranaUserAdmin(UserAdmin):
+class SmaranaUserAdmin(UserAdmin[User]):
     inlines = (DoctorProfileInline,)
     actions = (
         "approve_selected",
@@ -64,11 +66,11 @@ class SmaranaUserAdmin(UserAdmin):
         ),
     )
     list_display = ("username", "display_name", "role", "is_approved", "is_staff")
-    list_filter = UserAdmin.list_filter + ("role", "is_approved", "theme")
+    list_filter = (*UserAdmin.list_filter, "role", "is_approved", "theme")
     search_fields = ("username", "display_name", "email", "phone")
 
     @admin.action(description="Approve selected")
-    def approve_selected(self, request, queryset) -> None:
+    def approve_selected(self, request: HttpRequest, queryset: QuerySet[User]) -> None:
         for user in queryset.filter(role__in=[User.Role.DOCTOR, User.Role.CAREGIVER]):
             user.is_approved = True
             user.save(update_fields=["is_approved"])
@@ -77,14 +79,14 @@ class SmaranaUserAdmin(UserAdmin):
             audit(request.user, "approve", user)
 
     @admin.action(description="Deactivate selected")
-    def deactivate_selected(self, request, queryset) -> None:
+    def deactivate_selected(self, request: HttpRequest, queryset: QuerySet[User]) -> None:
         for user in queryset:
             user.is_active = False
             user.save(update_fields=["is_active"])
             audit(request.user, "deactivate", user)
 
     @admin.action(description="Force logout")
-    def force_logout(self, request, queryset) -> None:
+    def force_logout(self, request: HttpRequest, queryset: QuerySet[User]) -> None:
         from rest_framework_simplejwt.token_blacklist.models import (
             BlacklistedToken,
             OutstandingToken,
@@ -97,11 +99,11 @@ class SmaranaUserAdmin(UserAdmin):
             audit(request.user, "force_logout", user)
 
     @admin.action(description="Lock account")
-    def lock_account(self, request, queryset) -> None:
+    def lock_account(self, request: HttpRequest, queryset: QuerySet[User]) -> None:
         self.deactivate_selected(request, queryset)
 
     @admin.action(description="Send PIN reset request")
-    def request_pin_reset(self, request, queryset) -> None:
+    def request_pin_reset(self, request: HttpRequest, queryset: QuerySet[User]) -> None:
         for user in queryset.filter(role=User.Role.PATIENT).select_related("patient_profile"):
             patient = user.patient_profile
             raise_alert(

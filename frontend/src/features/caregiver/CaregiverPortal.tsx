@@ -145,7 +145,7 @@ export function CaregiverPortal() {
             className="ml-2"
             value={patientId}
             onChange={(event) =>
-              navigate(`/caregiver/${event.target.value}/${tab}`)
+              void navigate(`/caregiver/${event.target.value}/${tab}`)
             }
           >
             {patients.data.map((item) => (
@@ -166,7 +166,7 @@ export function CaregiverPortal() {
             aria-current={tab === item ? "page" : undefined}
             className="whitespace-nowrap rounded-full px-4 py-2 aria-[current=page]:bg-primary aria-[current=page]:text-white"
             key={item}
-            onClick={() => navigate(`/caregiver/${patientId}/${item}`)}
+            onClick={() => void navigate(`/caregiver/${patientId}/${item}`)}
           >
             {item
               .split("-")

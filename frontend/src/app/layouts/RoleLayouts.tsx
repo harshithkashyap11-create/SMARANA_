@@ -46,7 +46,7 @@ export function ProLayout() {
         <button
           className="min-h-[44px] px-3"
           type="button"
-          onClick={() => void logout().then(() => navigate("/"))}
+          onClick={() => void logout().then(() => void navigate("/"))}
         >
           {t("auth.logout")}
         </button>
@@ -83,7 +83,7 @@ export function PatientLayout() {
   ] as const;
 
   const leave = (): void => {
-    void logout().then(() => navigate("/", { replace: true }));
+    void logout().then(() => void navigate("/", { replace: true }));
   };
 
   return (
@@ -94,7 +94,7 @@ export function PatientLayout() {
         <button
           className="min-h-touch justify-self-start px-2 font-bold"
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => void navigate(-1)}
         >
           ← {t("auth.back")}
         </button>
@@ -121,7 +121,7 @@ export function PatientLayout() {
             className="min-h-touch px-1 text-sm font-bold"
             key={item}
             type="button"
-            onClick={() => navigate(navRoutes[index] ?? "/patient")}
+            onClick={() => void navigate(navRoutes[index] ?? "/patient")}
           >
             <span aria-hidden="true" className="block text-2xl">
               {item === "home"

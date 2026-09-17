@@ -8,7 +8,7 @@ Smārana is an offline-capable care and memory-support platform for elderly peop
 - Docker Desktop or Docker Engine with Docker Compose
 - GNU Make
 
-Node.js 20 and Python 3.12 are supplied by the development containers, so they are not required on the host for the standard workflow.
+Node.js 22 and Python 3.12 are supplied by the development containers, so they are not required on the host for the standard workflow.
 
 ## Start the development environment
 
@@ -55,7 +55,7 @@ make up      # build and start all services
 make down    # stop all services
 make test    # run the current backend and frontend checks
 make lint    # run the current backend and frontend static checks
-make seed    # seed command placeholder until demo data is introduced
+make seed    # create synthetic demo accounts and care records
 ```
 
 You can inspect service state and logs directly:
@@ -108,3 +108,13 @@ To verify the actual offline backend round trip with this demo backend running:
 cd frontend
 SMARANA_REAL_BACKEND=1 npx playwright test e2e/offline-real.spec.ts
 ```
+
+
+## Production deployment
+
+The development Compose setup is not suitable for production. See
+[the engineering review and deployment runbook](ENGINEERING_REVIEW.md) for current
+release blockers, verified workflows, and the required deployment sequence.
+`docker-compose.prod.yml` builds a static frontend and runs Gunicorn/Celery against
+externally provisioned PostgreSQL, Redis, private S3 and SMTP, behind HTTPS ingress.
+It has not yet been built and validated against those real production services.

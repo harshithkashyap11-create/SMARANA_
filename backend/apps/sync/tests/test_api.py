@@ -1,14 +1,19 @@
+from typing import Any
 from uuid import uuid4
 
 import pytest
+from rest_framework.test import APIClient
 
 from apps.routines.models import RoutineItem
+from apps.shared.tests.types import CareScenario
 from apps.sync.models import IdempotencyRecord, SyncRejection
 
 pytestmark = pytest.mark.django_db
 
 
-def test_bad_database_write_does_not_break_next_item(api, care_scenario) -> None:
+def test_bad_database_write_does_not_break_next_item(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(patient.user)
     bad = _item(str(patient.id))
@@ -21,7 +26,9 @@ def test_bad_database_write_does_not_break_next_item(api, care_scenario) -> None
     assert not IdempotencyRecord.objects.filter(key=bad["idempotency_key"]).exists()
 
 
-def test_malformed_object_id_is_rejected_per_item(api, care_scenario) -> None:
+def test_malformed_object_id_is_rejected_per_item(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(patient.user)
     bad = _item(str(patient.id))
@@ -32,7 +39,7 @@ def test_malformed_object_id_is_rejected_per_item(api, care_scenario) -> None:
     assert len(response.data["accepted"]) == len(response.data["rejected"]) == 1
 
 
-def _item(patient_id: str, *, source: str = "patient") -> dict:
+def _item(patient_id: str, *, source: str = "patient") -> dict[str, Any]:
     object_id = str(uuid4())
     return {
         "outbox_id": str(uuid4()),
@@ -51,7 +58,7 @@ def _item(patient_id: str, *, source: str = "patient") -> dict:
     }
 
 
-def test_push_is_idempotent(api, care_scenario) -> None:
+def test_push_is_idempotent(api: APIClient, care_scenario: CareScenario) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(patient.user)
     item = _item(str(patient.id))
@@ -64,7 +71,9 @@ def test_push_is_idempotent(api, care_scenario) -> None:
     assert IdempotencyRecord.objects.filter(key=item["idempotency_key"]).count() == 1
 
 
-def test_push_rejects_foreign_patient_and_disallowed_source(api, care_scenario) -> None:
+def test_push_rejects_foreign_patient_and_disallowed_source(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(patient.user)
     foreign = _item(str(care_scenario["other_patient"].id))
@@ -81,7 +90,7 @@ def test_push_rejects_foreign_patient_and_disallowed_source(api, care_scenario) 
     assert SyncRejection.objects.filter(user=patient.user).count() == 2
 
 
-def test_push_rejects_unknown_models(api, care_scenario) -> None:
+def test_push_rejects_unknown_models(api: APIClient, care_scenario: CareScenario) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(patient.user)
     item = _item(str(patient.id))
@@ -93,7 +102,9 @@ def test_push_rejects_unknown_models(api, care_scenario) -> None:
     assert response.data["rejected"][0]["code"] == "validation"
 
 
-def test_invalid_payload_is_dead_lettered_for_the_sync_error_alert(api, care_scenario) -> None:
+def test_invalid_payload_is_dead_lettered_for_the_sync_error_alert(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(patient.user)
     item = _item(str(patient.id))

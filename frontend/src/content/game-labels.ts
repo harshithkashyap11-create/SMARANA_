@@ -12,5 +12,6 @@ export function gameLabel(
           ? "games.rhythmAssam"
           : "games.rhythmGeneric",
     );
-  return fallback;
+  const translation = `gameNames.${key}`;
+  return i18n.exists(translation) ? i18n.t(translation) : fallback;
 }

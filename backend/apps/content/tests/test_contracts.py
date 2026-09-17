@@ -4,7 +4,7 @@ from django.core.management.base import CommandError
 from apps.content.contracts import validate_tags
 
 
-def test_scene_variants_contract():
+def test_scene_variants_contract() -> None:
     validate_tags(
         "routine_scene",
         {
@@ -26,6 +26,6 @@ def test_scene_variants_contract():
         {"variants": [{"imageUrl": "/x", "differences": [{"id": "x"}]}]},
     ],
 )
-def test_invalid_variants_are_rejected(tags):
+def test_invalid_variants_are_rejected(tags: dict[str, object]) -> None:
     with pytest.raises(CommandError):
         validate_tags("routine_scene", tags)

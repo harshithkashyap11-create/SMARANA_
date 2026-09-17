@@ -1,12 +1,19 @@
+from pathlib import Path
+
 import pytest
 from django.core.exceptions import ValidationError
+from django.test import Client
+from rest_framework.test import APIClient
 
 from apps.content.models import ContentItem, Region
+from apps.shared.tests.types import CareScenario
 
 pytestmark = pytest.mark.django_db
 
 
-def test_missing_translation_report_renders_and_has_navigation(client, care_scenario) -> None:
+def test_missing_translation_report_renders_and_has_navigation(
+    client: Client, care_scenario: CareScenario
+) -> None:
     from apps.content.models import Language
 
     user = care_scenario["admin"]
@@ -31,13 +38,17 @@ def test_missing_translation_report_renders_and_has_navigation(client, care_scen
     assert b"missing-translations/" in listing.content
 
 
-def test_missing_translation_report_requires_content_permission(client, care_scenario) -> None:
+def test_missing_translation_report_requires_content_permission(
+    client: Client, care_scenario: CareScenario
+) -> None:
     client.force_login(care_scenario["admin"])
     response = client.get("/admin/content/contentitem/missing-translations/")
     assert response.status_code == 403
 
 
-def test_admin_publish_rejects_reviewed_content_without_reviewer(client, care_scenario) -> None:
+def test_admin_publish_rejects_reviewed_content_without_reviewer(
+    client: Client, care_scenario: CareScenario
+) -> None:
     user = care_scenario["admin"]
     user.is_superuser = True
     user.save()
@@ -57,7 +68,7 @@ def test_admin_publish_rejects_reviewed_content_without_reviewer(client, care_sc
     assert b"Only reviewed content with a reviewer can be published." in response.content
 
 
-def test_pack_excludes_unpublished_and_changes_version_when_published(api) -> None:
+def test_pack_excludes_unpublished_and_changes_version_when_published(api: APIClient) -> None:
     region = Region.objects.create(code="ZZ", name="Test region")
     item = ContentItem.objects.create(region=region, kind="place", title="Draft place")
     response = api.get("/api/v1/content/pack/?region=ZZ&lang=en")
@@ -88,7 +99,7 @@ def test_content_item_cannot_publish_without_reviewer() -> None:
         item.full_clean()
 
 
-def test_import_preserves_curated_content(tmp_path, care_scenario) -> None:
+def test_import_preserves_curated_content(tmp_path: Path, care_scenario: CareScenario) -> None:
     from django.core.management import call_command
 
     region = Region.objects.create(code="ZW", name="Importer test")
@@ -109,7 +120,7 @@ def test_import_preserves_curated_content(tmp_path, care_scenario) -> None:
     assert item.title_translations == {"as": "Translation"}
 
 
-def test_import_uploads_media_once_and_rejects_unsafe_paths(tmp_path):
+def test_import_uploads_media_once_and_rejects_unsafe_paths(tmp_path: Path) -> None:
     from django.core.management import call_command
     from django.core.management.base import CommandError
 
@@ -137,7 +148,7 @@ def test_import_uploads_media_once_and_rejects_unsafe_paths(tmp_path):
     assert ContentItem.objects.filter(region=region).count() == 1
 
 
-def test_original_manifests_have_target_counts_and_media(tmp_path):
+def test_original_manifests_have_target_counts_and_media(tmp_path: Path) -> None:
     from pathlib import Path
 
     from django.conf import settings
@@ -161,3 +172,44 @@ def test_original_manifests_have_target_counts_and_media(tmp_path):
             assert all(item.image and item.tags["attribution"] for item in items)
             if kind in {"tune", "sound"}:
                 assert all(item.audio for item in items)
+
+
+@pytest.mark.parametrize("language", ["as", "bn", "fr"])
+def test_pack_does_not_silently_substitute_english(
+    api: APIClient, care_scenario: CareScenario, language: str
+) -> None:
+    region = Region.objects.create(code="ZT", name="Translation test")
+    ContentItem.objects.create(
+        region=region,
+        kind="place",
+        title="English only",
+        review_status="published",
+        reviewed_by=care_scenario["admin"],
+    )
+    response = api.get(f"/api/v1/content/pack/?region=ZT&lang={language}")
+    assert response.status_code == 404
+    assert response.data["code"] in {"translation_unavailable", "language_unavailable"}
+
+
+def test_translated_pack_requires_localized_game_metadata(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
+    region = Region.objects.create(code="ZS", name="Localized metadata")
+    item = ContentItem.objects.create(
+        region=region,
+        kind="place",
+        title="Home",
+        title_translations={"as": "ঘৰ"},
+        review_status="published",
+        reviewed_by=care_scenario["admin"],
+    )
+    assert api.get("/api/v1/content/pack/?region=ZS&lang=as").status_code == 404
+    item.tags = {"translations": {"as": {"targets": ["ঘৰ"]}}}
+    item.save()
+    response = api.get("/api/v1/content/pack/?region=ZS&lang=as")
+    assert response.status_code == 200
+    assert response.data["items"]["place"][0]["title"] == "ঘৰ"
+    assert response.data["native_review"] == "not-recorded"
+    item.title_translations = {"as": "   "}
+    item.save()
+    assert api.get("/api/v1/content/pack/?region=ZS&lang=as").status_code == 404

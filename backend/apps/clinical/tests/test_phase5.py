@@ -4,6 +4,7 @@ import pytest
 from django.utils import timezone
 from rest_framework.test import APIClient
 
+from apps.accounts.models import User
 from apps.alerts.models import Alert
 from apps.audit.models import AuditEvent
 from apps.clinical.models import ClinicalNote
@@ -20,19 +21,17 @@ from apps.shared.tests.factories import (
 pytestmark = pytest.mark.django_db
 
 
-def _client(user) -> APIClient:
+def _client(user: User) -> APIClient:
     client = APIClient()
     client.force_authenticate(user)
     return client
 
 
 def test_metrics_exclude_guests_and_incomplete_means() -> None:
-    doctor = DoctorFactory()
-    patient = PatientFactory()
-    DoctorAssignmentFactory(doctor=doctor, patient=patient)
-    game = GameDefinition.objects.create(
-        key="recall", name="Recall", cognitive_domains=["memory"]
-    )
+    doctor = DoctorFactory.create()
+    patient = PatientFactory.create()
+    DoctorAssignmentFactory.create(doctor=doctor, patient=patient)
+    game = GameDefinition.objects.create(key="recall", name="Recall", cognitive_domains=["memory"])
     now = timezone.now()
     for index, (accuracy, completed, guest) in enumerate(
         [(0.5, True, False), (1.0, False, False), (0.9, True, True)]
@@ -62,11 +61,11 @@ def test_metrics_exclude_guests_and_incomplete_means() -> None:
 
 
 def test_medication_override_assignment_and_visibility() -> None:
-    doctor = DoctorFactory(display_name="Dr Deka")
-    caregiver = CaregiverFactory()
-    patient = PatientFactory()
-    DoctorAssignmentFactory(doctor=doctor, patient=patient)
-    CareAssignmentFactory(caregiver=caregiver, patient=patient)
+    doctor = DoctorFactory.create(display_name="Dr Deka")
+    caregiver = CaregiverFactory.create()
+    patient = PatientFactory.create()
+    DoctorAssignmentFactory.create(doctor=doctor, patient=patient)
+    CareAssignmentFactory.create(caregiver=caregiver, patient=patient)
     game = GameDefinition.objects.create(key="sequence", name="Sequence", max_level=8)
     client = _client(doctor)
 
@@ -85,9 +84,12 @@ def test_medication_override_assignment_and_visibility() -> None:
     assert medication.status_code == 201
     assert RoutineItem.objects.filter(source_ref=medication.data["id"]).count() == 2
     assert Alert.objects.filter(patient=patient, rule_key="prescription_updated").exists()
-    assert _client(caregiver).post(
-        f"/api/v1/patients/{patient.id}/medications/", {}, format="json"
-    ).status_code == 403
+    assert (
+        _client(caregiver)
+        .post(f"/api/v1/patients/{patient.id}/medications/", {}, format="json")
+        .status_code
+        == 403
+    )
 
     override = client.post(
         f"/api/v1/patients/{patient.id}/difficulty/{game.key}/override/",

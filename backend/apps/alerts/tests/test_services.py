@@ -10,7 +10,7 @@ from apps.shared.tests.factories import PatientFactory
 
 @pytest.mark.django_db
 def test_raise_alert_creates_open_alert_with_evidence() -> None:
-    patient = PatientFactory()
+    patient = PatientFactory.create()
 
     alert = raise_alert(
         patient=patient,
@@ -28,7 +28,7 @@ def test_raise_alert_creates_open_alert_with_evidence() -> None:
 
 @pytest.mark.django_db
 def test_raise_alert_reuses_existing_open_alert_for_patient_and_rule() -> None:
-    patient = PatientFactory()
+    patient = PatientFactory.create()
     first = raise_alert(
         patient=patient,
         rule_key=Alert.RuleKey.PIN_LOCKOUT,
@@ -60,7 +60,7 @@ def test_raise_alert_reuses_existing_open_alert_for_patient_and_rule() -> None:
 
 @pytest.mark.django_db
 def test_raise_alert_creates_new_alert_after_previous_one_is_closed() -> None:
-    patient = PatientFactory()
+    patient = PatientFactory.create()
     first = raise_alert(
         patient=patient,
         rule_key=Alert.RuleKey.PIN_LOCKOUT,
@@ -85,7 +85,7 @@ def test_raise_alert_creates_new_alert_after_previous_one_is_closed() -> None:
 
 @pytest.mark.django_db
 def test_database_prevents_duplicate_open_alerts() -> None:
-    patient = PatientFactory()
+    patient = PatientFactory.create()
     values = {
         "patient": patient,
         "rule_key": Alert.RuleKey.PIN_LOCKOUT,

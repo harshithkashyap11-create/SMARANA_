@@ -1,18 +1,29 @@
 from datetime import timedelta
+from typing import Any
 from uuid import uuid4
 
 import pytest
+from django.core.mail import EmailMessage
 from django.utils import timezone
+from rest_framework.test import APIClient
 
 from apps.alerts.models import Alert, CheckIn, CheckInResponse, NotificationPreference
 from apps.alerts.notify import notify_alert
 from apps.alerts.rules import engagement_drop, reaction_time_worsening
 from apps.games.models import GameDefinition, GameSession
+from apps.patients.models import PatientProfile
+from apps.shared.tests.types import CareScenario
 
 pytestmark = pytest.mark.django_db
 
 
-def session(patient, game, days, reaction=1000, guest=False):
+def session(
+    patient: PatientProfile,
+    game: GameDefinition,
+    days: int,
+    reaction: int = 1000,
+    guest: bool = False,
+) -> GameSession:
     stamp = timezone.now() - timedelta(days=days)
     return GameSession.objects.create(
         patient=patient,
@@ -26,7 +37,7 @@ def session(patient, game, days, reaction=1000, guest=False):
     )
 
 
-def test_rule_boundaries_and_guest_exclusion(care_scenario):
+def test_rule_boundaries_and_guest_exclusion(care_scenario: CareScenario) -> None:
     patient = care_scenario["patient"]
     game = GameDefinition.objects.create(key="test", name="Test")
     now = timezone.now()
@@ -52,7 +63,9 @@ def test_rule_boundaries_and_guest_exclusion(care_scenario):
     assert reaction_time_worsening(patient, now) is None
 
 
-def test_preferences_owned_and_delivery_respected(api, care_scenario, mailoutbox):
+def test_preferences_owned_and_delivery_respected(
+    api: APIClient, care_scenario: CareScenario, mailoutbox: list[EmailMessage]
+) -> None:
     caregiver = care_scenario["caregiver"]
     api.force_authenticate(caregiver)
     for channel in ["in_app", "email"]:
@@ -69,6 +82,7 @@ def test_preferences_owned_and_delivery_respected(api, care_scenario, mailoutbox
         == 400
     )
     row = NotificationPreference.objects.filter(user=caregiver, channel="in_app").first()
+    assert row is not None
     api.force_authenticate(care_scenario["other_caregiver"])
     assert (
         api.patch(f"/api/v1/notification-preferences/{row.id}/", {"enabled": True}).status_code
@@ -90,7 +104,7 @@ def test_preferences_owned_and_delivery_respected(api, care_scenario, mailoutbox
     assert len(alert.notified) == 1
 
 
-def test_checkin_sync_ownership_and_replay(api, care_scenario):
+def test_checkin_sync_ownership_and_replay(api: APIClient, care_scenario: CareScenario) -> None:
     patient = care_scenario["patient"]
     url = f"/api/v1/patients/{patient.id}/checkins/"
     api.force_authenticate(care_scenario["other_caregiver"])
@@ -111,7 +125,7 @@ def test_checkin_sync_ownership_and_replay(api, care_scenario):
         "responded_at": timezone.now().isoformat(),
         "device_updated_at": timezone.now().isoformat(),
     }
-    item = {
+    item: dict[str, Any] = {
         "outbox_id": str(uuid4()),
         "model": "checkin_response",
         "object_id": response_id,
@@ -133,7 +147,9 @@ def test_checkin_sync_ownership_and_replay(api, care_scenario):
     assert CheckInResponse.objects.count() == 1
 
 
-def test_preference_crud_defaults_and_duplicate_patch(api, care_scenario):
+def test_preference_crud_defaults_and_duplicate_patch(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     api.force_authenticate(care_scenario["caregiver"])
     first = api.post(
         "/api/v1/notification-preferences/", {"channel": "in_app", "rule_key": "engagement_drop"}

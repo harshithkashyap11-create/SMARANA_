@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import pytest
 from django.utils import timezone
+from rest_framework.test import APIClient
 
 from apps.alerts.rules import low_mood_3d
 from apps.audit.models import AuditEvent
@@ -17,11 +18,14 @@ from apps.patients.models import ConsentSettings
 from apps.routines.conflicts import conflicts
 from apps.routines.models import MoodLog
 from apps.shared.tests.factories import RoutineItemFactory
+from apps.shared.tests.types import CareScenario
 
 pytestmark = pytest.mark.django_db
 
 
-def test_guest_preserves_existing_and_absent_difficulty(api, care_scenario):
+def test_guest_preserves_existing_and_absent_difficulty(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(patient.user)
     url = f"/api/v1/patients/{patient.id}/game-sessions/"
@@ -43,7 +47,9 @@ def test_guest_preserves_existing_and_absent_difficulty(api, care_scenario):
     assert doctor_dashboard(care_scenario["doctor"]) == dashboard
 
 
-def test_caregiver_can_only_post_practice_for_assigned_patient(api, care_scenario):
+def test_caregiver_can_only_post_practice_for_assigned_patient(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     api.force_authenticate(care_scenario["caregiver"])
     url = f"/api/v1/patients/{care_scenario['patient'].id}/game-sessions/"
     assert api.post(url, payload(), format="json").status_code == 404
@@ -52,7 +58,9 @@ def test_caregiver_can_only_post_practice_for_assigned_patient(api, care_scenari
     assert api.post(url, {**payload(), "guest_mode": True}, format="json").status_code == 404
 
 
-def test_wellness_consent_and_audited_correction(api, care_scenario):
+def test_wellness_consent_and_audited_correction(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     url = f"/api/v1/patients/{patient.id}/mood-logs/"
     api.force_authenticate(patient.user)
@@ -78,18 +86,19 @@ def test_wellness_consent_and_audited_correction(api, care_scenario):
     assert api.get(other_url).status_code == 404
 
 
-def test_offline_wellness_push_replay_and_pull(api, care_scenario):
+def test_offline_wellness_push_replay_and_pull(api: APIClient, care_scenario: CareScenario) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(patient.user)
     now = timezone.now().isoformat()
     items = []
-    for model, fields in [
+    entries: list[tuple[str, dict[str, object]]] = [
         ("mood_log", {"mood": "ok", "logged_at": now}),
         (
             "sleep_log",
             {"date": "2026-09-16", "bed_time": "22:00", "wake_time": "07:00", "quality": 4},
         ),
-    ]:
+    ]
+    for model, fields in entries:
         log_id = str(uuid4())
         items.append(
             {
@@ -116,7 +125,9 @@ def test_offline_wellness_push_replay_and_pull(api, care_scenario):
     assert len(response.data["records"]["sleep_logs"]) == 1
 
 
-def test_low_mood_requires_three_consecutive_latest_daily_entries(care_scenario):
+def test_low_mood_requires_three_consecutive_latest_daily_entries(
+    care_scenario: CareScenario,
+) -> None:
     patient = care_scenario["patient"]
     now = timezone.now()
     for offset in range(3):
@@ -140,9 +151,9 @@ def test_low_mood_requires_three_consecutive_latest_daily_entries(care_scenario)
     assert low_mood_3d(patient, now) is None
 
 
-def test_conflicts_respect_days_dates_and_edit_self(care_scenario):
+def test_conflicts_respect_days_dates_and_edit_self(care_scenario: CareScenario) -> None:
     patient = care_scenario["patient"]
-    row = RoutineItemFactory(
+    row = RoutineItemFactory.create(
         patient=patient,
         time_of_day=time(8),
         days_of_week=[0],
@@ -162,7 +173,9 @@ def test_conflicts_respect_days_dates_and_edit_self(care_scenario):
     assert not conflicts(patient, fields, row)
 
 
-def test_timeline_order_filters_permissions_and_private_notes(api, care_scenario):
+def test_timeline_order_filters_permissions_and_private_notes(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     for visibility in ["care_team", "doctor_only"]:
         ClinicalNote.objects.create(
@@ -189,7 +202,9 @@ def test_timeline_order_filters_permissions_and_private_notes(api, care_scenario
     assert api.get(url).status_code == 403
 
 
-def test_sleep_validation_consent_and_care_team_contacts(api, care_scenario):
+def test_sleep_validation_consent_and_care_team_contacts(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     api.force_authenticate(care_scenario["caregiver"])
     url = f"/api/v1/patients/{patient.id}/sleep-logs/"

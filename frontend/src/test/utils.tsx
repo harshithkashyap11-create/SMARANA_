@@ -35,10 +35,6 @@ export function renderWithProviders(
             <AppContextProvider repos={repos} role={role}>
               <MemoryRouter
                 initialEntries={[route]}
-                future={{
-                  v7_relativeSplatPath: true,
-                  v7_startTransition: true,
-                }}
               >
                 <ThemeProvider>{children}</ThemeProvider>
               </MemoryRouter>

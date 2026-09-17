@@ -9,6 +9,7 @@ export interface ContentItem {
   tags?: Record<string, unknown>;
 }
 export interface ContentPack {
+  provenance?: { region: string; language: string; source: "demo" | "regional"; nativeReview: "unreviewed" };
   family?: Array<ContentItem & { relationship: string }>;
   sounds?: ContentItem[];
   words?: ContentItem[];
@@ -215,6 +216,8 @@ export const defaultPack: ContentPack = {
 };
 
 export type RemotePack = {
+  language?: string;
+  content_status?: string;
   region?: string;
   version: string;
   items: Record<
@@ -248,15 +251,14 @@ function item(value: RemotePack["items"][string][number]): ContentItem {
 
 export function packFromRemote(remote: RemotePack): ContentPack {
   const items = remote.items;
-  const fallback = <T>(value: T[] | undefined, base: T[]) =>
-    value?.length ? value : base;
-  const dishes = fallback(items.dish?.map(item), defaultPack.dishes);
-  const festivals = fallback(items.festival?.map(item), defaultPack.festivals);
-  const words = fallback(items.word?.map(item), defaultPack.sequenceItems);
+  const available = <T>(value: T[] | undefined) => value ?? [];
+  const dishes = available(items.dish?.map(item));
+  const festivals = available(items.festival?.map(item));
+  const words = available(items.word?.map(item));
   return {
     sounds: items.sound?.map(item) ?? [],
     words: words,
-    places: fallback(items.place?.map(item), defaultPack.places ?? []),
+    places: available(items.place?.map(item)),
     dishes,
     festivals,
     sequenceItems: words.map((word, index) => ({
@@ -273,24 +275,21 @@ export function packFromRemote(remote: RemotePack): ContentPack {
     sortingItems: [
       ...dishes.map((value) => ({ ...value, category: "Food" })),
       ...festivals.map((value) => ({ ...value, category: "Festival" })),
-      ...defaultPack.sortingItems.filter(
-        (value) => value.category === "Tool" || value.category === "Nature",
-      ),
+
     ],
-    routineScenes: fallback(
+    routineScenes: available(
       items.routine_scene?.map((value) => ({
         ...item(value),
         targets:
           (value.tags.targets as string[] | undefined) ??
-          defaultPack.routineScenes[0]!.targets,
+          [],
         distractors:
           (value.tags.distractors as string[] | undefined) ??
-          defaultPack.routineScenes[0]!.distractors,
+          [],
       })),
-      defaultPack.routineScenes,
     ),
-    tunes: fallback(items.tune?.map(item), defaultPack.tunes),
-    activities: fallback(
+    tunes: available(items.tune?.map(item)),
+    activities: available(
       items.activity?.map((value) => ({
         ...item(value),
         steps:
@@ -306,9 +305,8 @@ export function packFromRemote(remote: RemotePack): ContentPack {
                   "imageUrl" in step &&
                   typeof step.imageUrl === "string",
               )
-            : defaultPack.activities[0]!.steps,
+            : [],
       })),
-      defaultPack.activities,
     ),
   };
 }
@@ -317,29 +315,30 @@ export async function loadPack(
   region = "AS",
   lang = "en",
 ): Promise<ContentPack> {
-  const demonstration = packFromRemote(
-    (demoPacks as unknown as Record<string, RemotePack>)[region] ??
-      demoPacks.AS,
-  );
+  const regionalDemo = (demoPacks as unknown as Record<string, RemotePack>)[region];
+  // Repository demo packs contain English practice material only. No region/language substitution.
+  const demonstration = lang === "en" && regionalDemo
+    ? { ...packFromRemote(regionalDemo), provenance: { region, language: "en", source: "demo" as const, nativeReview: "unreviewed" as const } }
+    : undefined;
   const cacheKey = `pack:${region}:${lang}`;
   let cachedPack: ContentPack | undefined;
   try {
     const { db } = await import("../db/schema");
     const cached = await db.contentPacks.get(cacheKey);
-    cachedPack = cached?.pack as ContentPack | undefined;
+    const candidate = cached?.pack as ContentPack | undefined;
+    cachedPack = candidate?.provenance?.region === region && candidate.provenance.language === lang ? candidate : undefined;
     const cachedVersion =
       typeof cached?.version === "string" ? cached.version : undefined;
     const response = await fetch(
       `/api/v1/content/pack/?region=${encodeURIComponent(region)}&lang=${encodeURIComponent(lang)}`,
       { headers: cachedVersion ? { "If-None-Match": cachedVersion } : {} },
     );
-    if (response.status === 304 && cached?.pack)
-      return cached.pack as ContentPack;
+    if (response.status === 304 && cachedPack) return cachedPack;
     if (!response.ok) throw new Error("Content pack unavailable");
     const remote = (await response.json()) as RemotePack;
-    const pack = Object.values(remote.items).some((items) => items.length)
-      ? packFromRemote(remote)
-      : demonstration;
+    if (remote.region !== region || remote.language !== lang) throw new Error("Content pack scope mismatch");
+    if (!Object.values(remote.items).some((items) => items.length)) throw new Error("Empty content pack");
+    const pack: ContentPack = { ...packFromRemote(remote), provenance: { region, language: lang, source: remote.content_status === "demo" ? "demo" : "regional", nativeReview: "unreviewed" } };
     await db.contentPacks.put({
       id: cacheKey,
       patientId: "public",
@@ -360,7 +359,9 @@ export async function loadPack(
       );
     return pack;
   } catch {
-    return cachedPack ?? demonstration;
+    if (cachedPack) return cachedPack;
+    if (demonstration) return demonstration;
+    throw new Error(`Content unavailable for ${region}/${lang}`);
   }
 }
 

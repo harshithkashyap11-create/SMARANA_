@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { GameModule } from "../engine/types";
 
 interface DemoRound {
@@ -11,14 +12,16 @@ export const demoTap: GameModule<DemoRound> = {
   roundsForLevel: () => 3,
   buildRound: (_level, rng) => ({ expected: rng.int(2) }),
   score: (round, answer) => ({ correct: answer.value === round.expected }),
-  Render: ({ round, onAnswer, onHint }) => (
+  Render: function DemoTapView({ round, onAnswer, onHint }) {
+    const { t } = useTranslation();
+    return (
     <div>
       <button type="button" onClick={() => onAnswer({ value: round.expected })}>
-        Tap
+        {t("gameInstructions.tapButton")}
       </button>
       <button type="button" onClick={onHint}>
-        Hint
+        {t("gameInstructions.hint")}
       </button>
     </div>
-  ),
+  ); },
 };

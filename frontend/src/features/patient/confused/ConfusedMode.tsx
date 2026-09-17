@@ -1,3 +1,4 @@
+import { PrivateImage } from "../../../shared/ui/PrivateImage";
 import { createPortal } from "react-dom";
 import { speak } from "../../../shared/hooks/useTts";
 import { useEffect, useRef, useState } from "react";
@@ -42,7 +43,7 @@ export function ConfusedMode() {
   useEffect(() => () => useCalmStore.getState().setCalmMode(false), []);
   const go = (path: string) => {
     setCalmMode(false);
-    navigate(path);
+    void navigate(path);
   };
   return (
     <>
@@ -79,7 +80,7 @@ export function ConfusedMode() {
           >
             <h1 className="text-3xl">{t("confused.comfort")}</h1>
             {photo && (
-              <img
+              <PrivateImage
                 className="h-32 w-32 shrink-0 rounded-card object-cover sm:h-48 sm:w-48"
                 alt={t("confused.photo")}
                 src={photo}

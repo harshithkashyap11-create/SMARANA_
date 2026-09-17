@@ -64,7 +64,23 @@ class HttpJsonProvider:
                 data = json.loads(raw)
             if not isinstance(data, dict):
                 return None
-            return ProviderResult(data.get("intent"), data.get("slots"), data.get("confidence"))
+            intent, slots, confidence = (
+                data.get("intent"),
+                data.get("slots"),
+                data.get("confidence"),
+            )
+            if (
+                not isinstance(intent, str)
+                or not isinstance(slots, dict)
+                or not isinstance(confidence, (int, float))
+            ):
+                return None
+            typed_slots: dict[str, str] = {}
+            for key, value in slots.items():
+                if not isinstance(key, str) or not isinstance(value, str):
+                    return None
+                typed_slots[key] = value
+            return ProviderResult(intent, typed_slots, float(confidence))
         except Exception:
             logging.getLogger(__name__).warning("voice_router_unavailable")
             return None

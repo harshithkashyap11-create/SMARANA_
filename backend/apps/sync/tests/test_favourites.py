@@ -1,15 +1,21 @@
+from collections.abc import Mapping
 from datetime import timedelta
 from uuid import uuid4
 
 import pytest
 from django.utils import timezone
+from rest_framework.response import Response
+from rest_framework.test import APIClient
 
 from apps.games.models import GameDefinition
+from apps.shared.tests.types import CareScenario
 
 pytestmark = pytest.mark.django_db
 
 
-def test_favourites_are_patient_scoped_and_ordered(api, care_scenario):
+def test_favourites_are_patient_scoped_and_ordered(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
     patient = care_scenario["patient"]
     game = GameDefinition.objects.get(key="word_pairs")
     stamp = timezone.now()
@@ -21,7 +27,7 @@ def test_favourites_are_patient_scoped_and_ordered(api, care_scenario):
     }
     api.force_authenticate(patient.user)
 
-    def push(p):
+    def push(p: Mapping[str, object]) -> Response:
         return api.post(
             "/api/v1/sync/push/",
             {
