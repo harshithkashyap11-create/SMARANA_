@@ -1,0 +1,329 @@
+[
+  {
+    "group": "START_GAME",
+    "text": "Start Sequence Recall",
+    "intent": "start_game",
+    "entities": {
+      "game": "sequence_recall"
+    }
+  },
+  {
+    "group": "START_GAME",
+    "text": "Let's play sequence recall",
+    "intent": "start_game",
+    "entities": {
+      "game": "sequence_recall"
+    }
+  },
+  {
+    "group": "START_GAME",
+    "text": "I want to play a memory game",
+    "intent": "start_game",
+    "entities": {
+      "game": "memory_match"
+    }
+  },
+  {
+    "group": "START_GAME",
+    "text": "Can we do Memory Match?",
+    "intent": "start_game",
+    "entities": {
+      "game": "memory_match"
+    }
+  },
+  {
+    "group": "START_GAME",
+    "text": "Play Memory Match",
+    "intent": "start_game",
+    "entities": {
+      "game": "memory_match"
+    }
+  },
+  {
+    "group": "START_GAME",
+    "text": "Open Object Sorting",
+    "intent": "start_game",
+    "entities": {
+      "game": "object_sorting"
+    }
+  },
+  {
+    "group": "START_GAME",
+    "text": "Start the sequence game",
+    "intent": "start_game",
+    "entities": {
+      "game": "sequence_recall"
+    }
+  },
+  {
+    "group": "START_GAME",
+    "text": "Can you start Find the Change?",
+    "intent": "start_game",
+    "entities": {
+      "game": "find_the_change"
+    }
+  },
+  {
+    "group": "STOP_GAME",
+    "text": "Stop the game",
+    "intent": "stop_game",
+    "entities": {}
+  },
+  {
+    "group": "STOP_GAME",
+    "text": "Exit this activity",
+    "intent": "stop_game",
+    "entities": {}
+  },
+  {
+    "group": "STOP_GAME",
+    "text": "Quit my game",
+    "intent": "stop_game",
+    "entities": {}
+  },
+  {
+    "group": "STOP_GAME",
+    "text": "Close the game",
+    "intent": "stop_game",
+    "entities": {}
+  },
+  {
+    "group": "STOP_GAME",
+    "text": "Stop playing",
+    "intent": "stop_game",
+    "entities": {}
+  },
+  {
+    "group": "SCHEDULE",
+    "text": "Open my schedule",
+    "intent": "open_section",
+    "entities": {
+      "section": "routine"
+    }
+  },
+  {
+    "group": "SCHEDULE",
+    "text": "What do I have today?",
+    "intent": "open_section",
+    "entities": {
+      "section": "routine"
+    }
+  },
+  {
+    "group": "SCHEDULE",
+    "text": "Show my routine",
+    "intent": "open_section",
+    "entities": {
+      "section": "routine"
+    }
+  },
+  {
+    "group": "SCHEDULE",
+    "text": "Show my reminders",
+    "intent": "open_section",
+    "entities": {
+      "section": "reminders"
+    }
+  },
+  {
+    "group": "SCHEDULE",
+    "text": "Take me to my schedule",
+    "intent": "open_section",
+    "entities": {
+      "section": "routine"
+    }
+  },
+  {
+    "group": "PROGRESS",
+    "text": "Show my progress",
+    "intent": "open_section",
+    "entities": {
+      "section": "progress"
+    }
+  },
+  {
+    "group": "PROGRESS",
+    "text": "How am I doing?",
+    "intent": "open_section",
+    "entities": {
+      "section": "progress"
+    }
+  },
+  {
+    "group": "PROGRESS",
+    "text": "Open progress",
+    "intent": "open_section",
+    "entities": {
+      "section": "progress"
+    }
+  },
+  {
+    "group": "PROGRESS",
+    "text": "Take me to my progress",
+    "intent": "open_section",
+    "entities": {
+      "section": "progress"
+    }
+  },
+  {
+    "group": "PROGRESS",
+    "text": "Show my results",
+    "intent": "open_section",
+    "entities": {
+      "section": "progress"
+    }
+  },
+  {
+    "group": "REMINDER",
+    "text": "Remind me to take medicine at 8 PM",
+    "intent": "set_reminder",
+    "entities": {
+      "title": "take medicine",
+      "time": "20:00"
+    }
+  },
+  {
+    "group": "REMINDER",
+    "text": "Remind me about my tablets tonight",
+    "intent": "set_reminder_followup",
+    "entities": {}
+  },
+  {
+    "group": "REMINDER",
+    "text": "At 7 tomorrow morning remind me to drink water",
+    "intent": "set_reminder",
+    "entities": {
+      "title": "drink water",
+      "time": "07:00",
+      "date": "2026-09-18"
+    }
+  },
+  {
+    "group": "REMINDER",
+    "text": "Remind me to call my daughter at 5",
+    "intent": "set_reminder_followup",
+    "entities": {}
+  },
+  {
+    "group": "REMINDER",
+    "text": "Set a reminder for my medicine",
+    "intent": "set_reminder_followup",
+    "entities": {}
+  },
+  {
+    "group": "REMINDER",
+    "text": "Remind me after lunch to take my tablets",
+    "intent": "set_reminder_followup",
+    "entities": {}
+  },
+  {
+    "group": "REMINDER",
+    "text": "Remind me in 20 minutes to drink water",
+    "intent": "set_reminder",
+    "entities": {
+      "title": "drink water",
+      "time": "15:50",
+      "date": "2026-09-17"
+    }
+  },
+  {
+    "group": "REMINDER",
+    "text": "Remind me to drink water tomorrow at 8 PM",
+    "intent": "set_reminder",
+    "entities": {
+      "title": "drink water",
+      "time": "20:00",
+      "date": "2026-09-18"
+    }
+  },
+  {
+    "group": "HELP/REPEAT",
+    "text": "Help",
+    "intent": "help",
+    "entities": {}
+  },
+  {
+    "group": "HELP/REPEAT",
+    "text": "I'm confused",
+    "intent": "help",
+    "entities": {}
+  },
+  {
+    "group": "HELP/REPEAT",
+    "text": "What can you do?",
+    "intent": "help",
+    "entities": {}
+  },
+  {
+    "group": "HELP/REPEAT",
+    "text": "Say that again",
+    "intent": "repeat",
+    "entities": {}
+  },
+  {
+    "group": "HELP/REPEAT",
+    "text": "Can you repeat that?",
+    "intent": "repeat",
+    "entities": {}
+  },
+  {
+    "group": "CHAT/UNKNOWN",
+    "text": "Why do people sometimes forget names?",
+    "intent": "general_chat",
+    "entities": {}
+  },
+  {
+    "group": "CHAT/UNKNOWN",
+    "text": "What is memory?",
+    "intent": "general_chat",
+    "entities": {}
+  },
+  {
+    "group": "CHAT/UNKNOWN",
+    "text": "Tell me something interesting",
+    "intent": "general_chat",
+    "entities": {}
+  },
+  {
+    "group": "CHAT/UNKNOWN",
+    "text": "Explain this activity",
+    "intent": "general_chat",
+    "entities": {}
+  },
+  {
+    "group": "CHAT/UNKNOWN",
+    "text": "Why are we playing this game?",
+    "intent": "general_chat",
+    "entities": {}
+  },
+  {
+    "group": "CHAT/UNKNOWN",
+    "text": "Purple clouds dancing",
+    "intent": "unknown",
+    "entities": {}
+  },
+  {
+    "group": "CHAT/UNKNOWN",
+    "text": "",
+    "intent": "unknown",
+    "entities": {}
+  },
+  {
+    "group": "CHAT/UNKNOWN",
+    "text": "x",
+    "intent": "unknown",
+    "entities": {}
+  },
+  {
+    "group": "CHAT/UNKNOWN",
+    "text": "Start",
+    "intent": "unknown",
+    "entities": {}
+  },
+  {
+    "group": "CHAT/UNKNOWN",
+    "text": "Play banana rocket",
+    "intent": "unknown",
+    "entities": {}
+  }
+]

@@ -183,7 +183,7 @@ export default function PersonalMemory({
       onExit={handleExit}
       footer={
         phase === PHASE.PROMPT && prompt && hintsShown < prompt.hints.length ? (
-          <button type="button" className="sm-btn sm-btn--quiet" onClick={showNextHint}>
+          <button type="button" className="sm-btn sm-btn--quiet" data-voice-hint onClick={showNextHint}>
             {t('games.personalMemory.giveMeAHint')}
           </button>
         ) : null

@@ -27,6 +27,8 @@ type Recognition = {
     | null;
   onend: (() => void) | null;
   onerror: ((event: { error: string }) => void) | null;
+  onspeechstart: (() => void) | null;
+  onspeechend: (() => void) | null;
   start(): void;
   stop(): void;
 };
@@ -73,9 +75,16 @@ export class BrowserSpeechToText implements SpeechToText {
       recognition.lang = locale;
       recognition.interimResults = false;
       recognition.continuous = false;
-      const resetSilenceTimer = (): void => {
+      const resetSilenceTimer = (duration = 6_000): void => {
         this.clearTimer();
-        this.timer = window.setTimeout(() => this.stop(), 6_000);
+        this.timer = window.setTimeout(() => this.stop(), duration);
+      };
+      // Keep the idle timeout short, but allow a slow spoken reminder to finish.
+      recognition.onspeechstart = () => {
+        if (this.recognition === recognition) resetSilenceTimer(30_000);
+      };
+      recognition.onspeechend = () => {
+        if (this.recognition === recognition) resetSilenceTimer();
       };
       recognition.onresult = (event) => {
         if (this.recognition !== recognition) return;
@@ -96,6 +105,8 @@ export class BrowserSpeechToText implements SpeechToText {
           recognition.onend = null;
           recognition.onresult = null;
           recognition.onerror = null;
+          recognition.onspeechstart = null;
+          recognition.onspeechend = null;
           try {
             recognition.stop();
           } catch {
@@ -138,6 +149,8 @@ export class BrowserSpeechToText implements SpeechToText {
       recognition.onend = null;
       recognition.onresult = null;
       recognition.onerror = null;
+      recognition.onspeechstart = null;
+      recognition.onspeechend = null;
       try {
         recognition.stop();
       } catch {

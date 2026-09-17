@@ -13,9 +13,24 @@ interface Summary {
 export function ProgressPage({ load }: { load?: () => Promise<Summary> }) {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
-    void (load ? load() : loadProgress()).then(setSummary);
+    let active = true;
+    void (load ? load() : loadProgress())
+      .then((value) => {
+        if (active) {
+          setSummary(value);
+          setFailed(false);
+        }
+      })
+      .catch(() => {
+        if (active) setFailed(true);
+      });
+    return () => {
+      active = false;
+    };
   }, [load]);
+  if (failed) return <p role="status">{t("health.unavailable")}</p>;
   if (!summary) return <p>{t("progress.loading")}</p>;
   return (
     <section className="space-y-5">

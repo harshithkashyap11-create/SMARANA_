@@ -1,6 +1,37 @@
-.integrated-game { font-size: 1.25rem; }
-.integrated-game button { min-height: 64px; min-width: 64px; }
-.integrated-game .sm-cell { min-height: 64px; }
-.integrated-game .sm-grid { overflow-x: auto; }
-.integrated-game .sm-game__stage { overflow-x: auto; }
-@media (prefers-reduced-motion: reduce) { .integrated-game * { animation: none !important; transition: none !important; } }
+.integrated-game {
+  font-size: 1.25rem;
+}
+.integrated-game button {
+  min-height: 64px;
+  min-width: 64px;
+}
+.integrated-game .sm-cell {
+  min-height: 64px;
+}
+.integrated-game .sm-grid {
+  overflow-x: auto;
+}
+.integrated-game .sm-game__stage {
+  overflow-x: auto;
+}
+.integrated-game,
+.integrated-game .sm-game {
+  min-width: 0;
+  max-width: 100%;
+}
+.integrated-game .sm-game__headings {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.integrated-game .sm-difficulty {
+  flex-wrap: wrap;
+}
+.integrated-game .sm-difficulty__dots {
+  flex-shrink: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .integrated-game * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

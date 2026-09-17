@@ -1,0 +1,122 @@
+[
+  {
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.6075,
+      "response_time": 2.528,
+      "hints_used": 2,
+      "early_exit": 0,
+      "rounds_this_session": 3,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.65,
+      "rolling_response_time_3": 2.073,
+      "accuracy_trend": 0.0,
+      "response_time_trend": 0.0,
+      "recent_hint_rate": 0.0,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 1,
+      "condition": "none"
+    },
+    "prediction": 0
+  },
+  {
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.6047,
+      "response_time": 2.582,
+      "hints_used": 1,
+      "early_exit": 0,
+      "rounds_this_session": 4,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.65,
+      "rolling_response_time_3": 2.073,
+      "accuracy_trend": 0.0,
+      "response_time_trend": 0.0,
+      "recent_hint_rate": 0.0,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 1,
+      "condition": "none"
+    },
+    "prediction": 0
+  },
+  {
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.6701,
+      "response_time": 2.384,
+      "hints_used": 2,
+      "early_exit": 0,
+      "rounds_this_session": 4,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.65,
+      "rolling_response_time_3": 2.073,
+      "accuracy_trend": 0.0,
+      "response_time_trend": 0.0,
+      "recent_hint_rate": 0.0,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 1,
+      "condition": "none"
+    },
+    "prediction": 0
+  },
+  {
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.6476,
+      "response_time": 2.359,
+      "hints_used": 1,
+      "early_exit": 0,
+      "rounds_this_session": 4,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.6274333333333334,
+      "rolling_response_time_3": 2.4979999999999998,
+      "accuracy_trend": 0.0,
+      "response_time_trend": 0.0,
+      "recent_hint_rate": 0.45454545454545453,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 0,
+      "condition": "none"
+    },
+    "prediction": 0
+  },
+  {
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.7743,
+      "response_time": 2.405,
+      "hints_used": 2,
+      "early_exit": 0,
+      "rounds_this_session": 3,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.6408,
+      "rolling_response_time_3": 2.4416666666666664,
+      "accuracy_trend": 0.0,
+      "response_time_trend": 0.0,
+      "recent_hint_rate": 0.3333333333333333,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 0,
+      "condition": "none"
+    },
+    "prediction": 0
+  }
+]

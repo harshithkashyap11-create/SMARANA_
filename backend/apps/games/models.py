@@ -11,7 +11,7 @@ class GameDefinition(UUIDModel, TimeStamped):
     name = models.CharField(max_length=128)
     cognitive_domains = models.JSONField(default=list)
     min_level = models.PositiveSmallIntegerField(default=1)
-    max_level = models.PositiveSmallIntegerField(default=10)
+    max_level = models.PositiveSmallIntegerField(default=5)
     is_regional = models.BooleanField(default=False)
     regions = models.JSONField(default=list, blank=True)
     metrics_schema = models.JSONField(default=dict)

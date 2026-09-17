@@ -652,7 +652,21 @@
     "unknown": "I could not understand. Try “open games”.",
     "request": "Your request",
     "send": "Send",
-    "assistant": "Voice assistant"
+    "assistant": "Voice assistant",
+    "noGameInstructions": "Open a game first to hear its instructions.",
+    "hintShown": "Here is a hint.",
+    "hintUnavailable": "A hint is not available at this point. You can keep playing.",
+    "noReminders": "There are no reminders in today's schedule.",
+    "thinking": "Thinking…",
+    "speaking": "Smarana is speaking…",
+    "offline": "Offline mode",
+    "onlineAssistant": "Online assistant",
+    "requestFailed": "I could not complete that request. Please try again.",
+    "gameNotFound": "I couldn't find that game. Please choose one of the available games.",
+    "assistantUnavailable": "I'm having trouble reaching the local assistant right now. You can still use games, reminders, schedule and progress commands.",
+    "nothingToRepeat": "There is nothing to repeat yet.",
+    "cancelled": "Cancelled.",
+    "providerNotice": "Speech recognition uses your browser's provider. Conversation uses the configured assistant; cloud fallback must be explicitly enabled by your care team."
   },
   "common": {
     "yes": "Yes",

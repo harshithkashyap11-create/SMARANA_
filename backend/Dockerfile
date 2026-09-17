@@ -11,9 +11,11 @@ RUN addgroup --system smarana \
 
 WORKDIR /app
 
-COPY requirements.txt ./
+ARG INSTALL_DDA=false
+COPY requirements.txt requirements-dda.txt ./
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
+RUN if [ "$INSTALL_DDA" = "true" ]; then pip install --no-cache-dir -r requirements-dda.txt; fi
 
 COPY --chown=smarana:smarana . .
 

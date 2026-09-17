@@ -185,7 +185,7 @@ export default function AssociationGame({
       onExit={handleExit}
       footer={
         phase === PHASE.QUESTION && config.hintsAllowed > 0 ? (
-          <button type="button" className="sm-btn sm-btn--quiet" onClick={handleHint} disabled={hintShown || hintsUsed >= config.hintsAllowed}>
+          <button type="button" className="sm-btn sm-btn--quiet" data-voice-hint onClick={handleHint} disabled={hintShown || hintsUsed >= config.hintsAllowed}>
             {t('games.common.showHint')}
           </button>
         ) : null

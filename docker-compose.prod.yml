@@ -8,6 +8,7 @@ x-backend: &backend
     DJANGO_SETTINGS_MODULE: config.settings.prod
   volumes:
     - staticfiles:/app/staticfiles
+    - ./shared:/shared:ro
 services:
   migrate:
     <<: *backend
@@ -39,8 +40,8 @@ services:
         condition: service_completed_successfully
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: frontend/Dockerfile.prod
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"

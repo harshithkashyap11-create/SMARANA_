@@ -1,0 +1,17 @@
+# Explicit synthetic hackathon demo override, never a clinical deployment.
+services:
+  backend:
+    build:
+      args:
+        INSTALL_DDA: "true"
+    environment:
+      DDA_MODEL_ARTIFACT: /app/dda_artifacts/dda-synthetic-demo-v1.joblib
+      DDA_RULE_FALLBACK: "false"
+  celery:
+    build:
+      args:
+        INSTALL_DDA: "true"
+  celery-beat:
+    build:
+      args:
+        INSTALL_DDA: "true"

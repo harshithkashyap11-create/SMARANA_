@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -36,9 +37,20 @@ class RoutineItemSerializer(serializers.ModelSerializer[RoutineItem]):
         read_only_fields = ("id", "source", "set_by")
 
     def validate_days_of_week(self, value: list[int]) -> list[int]:
-        if not value or any(day not in range(7) for day in value):
+        if (
+            not isinstance(value, list)
+            or not value
+            or any(type(day) is not int or day not in range(7) for day in value)
+        ):
             raise serializers.ValidationError("Choose at least one valid day.")
         return sorted(set(value))
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        start = attrs.get("start_date", getattr(self.instance, "start_date", None))
+        end = attrs.get("end_date", getattr(self.instance, "end_date", None))
+        if start and end and end < start:
+            raise serializers.ValidationError({"end_date": "Choose an end date after the start."})
+        return attrs
 
 
 class RoutineHistorySerializer(serializers.Serializer[object]):
@@ -92,6 +104,28 @@ class ReminderResponseSerializer(serializers.ModelSerializer[ReminderResponse]):
 
 
 class MedicationSerializer(serializers.ModelSerializer[Medication]):
+    def validate_times(self, value: object) -> list[str]:
+        import re
+
+        if (
+            not isinstance(value, list)
+            or not value
+            or len(value) > 24
+            or any(
+                not isinstance(item, str) or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", item)
+                for item in value
+            )
+        ):
+            raise serializers.ValidationError("Use dose times in HH:MM format.")
+        return sorted(set(value))
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        start = attrs.get("start_date", getattr(self.instance, "start_date", None))
+        end = attrs.get("end_date", getattr(self.instance, "end_date", None))
+        if start and end and end < start:
+            raise serializers.ValidationError({"end_date": "Choose an end date after the start."})
+        return attrs
+
     class Meta:
         model = Medication
         fields = ("id", "name", "dose", "times", "instructions", "active", "start_date", "end_date")

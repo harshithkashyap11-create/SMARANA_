@@ -20,14 +20,13 @@ environ.Env.read_env(PROJECT_ROOT / ".env")
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env.bool("DJANGO_DEBUG")
-REQUIRE_ADMIN_OTP = True
 ALLOWED_HOSTS = env.list(
     "DJANGO_ALLOWED_HOSTS",
     default=["localhost", "127.0.0.1", "backend", "testserver"],
 )
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    "apps.admin_portal.apps.SmaranaAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -57,6 +56,7 @@ INSTALLED_APPS = [
     "apps.reports.apps.ReportsConfig",
 ]
 DDA_MODEL_ARTIFACT = env("DDA_MODEL_ARTIFACT", default="")
+DDA_RULE_FALLBACK = env.bool("DDA_RULE_FALLBACK", default=False)
 
 VOICE_ROUTER_ENDPOINT = env("VOICE_ROUTER_ENDPOINT", default="")
 VOICE_ROUTER_TOKEN = env("VOICE_ROUTER_TOKEN", default="")
@@ -149,6 +149,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
 
 REST_FRAMEWORK: dict[str, object] = {
+    "DEFAULT_PARSER_CLASSES": [
+        "apps.shared.parsers.ObjectJSONParser",
+        "rest_framework.parsers.FormParser",
+        "rest_framework.parsers.MultiPartParser",
+    ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "apps.accounts.authentication.ApprovedJWTAuthentication",

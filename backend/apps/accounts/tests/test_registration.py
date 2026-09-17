@@ -6,7 +6,7 @@ from apps.accounts.models import User
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("role", ["patient", "caregiver", "doctor"])
-def test_registration(role):
+def test_registration(role: str) -> None:
     client = APIClient()
     payload = {
         "email": f"{role}@example.com",

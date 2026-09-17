@@ -2,7 +2,8 @@
 
 from typing import Any
 
-from rest_framework.exceptions import APIException
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
@@ -23,6 +24,9 @@ class UserFacingError(APIException):
 
 def user_facing_exception_handler(exc: Exception, context: dict[str, Any]) -> Response | None:
     """Normalize explicitly safe errors for frontend translation."""
+    if isinstance(exc, DjangoValidationError):
+        # Invalid UUID/date filters must not become 500s or disclose object values.
+        exc = ValidationError("Use valid request values.")
     response = exception_handler(exc, context)
     if response is not None and isinstance(exc, UserFacingError):
         response.data = {"detail": exc.user_code, "code": exc.user_code}

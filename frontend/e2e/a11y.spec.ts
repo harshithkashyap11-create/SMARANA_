@@ -193,6 +193,30 @@ async function inspect(page: Page, label: string) {
     ),
     `${label}: horizontal overflow`,
   ).toBeTruthy();
+  expect(
+    await page.evaluate(() => {
+      const nav = document.querySelector(".patient-layout > nav");
+      const sos = document.querySelector(".patient-sos-button");
+      if (!nav || !sos) return true;
+      const navBounds = nav.getBoundingClientRect();
+      if (sos.getBoundingClientRect().bottom > navBounds.top) return false;
+      return Array.from(nav.querySelectorAll("button")).every((button) =>
+        Array.from(button.childNodes)
+          .filter(
+            (node) =>
+              node.nodeType === Node.TEXT_NODE && node.textContent?.trim(),
+          )
+          .every((node) => {
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            return Array.from(range.getClientRects()).every(
+              (rect) => rect.left >= 0 && rect.right <= window.innerWidth,
+            );
+          }),
+      );
+    }),
+    `${label}: navigation labels fit and do not overlap SOS`,
+  ).toBeTruthy();
 }
 for (const theme of ["light", "dark"]) {
   test(`patient screens at 360px, font scale 1.6, ${theme}`, async ({

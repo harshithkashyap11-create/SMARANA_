@@ -1,6 +1,6 @@
-# Optional: install only when deploying a validated notebook model artifact.
+# Optional ML runtime for the synthetic hackathon demo; no clinical validation.
 -r requirements.txt
 scikit-learn==1.6.1
 pandas==2.2.3
-joblib>=1.4,<2
-numpy>=2.1,<3
+joblib==1.4.2
+numpy==2.1.3

@@ -98,7 +98,9 @@ def test_local_route_works_without_cloud_enabled(
     api.force_authenticate(care_scenario["patient"].user)
     with patch(
         "apps.voice.providers.provider.route",
-        return_value=ProviderResult("open_section", {"section": "progress"}, 0.91, "LOCAL_LLM"),
+        return_value=ProviderResult(
+            "general_chat", {"response": "Games can be enjoyable."}, 0.91, "LOCAL_LLM"
+        ),
     ):
         response = api.post(
             "/api/v1/voice/route/",

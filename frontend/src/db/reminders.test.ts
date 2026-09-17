@@ -1,6 +1,20 @@
-import { createHash } from "node:crypto";
-import { expect, test } from "vitest";
-import { dayInTimezone, reminderIdFor, scheduledFor } from "./reminders";
+import "fake-indexeddb/auto";
+import { createHash, webcrypto } from "node:crypto";
+import { afterEach, expect, test, vi } from "vitest";
+import {
+  dayInTimezone,
+  generateLocalReminders,
+  reminderIdFor,
+  scheduledFor,
+} from "./reminders";
+import { db, type CachedRoutineItem } from "./schema";
+import { lockVault, openVault } from "./vault";
+
+afterEach(async () => {
+  lockVault();
+  await db.delete();
+  vi.unstubAllGlobals();
+});
 
 function referenceId(rule: string, day: string) {
   const digest = createHash("sha1")
@@ -34,4 +48,55 @@ test("reminder date uses India time at UTC midnight boundaries", () => {
   expect(scheduledFor(rule, "2026-09-16")).toBe("2026-09-16T03:30:00.000Z");
   expect(scheduledFor(rule, "2026-09-17")).toBeNull();
   expect(scheduledFor(rule, "2026-10-07")).toBeNull();
+});
+
+test("offline recurrence edits reschedule pending instances and retain response history", async () => {
+  vi.stubGlobal("crypto", webcrypto);
+  const key = await crypto.subtle.generateKey(
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+  openVault("owner", key);
+  await db.delete();
+  await db.open();
+  const day = "2030-09-18";
+  const base: CachedRoutineItem = {
+    id: "rule",
+    patientId: "patient",
+    title: "Walk",
+    category: "walk",
+    time_of_day: "08:00:00",
+    days_of_week: [2],
+    start_date: "2030-09-01",
+  };
+  await db.routineItems.bulkPut([base, { ...base, id: "history" }]);
+  await generateLocalReminders("patient", day);
+  const pendingId = reminderIdFor("rule", day);
+  const historyId = reminderIdFor("history", day);
+  await db.reminders.update(historyId, { status: "taken" });
+  await db.reminderResponses.put({
+    id: "response",
+    reminderId: historyId,
+    action: "taken",
+    respondedAt: new Date().toISOString(),
+  });
+  await db.routineItems.update("rule", {
+    time_of_day: "10:30:00",
+    title: "Updated walk",
+  });
+  await generateLocalReminders("patient", day);
+  expect((await db.reminders.get(pendingId))?.scheduled_at).toBe(
+    "2030-09-18T05:00:00.000Z",
+  );
+  expect((await db.reminders.get(pendingId))?.title).toBe("Updated walk");
+  await db.routineItems.update("rule", { days_of_week: [3] });
+  await db.routineItems.update("history", { end_date: "2030-09-17" });
+  await generateLocalReminders("patient", day);
+  expect(await db.reminders.get(pendingId)).toBeUndefined();
+  expect((await db.reminders.get(historyId))?.status).toBe("taken");
+  expect((await db.reminders.get(historyId))?.scheduled_at).toBe(
+    "2030-09-18T02:30:00.000Z",
+  );
+  expect(await db.reminderResponses.count()).toBe(1);
 });

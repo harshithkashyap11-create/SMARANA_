@@ -104,11 +104,18 @@ export async function generateLocalReminders(
     .where("patientId")
     .equals(patientId)
     .toArray();
-  await db.transaction("rw", db.reminders, async () => {
+  await db.transaction("rw", db.reminders, db.reminderResponses, async () => {
     for (const rule of rules) {
       const scheduled_at = scheduledFor(rule, day);
       const id = reminderIdFor(rule.id, day);
-      if (scheduled_at && !(await db.reminders.get(id)))
+      const existing = await db.reminders.get(id);
+      const mutable =
+        existing?.status === "pending" &&
+        new Date(existing.scheduled_at).getTime() >= Date.now() &&
+        !(await db.reminderResponses.where("reminderId").equals(id).count());
+      if (!scheduled_at && mutable) {
+        await db.reminders.delete(id);
+      } else if (scheduled_at && (!existing || mutable))
         await db.reminders.put({
           id,
           patientId,

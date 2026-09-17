@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { performAction, type ActionContext } from "./actions";
 import { FakeTextToSpeech } from "./tts";
 const storage = vi.hoisted(() => ({
@@ -15,7 +15,12 @@ vi.mock("../db/schema", () => ({
     ),
   },
 }));
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-09-17T10:00:00Z"));
+});
+afterEach(() => vi.useRealTimers());
 const context = (): ActionContext => ({
   navigate: vi.fn(),
   tts: new FakeTextToSpeech(),
@@ -100,3 +105,150 @@ it("does not falsely confirm a failed reminder save", async () => {
     ),
   ).toBe(false);
 });
+
+it("daily recurrence persists all weekdays with no end date and full confirmation", async () => {
+  const action = context();
+  let save!: () => void | Promise<void>;
+  let message = "";
+  action.confirm = (text, callback) => {
+    message = text;
+    save = callback;
+  };
+  await performAction(
+    {
+      intent: "set_reminder",
+      slots: { title: "take medicine", time: "20:00", recurrence: "daily" },
+      requiresConfirm: true,
+    },
+    action,
+  );
+  expect(message).toMatch(/every day.*8:00.*pm.*India time/i);
+  await save();
+  expect(storage.putRoutine).toHaveBeenCalledWith(
+    expect.objectContaining({
+      days_of_week: [0, 1, 2, 3, 4, 5, 6],
+      end_date: null,
+    }),
+  );
+});
+it("one-time confirmation includes full date, time and timezone", async () => {
+  const action = context();
+  await performAction(
+    {
+      intent: "set_reminder",
+      slots: { title: "drink water", time: "20:00", date: "2026-09-18" },
+      requiresConfirm: true,
+    },
+    action,
+  );
+  expect(action.confirm).toHaveBeenCalledWith(
+    expect.stringMatching(/Friday.*18.*September.*2026.*8:00.*pm.*India time/i),
+    expect.any(Function),
+  );
+});
+it("stale confirmation cannot create a reminder", async () => {
+  const action = context();
+  const controller = new AbortController();
+  action.signal = controller.signal;
+  let save!: () => void | Promise<void>;
+  action.confirm = (_text, callback) => (save = callback);
+  await performAction(
+    {
+      intent: "set_reminder",
+      slots: { title: "water", time: "20:00" },
+      requiresConfirm: true,
+    },
+    action,
+  );
+  controller.abort();
+  await expect(save()).rejects.toMatchObject({ name: "AbortError" });
+  expect(storage.putRoutine).not.toHaveBeenCalled();
+  expect(storage.putOutbox).not.toHaveBeenCalled();
+});
+it("cancellation during a write prevents subsequent outbox and speech effects", async () => {
+  const action = context();
+  const controller = new AbortController();
+  action.signal = controller.signal;
+  let save!: () => void | Promise<void>;
+  action.confirm = (_text, callback) => (save = callback);
+  await performAction(
+    {
+      intent: "set_reminder",
+      slots: { title: "water", time: "20:00" },
+      requiresConfirm: true,
+    },
+    action,
+  );
+  storage.putRoutine.mockImplementationOnce(() => {
+    controller.abort();
+    return Promise.resolve();
+  });
+  await expect(save()).rejects.toMatchObject({ name: "AbortError" });
+  expect(storage.putOutbox).not.toHaveBeenCalled();
+});
+it("aborted turns and model-provided commands never navigate", async () => {
+  const action = context();
+  action.isActive = () => false;
+  await expect(
+    performAction(
+      {
+        intent: "open_section",
+        slots: { section: "games" },
+        requiresConfirm: false,
+      },
+      action,
+    ),
+  ).rejects.toThrow();
+  action.isActive = () => true;
+  await expect(
+    performAction(
+      {
+        intent: "start_game",
+        slots: { game: "memory_match" },
+        source: "LOCAL_LLM",
+        requiresConfirm: false,
+      },
+      action,
+    ),
+  ).rejects.toThrow();
+  expect(action.navigate).not.toHaveBeenCalled();
+});
+it("medication status uses actual today-reminder status, not invented adherence", async () => {
+  const action = context();
+  vi.mocked(action.routine.getToday).mockResolvedValue([
+    {
+      id: "med",
+      title: "Medicine",
+      category: "medicine",
+      status: "taken",
+      note: "",
+      scheduled_at: "2026-09-17T10:00:00Z",
+      snoozed_until: null,
+    },
+  ]);
+  await performAction(
+    { intent: "medication_status", slots: {}, requiresConfirm: false },
+    action,
+  );
+  expect((action.tts as FakeTextToSpeech).spoken[0]?.text).toContain(
+    "Medicine, taken",
+  );
+  expect(action.routine.getMedications).not.toHaveBeenCalled();
+});
+it.each(["weekly", "monthly"])(
+  "refuses unsupported recurrence %s",
+  async (recurrence) => {
+    const action = context();
+    await expect(
+      performAction(
+        {
+          intent: "set_reminder",
+          slots: { title: "water", time: "20:00", recurrence },
+          requiresConfirm: true,
+        },
+        action,
+      ),
+    ).rejects.toThrow("Unsupported recurrence");
+    expect(action.confirm).not.toHaveBeenCalled();
+  },
+);

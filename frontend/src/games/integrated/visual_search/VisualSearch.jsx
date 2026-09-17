@@ -169,7 +169,7 @@ export default function VisualSearch({
           <button
             type="button"
             className="sm-btn sm-btn--quiet"
-            onClick={showHint}
+            data-voice-hint onClick={showHint}
             disabled={roundState.hintsUsed >= config.hintsAllowed}
           >
             {t('games.common.showHint')}

@@ -1,8 +1,14 @@
 import json
 import logging
 import math
+import re
+import shutil
+import socket
 from dataclasses import dataclass
-from typing import Protocol
+from pathlib import Path
+from typing import Protocol, TypeGuard
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from django.conf import settings
@@ -108,23 +114,69 @@ SECTIONS = {
     "calm-time",
     "sleep",
 }
-GAMES = {
-    "memory_match",
-    "sequence_recall",
-    "object_sorting",
-    "tea_garden_attention",
-    "bihu_rhythm_recall",
-    "daily_life_sequencing",
-    "familiar_place_recall",
-    "who_is_this",
-    "word_pairs",
-    "festival_calendar",
-    "sound_match",
-    "spot_the_change",
-}
+GAME_CONTRACT = json.loads((Path(settings.BASE_DIR).parent / "shared" / "games.json").read_text())
+GAMES = {game["id"] for game in GAME_CONTRACT if game["enabled"]}
 
 
-def valid_result(result: ProviderResult | None) -> bool:
+def ollama_readiness() -> dict[str, object]:
+    """Bounded diagnostics; installation can only be assessed on this host."""
+    if getattr(settings, "LOCAL_LLM_PROVIDER", "") != "ollama":
+        return {"status": "disabled", "installed": None}
+    base_url = settings.LOCAL_LLM_URL.rstrip("/")
+    installed = (
+        bool(shutil.which("ollama"))
+        if urlparse(base_url).hostname in {"localhost", "127.0.0.1", "::1"}
+        else None
+    )
+    try:
+        with urlopen(
+            base_url + "/api/tags", timeout=min(settings.LOCAL_LLM_TIMEOUT, 3)
+        ) as response:
+            raw = response.read(65_537)
+        if len(raw) > 65_536:
+            return {"status": "invalid_response", "installed": installed}
+        models = json.loads(raw)["models"]
+        if not isinstance(models, list) or not all(isinstance(item, dict) for item in models):
+            return {"status": "invalid_response", "installed": installed}
+        wanted = settings.LOCAL_LLM_MODEL
+        names = {item.get("name") for item in models if isinstance(item.get("name"), str)}
+        available = wanted in names or (":" not in wanted and wanted + ":latest" in names)
+        return {
+            "status": "ready" if available else "model_missing",
+            "installed": installed,
+            "model": wanted,
+        }
+    except TimeoutError:
+        return {"status": "timeout", "installed": installed}
+    except URLError as error:
+        if isinstance(error.reason, (TimeoutError, socket.timeout)):
+            return {"status": "timeout", "installed": installed}
+        return {
+            "status": "not_installed" if installed is False else "service_unavailable",
+            "installed": installed,
+        }
+    except (ValueError, KeyError, TypeError):
+        return {"status": "invalid_response", "installed": installed}
+
+
+def short_chat_response(text: str) -> str | None:
+    """Extract a brief complete-sentence summary, never truncate action details."""
+    text = " ".join(text.split())
+    words = max(10, min(getattr(settings, "VOICE_RESPONSE_MAX_WORDS", 60), 100))
+    chars = max(100, min(getattr(settings, "VOICE_RESPONSE_MAX_CHARS", 600), 600))
+    if re.search(r"https?://|```|<script", text, re.I):
+        return None
+    sentences = re.split(r"(?<=[.!?।])\s+", text)
+    selected: list[str] = []
+    for sentence in sentences[:3]:
+        candidate = " ".join([*selected, sentence])
+        if len(candidate) > chars or len(candidate.split()) > words:
+            break
+        selected.append(sentence)
+    return " ".join(selected) or None
+
+
+def valid_result(result: ProviderResult | None) -> TypeGuard[ProviderResult]:
     import re
 
     if (
@@ -176,13 +228,14 @@ class OllamaProvider:
         if getattr(settings, "LOCAL_LLM_PROVIDER", "") != "ollama":
             return None
         prompt = (
-            "You are Smarana. Return JSON only: intent, confidence (0 to 1), "
-            "slots (string values). "
-            f"Allowed intents: {sorted(ALLOWED_INTENTS)}. "
-            f"For open_section use slots.section from {sorted(SECTIONS)}. "
-            f"For start_game use slots.game from {sorted(GAMES)} or omit it. "
-            "For set_reminder require title and HH:MM time; do not invent missing details. "
-            "For general_chat use slots.response, a short friendly answer. "
+            "You are Smarana, a calm conversational companion. Return JSON only: "
+            "intent=general_chat, confidence (0 to 1), slots.response (a string). "
+            "You cannot navigate, start games, create reminders, change medicines, "
+            "make calls or trigger emergencies. Never claim you performed an action. "
+            "Answer in at most 3 short sentences and "
+            f"{getattr(settings, 'VOICE_RESPONSE_MAX_WORDS', 60)} words. "
+            "Use simple, friendly language. You have no current activity or patient context; "
+            "ask which activity the person means rather than inventing its details. "
             "Never give medical diagnoses or treatment advice. "
             "Never return code, URLs or instructions to execute. Use low confidence if uncertain. "
             f"Reply in language {language}."
@@ -211,19 +264,39 @@ class OllamaProvider:
             data = json.loads(json.loads(raw)["message"]["content"])
             if not isinstance(data, dict):
                 return None
-            result = ProviderResult(
-                data.get("intent"), data.get("slots"), data.get("confidence"), "LOCAL_LLM"
+            intent, slots, confidence = (
+                data.get("intent"),
+                data.get("slots"),
+                data.get("confidence"),
             )
+            if (
+                not isinstance(intent, str)
+                or not isinstance(slots, dict)
+                or not all(isinstance(k, str) and isinstance(v, str) for k, v in slots.items())
+                or not isinstance(confidence, (int, float))
+                or isinstance(confidence, bool)
+            ):
+                return None
+            result = ProviderResult(intent, slots, float(confidence), "LOCAL_LLM")
             return result if valid_result(result) else None
+        except TimeoutError:
+            logging.getLogger(__name__).warning("local_voice_timeout")
+            return None
+        except HTTPError as error:
+            logging.getLogger(__name__).warning("local_voice_http_error status=%s", error.code)
+            return None
+        except URLError:
+            logging.getLogger(__name__).warning("local_voice_connection_failed")
+            return None
         except Exception:
-            logging.getLogger(__name__).warning("local_voice_router_unavailable")
+            logging.getLogger(__name__).warning("local_voice_invalid_response")
             return None
 
 
 class HybridProvider:
     def route(self, utterance: str, language: str) -> ProviderResult | None:
         result = OllamaProvider().route(utterance, language)
-        if valid_result(result):
+        if valid_result(result) and result.intent == "general_chat":
             return result
         if getattr(settings, "VOICE_LLM_FALLBACK", False):
             return HttpJsonProvider().route(utterance, language)
@@ -239,4 +312,12 @@ def safe_route(utterance: str, language: str) -> ProviderResult | None:
     except Exception:
         logging.getLogger(__name__).warning("voice_provider_failed")
         return None
-    return result if valid_result(result) else None
+    # Defense in depth: neither local nor cloud output can execute application intents.
+    if not valid_result(result) or result.intent != "general_chat":
+        return None
+    response = short_chat_response(result.slots["response"])
+    return (
+        ProviderResult("general_chat", {"response": response}, result.confidence, result.source)
+        if response
+        else None
+    )

@@ -49,8 +49,9 @@ class SoftDelete(models.Model):
 
     deleted_at = models.DateTimeField(blank=True, null=True)
 
-    all_objects = models.Manager()
     objects = SoftDeleteManager()
+    # Keep the filtered manager first: Django uses it for reverse relationships.
+    all_objects = models.Manager()  # noqa: DJ012
 
     class Meta:
         abstract = True

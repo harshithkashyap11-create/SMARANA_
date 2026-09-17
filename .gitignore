@@ -6,6 +6,7 @@
 __pycache__/
 *.pyc
 .venv/
+.venv-dda/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

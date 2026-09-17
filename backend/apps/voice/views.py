@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 
-from .providers import safe_route
+from .providers import ollama_readiness, safe_route
 
 
 class VoiceThrottle(UserRateThrottle):
@@ -17,8 +17,6 @@ class RouteView(APIView):
     throttle_classes = [VoiceThrottle]
 
     def post(self, request: Request) -> Response:
-        if not settings.VOICE_LLM_FALLBACK and not settings.LOCAL_LLM_PROVIDER:
-            return Response({"intent": None, "slots": {}, "confidence": 0})
         utterance, language = request.data.get("utterance", ""), request.data.get("language", "en")
         if (
             not isinstance(utterance, str)
@@ -28,6 +26,8 @@ class RouteView(APIView):
             or language not in {"en", "as", "bn", "hi", "te", "mni", "lus"}
         ):
             return Response({"detail": "Invalid voice request"}, status=400)
+        if not settings.VOICE_LLM_FALLBACK and not settings.LOCAL_LLM_PROVIDER:
+            return Response({"intent": None, "slots": {}, "confidence": 0})
         result = safe_route(utterance.strip(), language)
         if result is None:
             return Response({"intent": None, "slots": {}, "confidence": 0})
@@ -39,3 +39,11 @@ class RouteView(APIView):
                 "source": result.source,
             }
         )
+
+
+class ReadinessView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [VoiceThrottle]
+
+    def get(self, request: Request) -> Response:
+        return Response({"local": ollama_readiness(), "cloud_enabled": settings.VOICE_LLM_FALLBACK})

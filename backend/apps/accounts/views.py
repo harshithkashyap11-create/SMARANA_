@@ -1,5 +1,7 @@
 """Thin HTTP adapters for authentication and account preferences."""
 
+from typing import Any
+
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -49,7 +51,7 @@ def _token_error() -> UserFacingError:
     return UserFacingError("token_not_valid", status_code=status.HTTP_401_UNAUTHORIZED)
 
 
-class RegisterSerializer(serializers.Serializer):
+class RegisterSerializer(serializers.Serializer[dict[str, Any]]):
     email = serializers.EmailField()
     display_name = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True, trim_whitespace=False)
@@ -63,7 +65,7 @@ class RegisterView(APIView):
 
     @extend_schema(request=RegisterSerializer, responses={201: UserSummarySerializer})
     @transaction.atomic
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data

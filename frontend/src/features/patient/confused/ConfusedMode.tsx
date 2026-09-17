@@ -1,6 +1,6 @@
 import { PrivateImage } from "../../../shared/ui/PrivateImage";
 import { createPortal } from "react-dom";
-import { speak } from "../../../shared/hooks/useTts";
+import { cancelSpeech, speak } from "../../../shared/hooks/useTts";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -36,7 +36,7 @@ export function ConfusedMode() {
       audio.forEach((a, i) => {
         a.volume = volumes[i] ?? 1;
       });
-      window.speechSynthesis?.cancel();
+      cancelSpeech();
       if (previousFocus instanceof HTMLElement) previousFocus.focus();
     };
   }, [calmMode, t]);

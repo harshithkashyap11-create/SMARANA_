@@ -24,16 +24,10 @@ export function MemoryUploadTab({ patientId }: { patientId: string }) {
       if (!form.get("occurred_on")) form.delete("occurred_on");
       const compressed = await compressMemoryPhotos(files);
       setProgress(10);
-      const memory = await caregiverApi.createMemory(patientId, form);
-      for (const [index, file] of compressed.entries()) {
-        const media = new FormData();
-        media.append("file", file);
-        media.append("order", String(index));
-        await caregiverApi.addMemoryPhoto(patientId, memory.id, media);
-        setProgress(
-          10 + Math.round(((index + 1) / Math.max(compressed.length, 1)) * 90),
-        );
-      }
+      // The existing multipart endpoint validates every photo before creating
+      // the capsule, avoiding empty records and duplicate retries on rejection.
+      for (const file of compressed) form.append("photos", file, file.name);
+      await caregiverApi.createMemory(patientId, form);
       setProgress(100);
       setMessage("Memory saved. It is ready to revisit.");
       setFiles([]);

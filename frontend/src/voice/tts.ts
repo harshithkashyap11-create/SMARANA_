@@ -21,12 +21,21 @@ export class BrowserTextToSpeech implements TextToSpeech {
     private language: VoiceLanguage,
     private slow = false,
   ) {}
+  setSlow(slow: boolean): void {
+    this.slow = slow;
+  }
   async speak(text: string, options: { slow?: boolean } = {}): Promise<void> {
     this.cancel();
+    if (!text.trim()) return;
     if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
     const generation = this.generation;
     const locale = recognitionLocale(this.language);
-    const voices = speechSynthesis.getVoices();
+    let voices: SpeechSynthesisVoice[];
+    try {
+      voices = speechSynthesis.getVoices();
+    } catch {
+      return;
+    }
     const voice = voiceFallbacks[this.language]
       .map(
         (candidate) =>
@@ -56,7 +65,11 @@ export class BrowserTextToSpeech implements TextToSpeech {
         };
         const timeout = window.setTimeout(
           () => {
-            speechSynthesis.cancel();
+            try {
+              speechSynthesis.cancel();
+            } catch {
+              /* Provider unavailable. */
+            }
             finish();
           },
           Math.max(10_000, sentence.length * 250),
@@ -79,7 +92,11 @@ export class BrowserTextToSpeech implements TextToSpeech {
     this.generation++;
     this.pending?.();
     this.pending = undefined;
-    window.speechSynthesis?.cancel();
+    try {
+      window.speechSynthesis?.cancel();
+    } catch {
+      /* Provider unavailable. */
+    }
   }
 }
 export class FakeTextToSpeech implements TextToSpeech {

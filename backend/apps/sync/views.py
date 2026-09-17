@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
-from django.utils.dateparse import parse_date, parse_datetime, parse_time
+from django.utils.dateparse import parse_date, parse_datetime
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -278,19 +278,29 @@ class PushView(APIView):
                 },
             )
         elif model == "routine_item":
+            from apps.routines.serializers import RoutineItemSerializer
+
             start_date = parse_date(p["start_date"])
             if start_date is None:
                 raise ValueError("Invalid routine date")
+            # Older clients omit recurrence fields; retain their one-time behavior.
+            # New voice clients send a daily rule, which must survive the round trip.
+            routine_serializer = RoutineItemSerializer(
+                data={
+                    "title": p["title"],
+                    "category": "custom",
+                    "time_of_day": p["time_of_day"],
+                    "days_of_week": p.get("days_of_week", [start_date.weekday()]),
+                    "start_date": p["start_date"],
+                    "end_date": p.get("end_date", p["start_date"]),
+                }
+            )
+            routine_serializer.is_valid(raise_exception=True)
             RoutineItem.objects.get_or_create(
                 id=p["id"],
                 defaults={
                     "patient": patient,
-                    "title": p["title"],
-                    "category": "custom",
-                    "time_of_day": parse_time(p["time_of_day"]),
-                    "days_of_week": [start_date.weekday()],
-                    "start_date": parse_date(p["start_date"]),
-                    "end_date": parse_date(p["start_date"]),
+                    **routine_serializer.validated_data,
                     "source": "patient",
                     "created_by": user,
                 },

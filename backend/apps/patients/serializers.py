@@ -87,6 +87,10 @@ class PatientProfileCaregiverSerializer(serializers.ModelSerializer[PatientProfi
 
 
 class PatientProfileDoctorSerializer(serializers.ModelSerializer[PatientProfile]):
+    max_difficulty_level = serializers.IntegerField(
+        min_value=1, max_value=5, allow_null=True, required=False
+    )
+
     class Meta:
         model = PatientProfile
         fields = ("session_cap_minutes", "max_difficulty_level")

@@ -78,9 +78,12 @@ def test_phase3_demo_replay(care_scenario: CareScenario) -> None:
 
 
 def test_phase6_admin_demo_replay(api: APIClient, care_scenario: CareScenario) -> None:
+    from django.contrib.messages.storage.cookie import CookieStorage
+
     admin_user = UserFactory.create(role="admin", is_staff=True, is_superuser=True)
     pending = DoctorFactory.create(is_approved=False)
     request = RequestFactory().post("/admin/")
+    request._messages = CookieStorage(request)  # type: ignore[attr-defined]
     request.user = admin_user
     users = SmaranaUserAdmin(User, admin.site)
     users.approve_selected(request, User.objects.filter(id=pending.id))

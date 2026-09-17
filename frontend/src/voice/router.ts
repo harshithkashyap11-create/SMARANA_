@@ -1,4 +1,12 @@
 import type { VoiceLanguage } from "./stt";
+import { recognizeGame } from "./gameContract";
+import { isNegatedCommand } from "./safety";
+import {
+  parseReminderRequest,
+  completeReminder,
+  parseReminderTime,
+} from "./reminderParser";
+export { parseReminderTime } from "./reminderParser";
 export type Intent =
   | "open_section"
   | "start_game"
@@ -16,7 +24,14 @@ export type Intent =
   | "stop_game"
   | "time_query"
   | "date_query"
-  | "general_chat";
+  | "general_chat"
+  | "repeat"
+  | "cancel"
+  | "medication_status"
+  | "get_reminders"
+  | "get_schedule"
+  | "repeat_instructions"
+  | "request_hint";
 export interface FamilyContext {
   familyMembers?: Array<{ name: string; relationship?: string }>;
   languageLocked?: boolean;
@@ -28,16 +43,6 @@ export interface RoutedIntent {
   source?: "RULE" | "LOCAL_LLM" | "CLOUD_LLM";
   confidence?: number;
 }
-export function parseReminderTime(value: string): string | null {
-  const match = value.trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
-  if (!match) return null;
-  let hour = Number(match[1]);
-  const minute = Number(match[2] ?? 0);
-  if (minute > 59 || hour > 23 || (match[3] && (hour < 1 || hour > 12)))
-    return null;
-  if (match[3]) hour = (hour % 12) + (match[3].toLowerCase() === "pm" ? 12 : 0);
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
 const normalize = (value: string) =>
   value
     .toLocaleLowerCase()
@@ -48,29 +53,6 @@ const reminderTime = (value: string): string | null => {
   const [hour, minute = "00"] = value.split(":");
   if (Number(hour) > 23 || Number(minute) > 59) return null;
   return `${hour!.padStart(2, "0")}:${minute}`;
-};
-const gameKeys: Record<string, string> = {
-  "স্মৃতি মিল": "memory_match",
-  "স্মৃতি মেলাও": "memory_match",
-  "ক্ৰম স্মৰণ": "sequence_recall",
-  "ক্রম মনে রাখো": "sequence_recall",
-  "বস্তু সজোৱা": "object_sorting",
-  "জিনিস সাজাও": "object_sorting",
-  "চাহ বাগিচা": "tea_garden_attention",
-  "চা বাগান": "tea_garden_attention",
-  "বিহু ছন্দ": "bihu_rhythm_recall",
-  "ছন্দ মনে রাখো": "bihu_rhythm_recall",
-  "দৈনন্দিন ক্ৰম": "daily_life_sequencing",
-  "দৈনন্দিন ক্রম": "daily_life_sequencing",
-  "চিনাকি ঠাই": "familiar_place_recall",
-  "চেনা জায়গা": "familiar_place_recall",
-  "memory match": "memory_match",
-  "sequence recall": "sequence_recall",
-  "object sorting": "object_sorting",
-  "tea garden attention": "tea_garden_attention",
-  "bihu rhythm recall": "bihu_rhythm_recall",
-  "daily life sequencing": "daily_life_sequencing",
-  "familiar place recall": "familiar_place_recall",
 };
 const distance = (a: string, b: string): number => {
   const row = [...Array(b.length + 1).keys()];
@@ -110,24 +92,95 @@ export function route(
     slots: Record<string, string> = {},
     confirm = false,
   ): RoutedIntent => ({ intent, slots, requiresConfirm: confirm });
+  // Priority: targeted negation/cancel -> emergency -> stop/repeat -> reminder
+  // -> longest game alias -> schedule/progress/navigation -> help -> conversation.
+  if (isNegatedCommand(utterance)) return make("cancel");
+  if (/^(?:cancel|never mind|cancel (?:the |my )?reminder)$/u.test(text))
+    return make("cancel");
+  if (/(?:emergency|need help now|জৰুৰী|জরুরি|आपातकाल|emergencia)/u.test(text))
+    return make("sos", {}, true);
+  if (
+    /^(?:repeat(?: that)?|say that again|can you repeat(?: that)?)$/u.test(text)
+  )
+    return make("repeat");
+  if (
+    /^(?:stop playing|exit (?:this|the) activity|leave (?:this|the) game)$/u.test(
+      text,
+    )
+  )
+    return make("stop_game");
+  if (
+    /^(?:repeat(?: the)? instructions|read(?: the)? instructions|say(?: the)? instructions again)$/u.test(
+      text,
+    )
+  )
+    return make("repeat_instructions");
+  if (
+    /^(?:give me (?:a )?hint|show (?:me )?(?:a )?hint|hint|help me with (?:this|the) game)$/u.test(
+      text,
+    )
+  )
+    return make("request_hint");
+  if (
+    /^(?:what reminders (?:do i have|are there)|what are my reminders|read my reminders)$/u.test(
+      text,
+    )
+  )
+    return make("get_reminders");
+  if (
+    /^(?:what(?: s| is) my schedule(?: today)?|read my schedule)$/u.test(text)
+  )
+    return make("get_schedule");
+  const reminder = parseReminderRequest(utterance);
+  if (reminder.kind !== "none") {
+    if (reminder.kind === "draft") {
+      const completed = completeReminder(reminder.draft);
+      if (completed.slots) return make("set_reminder", completed.slots, true);
+    }
+    return null; // Missing reminder entities cannot fall through into other actions.
+  }
+  const named = recognizeGame(text);
+  if (named && /\b(?:play|start|open|do|try)\b|খেল|খেলা|শুরু/u.test(text))
+    return make("start_game", { game: named.id });
+  if (
+    /^(?:let s play(?: a)?(?: game)?|i want a game|can we play(?: something| a game)?|open a brain game|play a game|start a game)$/u.test(
+      text,
+    )
+  )
+    return make("start_game");
+  if (/^(?:খেলা খেলোঁ|খেলা খেলি)$/u.test(text)) return make("start_game");
+  if (
+    /^(?:what do i have today|what is my schedule today|what s my schedule today|i don t remember my schedule)$/u.test(
+      text,
+    ) ||
+    /(?:open|show|view|take me to|go to) (?:my |the )?(?:schedule|daily schedule)/u.test(
+      text,
+    )
+  )
+    return make("open_section", { section: "routine" });
+  if (
+    /^(?:how am i doing|how have i been doing)$/u.test(text) ||
+    /(?:show|open|view) (?:my |the )?results/u.test(text)
+  )
+    return make("open_section", { section: "progress" });
+  if (
+    /\b(?:taken|skipped|did i take|have i taken|today s medicines|medicines today)\b/u.test(
+      text,
+    )
+  )
+    return make("medication_status");
+  if (/^(?:what can you do|what can you help me with)$/u.test(text))
+    return make("help");
   if (/^(?:stop listening|goodbye|exit|quit)$/u.test(text))
     return make("stop_listening");
-  if (/^(?:stop|exit|quit|close) (?:the |my )?game$/u.test(text))
+  if (/^(?:stop|end|exit|quit|close) (?:this |the |my )?game$/u.test(text))
     return make("stop_game");
   if (/what(?: s| is)? (?:the )?time|current time/u.test(text))
     return make("time_query");
   if (/what(?: s| is)? (?:the )?date|today s date/u.test(text))
     return make("date_query");
-  if (/(?:open|start|play).*(?:memory game|memory one)/u.test(text))
-    return make("start_game", { game: "memory_match" });
-  if (
-    /^(?:let s play|i want a game|can we play something|open a brain game)|(?:bored).*play/u.test(
-      text,
-    )
-  )
-    return make("start_game");
   const navigation = text.match(
-    /(?:open|show|go to|take me to|take me) (?:my |the |your )?(home|patient dashboard|games|reminders|profile|progress|caregiver(?: details)?|settings|routine|memories|medicines|people)/u,
+    /(?:open|show|go(?: to)?|take me to|take me) (?:my |the |your )?(home|dashboard|patient dashboard|games|reminders|profile|progress|caregiver(?: details)?|settings|routine|memories|medicines|people)/u,
   );
   if (navigation?.[1])
     return make("open_section", {
@@ -135,6 +188,7 @@ export function route(
         (
           {
             "patient dashboard": "home",
+            dashboard: "home",
             "caregiver details": "caregiver",
           } as Record<string, string>
         )[navigation[1]] ?? navigation[1],
@@ -244,13 +298,13 @@ export function route(
     return make("medicines_today");
   if (/(what ?s next|what time|what day|পৰৱৰ্তী|পরবর্তী)/u.test(text))
     return make("next_activity");
-  const reminder = text.match(
+  const legacyReminder = text.match(
     /remind me to (.+?) at ([0-9]{1,2}(?::[0-9]{2})?)/u,
   );
-  if (reminder?.[1] && reminder[2]) {
-    const time = reminderTime(reminder[2]);
+  if (legacyReminder?.[1] && legacyReminder[2]) {
+    const time = reminderTime(legacyReminder[2]);
     return time
-      ? make("set_reminder", { title: reminder[1], time }, true)
+      ? make("set_reminder", { title: legacyReminder[1], time }, true)
       : null;
   }
   const regionalReminder = text.match(
@@ -262,11 +316,6 @@ export function route(
       ? make("set_reminder", { title: regionalReminder[1], time }, true)
       : null;
   }
-  const namedGame = Object.entries(gameKeys).find(([name]) =>
-    text.includes(name),
-  );
-  if (namedGame && /(?:open|play|start|খেল|খেলা|শুরু)/u.test(text))
-    return make("start_game", { game: namedGame[1] });
   const call = text.match(
     /(?:call|phone|ফোন কৰক|ফোন কর|কল কৰক|কল কর) (?:my )?(.+)/u,
   );
@@ -281,13 +330,11 @@ export function route(
     );
     if (person) return make("call_person", { name: person.name }, true);
   }
-  const game = text.match(
-    /(?:play|start|খেল|খেলা) (?:a |the )?(.*?)(?: game)?$/u,
-  );
-  if (game)
-    return make(
-      "start_game",
-      gameKeys[game[1] ?? ""] ? { game: gameKeys[game[1] ?? ""]! } : {},
-    );
+  if (
+    /^(?:why\b|what is\b|explain\b|tell me\b|how do\b|what does\b|what should i do now)/u.test(
+      text,
+    )
+  )
+    return make("general_chat");
   return null;
 }

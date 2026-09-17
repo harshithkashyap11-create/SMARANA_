@@ -306,7 +306,7 @@ const entries: GameEntry[] = [
       estimatedDurationMin: 3,
       enabled: true,
       minDifficulty: 1,
-      maxDifficulty: 10,
+      maxDifficulty: 5,
       route: `/patient/games/${module.key}`,
       supportsVoice: true,
       supportsOffline: true,

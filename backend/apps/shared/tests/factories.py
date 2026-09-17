@@ -1,5 +1,7 @@
 """Factories shared by backend tests."""
 
+from __future__ import annotations
+
 import factory
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone

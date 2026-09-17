@@ -1,6 +1,6 @@
 # Hybrid voice assistant
 
-## Inspection assessment
+## Historical inspection assessment
 
 - WORKING: React Router patient routes, encrypted offline repositories/outbox,
   deterministic multilingual router, browser STT/TTS adapters, typed requests.
@@ -29,7 +29,7 @@ water`, or `Remind me to take medicine` followed by `8 PM`. Tomorrow is supporte
 pending reminder context expires after five minutes. Creation requires the existing
 Yes/No confirmation dialog, saves atomically to IndexedDB/outbox, then confirms
 success. Relative reminders use the application's Asia/Kolkata timezone and
-minute precision. Arbitrary recurring/date phrasing and voice reminder deletion
+minute precision. Daily recurrence and weekdays are supported. Other recurrence and voice reminder deletion
 are not implemented; use the existing schedule interface for management.
 
 ## Optional local intelligence
@@ -57,8 +57,8 @@ address, not the backend container's loopback. An `.env.example` is a template,
 not an automatically loaded backend configuration.
 
 The adapter uses Ollama's JSON, non-streaming [chat API](https://docs.ollama.com/api/chat).
-Rules execute first in the browser. Only unresolved requests reach local inference.
-Local replies require confidence >= 0.8 and allowlisted intent/slots. Models never
+Rules execute first in the browser. Only conversational questions reach local inference.
+Local replies require confidence >= 0.8 and the general_chat intent. Models never
 generate executable frontend code. They can return short conversational responses.
 The frontend uses the existing authenticated `/api/v1/voice/route/` API and React
 Router; it does not need a second website, a CLI microphone, or a websocket.
@@ -90,8 +90,8 @@ The timeout cancels playback before listening resumes. STT/TTS adapters remain
 replaceable. Wake-name prefix recognition is transcript-based, not a background
 wake-word detector.
 
-`VITE_VOICE_DEBUG=1` enables optional intent/source/confidence/parameters/latency
-logging. It may include reminder titles; leave disabled in production.
+`VITE_VOICE_DEBUG=1` logs only turn ID, intent, and source, never transcript,
+reminder title, profile, or model body. Leave disabled in production.
 
 ## Verification
 
@@ -109,8 +109,9 @@ inference require their actual providers and manual hardware checks. Mocked
 provider tests verify priority, bounded JSON output, malformed output, timeouts,
 confidence checks, and recovery; they are not evidence of live inference.
 
-Repair verification: 347 frontend tests passed, 15 backend voice tests passed
-using the project's local PostgreSQL test database, and the frontend production
-build/typecheck and scoped frontend/backend lint passed. The live browser loaded
-and authenticated the demo, but the automation did not obtain a visible successful
-assistant navigation result; live UI navigation remains a manual acceptance check.
+Upgrade verification and the hardware acceptance checklist are recorded in
+`audits/voice-assistant-upgrade-2026-09-17.md`. Repeat requests replay the last
+response without repeating its action. Closing Talk, stopping, unmounting, or
+submitting a newer request cancels the old turn and its pending confirmation.
+The authenticated `/api/v1/voice/readiness/` endpoint reports Ollama readiness
+separately from deterministic command availability.

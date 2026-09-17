@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getMeta, setMeta } from "../../../db/schema";
 import { useDialogFocus } from "../../../shared/hooks/useDialogFocus";
-import { speak } from "../../../shared/hooks/useTts";
+import { cancelSpeech, speak } from "../../../shared/hooks/useTts";
 export function SectionHeader({ section }: { section: string }) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -25,7 +25,7 @@ export function SectionHeader({ section }: { section: string }) {
       .catch(() => undefined);
     return () => {
       active = false;
-      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      cancelSpeech();
     };
   }, [section, text, i18n.language]);
   return (
@@ -56,8 +56,7 @@ export function SectionHeader({ section }: { section: string }) {
               className="min-h-touch rounded-card bg-primary p-5 text-primary-text"
               onClick={() => {
                 setOpen(false);
-                if ("speechSynthesis" in window)
-                  window.speechSynthesis.cancel();
+                cancelSpeech();
               }}
             >
               {t("walkthrough.gotIt")}

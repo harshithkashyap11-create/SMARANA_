@@ -79,11 +79,30 @@ def record_performance(patient: PatientProfile, data: dict[str, Any]) -> dict[st
         from apps.games.notebook_dda import recommend_for_patient
 
         model_decision = recommend_for_patient(patient, game, data, data["session_id"])
-        target = current + model_decision["adjustment"]
+        if model_decision["reason"] == "model_out_of_domain" and settings.DDA_RULE_FALLBACK:
+            model_decision = {
+                "engine_version": ENGINE_VERSION,
+                "reason": result.change.reasonCode if result else "engine_unavailable",
+                "model_status": "model_out_of_domain",
+            }
+        else:
+            target = current + model_decision["adjustment"]
     # Never increase with major errors, incomplete rounds or repeated early exits.
     if data["errors"] >= max(1, data["rounds_completed"] / 2) and target > current:
         target = current
-    if state and len(state.window) >= 2 and all(not row["completed"] for row in state.window[-2:]):
+    model_held = model_decision is not None and model_decision.get("reason") in {
+        "model_unavailable",
+        "model_out_of_domain",
+        "cold_start",
+    }
+    if (
+        not model_held
+        and state
+        and len(state.window) >= 2
+        and all(
+            isinstance(row, dict) and row.get("completed") is False for row in state.window[-2:]
+        )
+    ):
         target = max(game.min_level, current - 1)
     if state and state.locked_by_doctor:
         target = current

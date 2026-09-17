@@ -1,0 +1,1748 @@
+[
+  {
+    "current": {
+      "difficulty": 3,
+      "accuracy": 0.6075,
+      "reaction_time_ms": 2528,
+      "hints_used": 2,
+      "rounds_completed": 3,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 1
+    },
+    "history": [],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.6075,
+      "response_time": 2.528,
+      "hints_used": 2,
+      "early_exit": 0,
+      "rounds_this_session": 3,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.65,
+      "rolling_response_time_3": 2.073,
+      "accuracy_trend": 0,
+      "response_time_trend": 0,
+      "recent_hint_rate": 0,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0,
+      "is_cold_start": 1,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 3,
+      "accuracy": 0.6047,
+      "reaction_time_ms": 2582,
+      "hints_used": 1,
+      "rounds_completed": 4,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 2
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.6047,
+      "response_time": 2.582,
+      "hints_used": 1,
+      "early_exit": 0,
+      "rounds_this_session": 4,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.65,
+      "rolling_response_time_3": 2.073,
+      "accuracy_trend": 0,
+      "response_time_trend": 0,
+      "recent_hint_rate": 0,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0,
+      "is_cold_start": 1,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 3,
+      "accuracy": 0.6701,
+      "reaction_time_ms": 2384,
+      "hints_used": 2,
+      "rounds_completed": 4,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.6701,
+      "response_time": 2.384,
+      "hints_used": 2,
+      "early_exit": 0,
+      "rounds_this_session": 4,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.65,
+      "rolling_response_time_3": 2.073,
+      "accuracy_trend": 0,
+      "response_time_trend": 0,
+      "recent_hint_rate": 0,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0,
+      "is_cold_start": 1,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 3,
+      "accuracy": 0.6476,
+      "reaction_time_ms": 2359,
+      "hints_used": 1,
+      "rounds_completed": 4,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.6476,
+      "response_time": 2.359,
+      "hints_used": 1,
+      "early_exit": 0,
+      "rounds_this_session": 4,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.6274333333333334,
+      "rolling_response_time_3": 2.4979999999999998,
+      "accuracy_trend": 0,
+      "response_time_trend": 0,
+      "recent_hint_rate": 0.45454545454545453,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 3,
+      "accuracy": 0.7743,
+      "reaction_time_ms": 2405,
+      "hints_used": 2,
+      "rounds_completed": 3,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.7743,
+      "response_time": 2.405,
+      "hints_used": 2,
+      "early_exit": 0,
+      "rounds_this_session": 3,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.6408,
+      "rolling_response_time_3": 2.4416666666666664,
+      "accuracy_trend": 0,
+      "response_time_trend": 0,
+      "recent_hint_rate": 0.3333333333333333,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 3,
+      "accuracy": 0.6908,
+      "reaction_time_ms": 2190,
+      "hints_used": 2,
+      "rounds_completed": 5,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 2
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.6908,
+      "response_time": 2.19,
+      "hints_used": 2,
+      "early_exit": 0,
+      "rounds_this_session": 5,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.6973333333333334,
+      "rolling_response_time_3": 2.3826666666666667,
+      "accuracy_trend": 0,
+      "response_time_trend": 0,
+      "recent_hint_rate": 0.45454545454545453,
+      "consecutive_errors": 0,
+      "consecutive_successes": 1,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 3,
+      "accuracy": 0.3315,
+      "reaction_time_ms": 2774,
+      "hints_used": 4,
+      "rounds_completed": 0,
+      "early_exit": true,
+      "session_duration_sec": 29,
+      "errors": 4
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6908,
+        "response_time": 2.19,
+        "hints_used": 2,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.3315,
+      "response_time": 2.774,
+      "hints_used": 4,
+      "early_exit": 1,
+      "rounds_this_session": 0,
+      "session_duration": 29,
+      "rolling_accuracy_3": 0.7042333333333333,
+      "rolling_response_time_3": 2.318,
+      "accuracy_trend": 0.07679999999999987,
+      "response_time_trend": -0.17999999999999972,
+      "recent_hint_rate": 0.4166666666666667,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 2,
+      "accuracy": 0.7733,
+      "reaction_time_ms": 2014,
+      "hints_used": 0,
+      "rounds_completed": 5,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6908,
+        "response_time": 2.19,
+        "hints_used": 2,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.3315,
+        "response_time": 2.774,
+        "hints_used": 4,
+        "rounds": 0,
+        "early_exit": true,
+        "adjustment": -1
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.325,
+      "accuracy": 0.7733,
+      "response_time": 2.014,
+      "hints_used": 0,
+      "early_exit": 0,
+      "rounds_this_session": 5,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.5988666666666667,
+      "rolling_response_time_3": 2.4563333333333333,
+      "accuracy_trend": -0.04193333333333338,
+      "response_time_trend": 0.014666666666666828,
+      "recent_hint_rate": 1.0,
+      "consecutive_errors": 1,
+      "consecutive_successes": 0,
+      "previous_adjustment": -1,
+      "difficulty_change_count_5": 1,
+      "recent_early_exit_rate": 0.2,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 2,
+      "accuracy": 0.8056,
+      "reaction_time_ms": 2524,
+      "hints_used": 1,
+      "rounds_completed": 3,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6908,
+        "response_time": 2.19,
+        "hints_used": 2,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.3315,
+        "response_time": 2.774,
+        "hints_used": 4,
+        "rounds": 0,
+        "early_exit": true,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 0.7733,
+        "response_time": 2.014,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.325,
+      "accuracy": 0.8056,
+      "response_time": 2.524,
+      "hints_used": 1,
+      "early_exit": 0,
+      "rounds_this_session": 3,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.5985333333333333,
+      "rolling_response_time_3": 2.326,
+      "accuracy_trend": -0.09880000000000011,
+      "response_time_trend": -0.05666666666666664,
+      "recent_hint_rate": 0.6,
+      "consecutive_errors": 0,
+      "consecutive_successes": 1,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 1,
+      "recent_early_exit_rate": 0.2,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 2,
+      "accuracy": 0.5556,
+      "reaction_time_ms": 2017,
+      "hints_used": 2,
+      "rounds_completed": 6,
+      "early_exit": false,
+      "session_duration_sec": 21,
+      "errors": 3
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6908,
+        "response_time": 2.19,
+        "hints_used": 2,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.3315,
+        "response_time": 2.774,
+        "hints_used": 4,
+        "rounds": 0,
+        "early_exit": true,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 0.7733,
+        "response_time": 2.014,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.8056,
+        "response_time": 2.524,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.325,
+      "accuracy": 0.5556,
+      "response_time": 2.017,
+      "hints_used": 2,
+      "early_exit": 0,
+      "rounds_this_session": 6,
+      "session_duration": 21,
+      "rolling_accuracy_3": 0.6368,
+      "rolling_response_time_3": 2.437333333333333,
+      "accuracy_trend": -0.06743333333333323,
+      "response_time_trend": 0.11933333333333307,
+      "recent_hint_rate": 0.625,
+      "consecutive_errors": 0,
+      "consecutive_successes": 2,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 1,
+      "recent_early_exit_rate": 0.2,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 2,
+      "accuracy": 0.678,
+      "reaction_time_ms": 2080,
+      "hints_used": 1,
+      "rounds_completed": 3,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6908,
+        "response_time": 2.19,
+        "hints_used": 2,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.3315,
+        "response_time": 2.774,
+        "hints_used": 4,
+        "rounds": 0,
+        "early_exit": true,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 0.7733,
+        "response_time": 2.014,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.8056,
+        "response_time": 2.524,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.5556,
+        "response_time": 2.017,
+        "hints_used": 2,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.325,
+      "accuracy": 0.678,
+      "response_time": 2.08,
+      "hints_used": 1,
+      "early_exit": 0,
+      "rounds_this_session": 3,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.7115,
+      "rolling_response_time_3": 2.185,
+      "accuracy_trend": 0.11263333333333336,
+      "response_time_trend": -0.2713333333333332,
+      "recent_hint_rate": 0.21428571428571427,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 1,
+      "recent_early_exit_rate": 0.2,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 2,
+      "accuracy": 0.675,
+      "reaction_time_ms": 2270,
+      "hints_used": 1,
+      "rounds_completed": 4,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6908,
+        "response_time": 2.19,
+        "hints_used": 2,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.3315,
+        "response_time": 2.774,
+        "hints_used": 4,
+        "rounds": 0,
+        "early_exit": true,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 0.7733,
+        "response_time": 2.014,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.8056,
+        "response_time": 2.524,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.5556,
+        "response_time": 2.017,
+        "hints_used": 2,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.678,
+        "response_time": 2.08,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.325,
+      "accuracy": 0.675,
+      "response_time": 2.27,
+      "hints_used": 1,
+      "early_exit": 0,
+      "rounds_this_session": 4,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.6797333333333334,
+      "rolling_response_time_3": 2.2070000000000003,
+      "accuracy_trend": 0.08120000000000016,
+      "response_time_trend": -0.11899999999999977,
+      "recent_hint_rate": 0.3333333333333333,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 1,
+      "recent_early_exit_rate": 0.2,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 2,
+      "accuracy": 0.8555,
+      "reaction_time_ms": 2487,
+      "hints_used": 0,
+      "rounds_completed": 5,
+      "early_exit": false,
+      "session_duration_sec": 22,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6908,
+        "response_time": 2.19,
+        "hints_used": 2,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.3315,
+        "response_time": 2.774,
+        "hints_used": 4,
+        "rounds": 0,
+        "early_exit": true,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 0.7733,
+        "response_time": 2.014,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.8056,
+        "response_time": 2.524,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.5556,
+        "response_time": 2.017,
+        "hints_used": 2,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.678,
+        "response_time": 2.08,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.675,
+        "response_time": 2.27,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.325,
+      "accuracy": 0.8555,
+      "response_time": 2.487,
+      "hints_used": 0,
+      "early_exit": 0,
+      "rounds_this_session": 5,
+      "session_duration": 22,
+      "rolling_accuracy_3": 0.6362,
+      "rolling_response_time_3": 2.122333333333333,
+      "accuracy_trend": -0.0006000000000000449,
+      "response_time_trend": -0.31499999999999995,
+      "recent_hint_rate": 0.3076923076923077,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 2,
+      "accuracy": 0.5349,
+      "reaction_time_ms": 2010,
+      "hints_used": 2,
+      "rounds_completed": 3,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6908,
+        "response_time": 2.19,
+        "hints_used": 2,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.3315,
+        "response_time": 2.774,
+        "hints_used": 4,
+        "rounds": 0,
+        "early_exit": true,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 0.7733,
+        "response_time": 2.014,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.8056,
+        "response_time": 2.524,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.5556,
+        "response_time": 2.017,
+        "hints_used": 2,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.678,
+        "response_time": 2.08,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.675,
+        "response_time": 2.27,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.8555,
+        "response_time": 2.487,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.325,
+      "accuracy": 0.5349,
+      "response_time": 2.01,
+      "hints_used": 2,
+      "early_exit": 0,
+      "rounds_this_session": 3,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.7361666666666666,
+      "rolling_response_time_3": 2.279,
+      "accuracy_trend": 0.024666666666666615,
+      "response_time_trend": 0.09399999999999986,
+      "recent_hint_rate": 0.16666666666666666,
+      "consecutive_errors": 0,
+      "consecutive_successes": 1,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 1,
+      "accuracy": 1.0,
+      "reaction_time_ms": 1967,
+      "hints_used": 1,
+      "rounds_completed": 5,
+      "early_exit": false,
+      "session_duration_sec": 20,
+      "errors": 0
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6908,
+        "response_time": 2.19,
+        "hints_used": 2,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.3315,
+        "response_time": 2.774,
+        "hints_used": 4,
+        "rounds": 0,
+        "early_exit": true,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 0.7733,
+        "response_time": 2.014,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.8056,
+        "response_time": 2.524,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.5556,
+        "response_time": 2.017,
+        "hints_used": 2,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.678,
+        "response_time": 2.08,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.675,
+        "response_time": 2.27,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.8555,
+        "response_time": 2.487,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.5349,
+        "response_time": 2.01,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": -1
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.1,
+      "accuracy": 1.0,
+      "response_time": 1.967,
+      "hints_used": 1,
+      "early_exit": 0,
+      "rounds_this_session": 5,
+      "session_duration": 20,
+      "rolling_accuracy_3": 0.6884666666666668,
+      "rolling_response_time_3": 2.2556666666666665,
+      "accuracy_trend": 0.00873333333333337,
+      "response_time_trend": 0.04866666666666619,
+      "recent_hint_rate": 0.25,
+      "consecutive_errors": 1,
+      "consecutive_successes": 0,
+      "previous_adjustment": -1,
+      "difficulty_change_count_5": 1,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 1,
+      "accuracy": 0.9055,
+      "reaction_time_ms": 2025,
+      "hints_used": 1,
+      "rounds_completed": 6,
+      "early_exit": false,
+      "session_duration_sec": 21,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.6075,
+        "response_time": 2.528,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6047,
+        "response_time": 2.582,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6701,
+        "response_time": 2.384,
+        "hints_used": 2,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6476,
+        "response_time": 2.359,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.7743,
+        "response_time": 2.405,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.6908,
+        "response_time": 2.19,
+        "hints_used": 2,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.3315,
+        "response_time": 2.774,
+        "hints_used": 4,
+        "rounds": 0,
+        "early_exit": true,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 0.7733,
+        "response_time": 2.014,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.8056,
+        "response_time": 2.524,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.5556,
+        "response_time": 2.017,
+        "hints_used": 2,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.678,
+        "response_time": 2.08,
+        "hints_used": 1,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.675,
+        "response_time": 2.27,
+        "hints_used": 1,
+        "rounds": 4,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.8555,
+        "response_time": 2.487,
+        "hints_used": 0,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.5349,
+        "response_time": 2.01,
+        "hints_used": 2,
+        "rounds": 3,
+        "early_exit": false,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 1.0,
+        "response_time": 1.967,
+        "hints_used": 1,
+        "rounds": 5,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.1,
+      "accuracy": 0.9055,
+      "response_time": 2.025,
+      "hints_used": 1,
+      "early_exit": 0,
+      "rounds_this_session": 6,
+      "session_duration": 21,
+      "rolling_accuracy_3": 0.7968000000000001,
+      "rolling_response_time_3": 2.154666666666667,
+      "accuracy_trend": 0.16060000000000008,
+      "response_time_trend": 0.03233333333333377,
+      "recent_hint_rate": 0.23076923076923078,
+      "consecutive_errors": 0,
+      "consecutive_successes": 1,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 1,
+      "recent_early_exit_rate": 0.0,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 3,
+      "accuracy": 0.5401,
+      "reaction_time_ms": 2005,
+      "hints_used": 3,
+      "rounds_completed": 6,
+      "early_exit": false,
+      "session_duration_sec": 21,
+      "errors": 3
+    },
+    "history": [],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.55,
+      "accuracy": 0.5401,
+      "response_time": 2.005,
+      "hints_used": 3,
+      "early_exit": 0,
+      "rounds_this_session": 6,
+      "session_duration": 21,
+      "rolling_accuracy_3": 0.65,
+      "rolling_response_time_3": 2.073,
+      "accuracy_trend": 0,
+      "response_time_trend": 0,
+      "recent_hint_rate": 0,
+      "consecutive_errors": 0,
+      "consecutive_successes": 0,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0,
+      "is_cold_start": 1,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 2,
+      "accuracy": 1.0,
+      "reaction_time_ms": 2247,
+      "hints_used": 0,
+      "rounds_completed": 6,
+      "early_exit": false,
+      "session_duration_sec": 24,
+      "errors": 0
+    },
+    "history": [
+      {
+        "accuracy": 0.5401,
+        "response_time": 2.005,
+        "hints_used": 3,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": -1
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.325,
+      "accuracy": 1.0,
+      "response_time": 2.247,
+      "hints_used": 0,
+      "early_exit": 0,
+      "rounds_this_session": 6,
+      "session_duration": 24,
+      "rolling_accuracy_3": 0.65,
+      "rolling_response_time_3": 2.073,
+      "accuracy_trend": 0,
+      "response_time_trend": 0,
+      "recent_hint_rate": 0,
+      "consecutive_errors": 1,
+      "consecutive_successes": 0,
+      "previous_adjustment": -1,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0,
+      "is_cold_start": 1,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 2,
+      "accuracy": 0.849,
+      "reaction_time_ms": 1993,
+      "hints_used": 1,
+      "rounds_completed": 6,
+      "early_exit": false,
+      "session_duration_sec": 21,
+      "errors": 1
+    },
+    "history": [
+      {
+        "accuracy": 0.5401,
+        "response_time": 2.005,
+        "hints_used": 3,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 1.0,
+        "response_time": 2.247,
+        "hints_used": 0,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.325,
+      "accuracy": 0.849,
+      "response_time": 1.993,
+      "hints_used": 1,
+      "early_exit": 0,
+      "rounds_this_session": 6,
+      "session_duration": 21,
+      "rolling_accuracy_3": 0.65,
+      "rolling_response_time_3": 2.073,
+      "accuracy_trend": 0,
+      "response_time_trend": 0,
+      "recent_hint_rate": 0,
+      "consecutive_errors": 0,
+      "consecutive_successes": 1,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0,
+      "is_cold_start": 1,
+      "condition": "none"
+    }
+  },
+  {
+    "current": {
+      "difficulty": 2,
+      "accuracy": 0.668,
+      "reaction_time_ms": 2078,
+      "hints_used": 0,
+      "rounds_completed": 6,
+      "early_exit": false,
+      "session_duration_sec": 22,
+      "errors": 2
+    },
+    "history": [
+      {
+        "accuracy": 0.5401,
+        "response_time": 2.005,
+        "hints_used": 3,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": -1
+      },
+      {
+        "accuracy": 1.0,
+        "response_time": 2.247,
+        "hints_used": 0,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": 0
+      },
+      {
+        "accuracy": 0.849,
+        "response_time": 1.993,
+        "hints_used": 1,
+        "rounds": 6,
+        "early_exit": false,
+        "adjustment": 0
+      }
+    ],
+    "condition": "none",
+    "rt_neutral": 2.073,
+    "features": {
+      "current_difficulty": 0.325,
+      "accuracy": 0.668,
+      "response_time": 2.078,
+      "hints_used": 0,
+      "early_exit": 0,
+      "rounds_this_session": 6,
+      "session_duration": 22,
+      "rolling_accuracy_3": 0.7963666666666667,
+      "rolling_response_time_3": 2.0816666666666666,
+      "accuracy_trend": 0,
+      "response_time_trend": 0,
+      "recent_hint_rate": 0.2222222222222222,
+      "consecutive_errors": 0,
+      "consecutive_successes": 2,
+      "previous_adjustment": 0,
+      "difficulty_change_count_5": 0,
+      "recent_early_exit_rate": 0,
+      "is_cold_start": 0,
+      "condition": "none"
+    }
+  }
+]

@@ -173,6 +173,31 @@ def test_memory_upload_rejects_non_image_and_other_patient() -> None:
     )
 
 
+def test_capsule_rolls_back_when_photo_persistence_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    patient = PatientFactory.create()
+    caregiver = CaregiverFactory.create()
+    CareAssignmentFactory.create(patient=patient, caregiver=caregiver)
+
+    def failed_storage(**kwargs: object) -> None:
+        raise OSError("storage unavailable")
+
+    monkeypatch.setattr("apps.memories.views.add_memory_media", failed_storage)
+    with pytest.raises(OSError, match="storage unavailable"):
+        client_for(caregiver).post(
+            f"/api/v1/patients/{patient.id}/memories/",
+            {
+                "title": "Atomic capsule",
+                "occasion": "daily",
+                "summary": "Fictional afternoon.",
+                "visibility": "private",
+                "photos": [SimpleUploadedFile("photo.png", PNG_1X1, content_type="image/png")],
+            },
+            format="multipart",
+        )
+    assert not Memory.objects.filter(patient=patient, title="Atomic capsule").exists()
+    assert not AuditEvent.objects.filter(patient=patient, action="memory.created").exists()
+
+
 def test_memory_detail_uses_uuid_route_and_disallows_post(
     api: APIClient, care_scenario: CareScenario
 ) -> None:
