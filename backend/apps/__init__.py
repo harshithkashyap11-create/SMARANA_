@@ -1,0 +1,1 @@
+"""Smārana Django applications."""

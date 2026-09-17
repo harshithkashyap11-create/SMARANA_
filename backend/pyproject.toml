@@ -1,0 +1,31 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+cache-dir = "/tmp/ruff-cache"
+
+[tool.ruff.lint]
+select = ["B", "DJ", "E", "F", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"*/migrations/*.py" = ["E501", "I001"]
+
+[tool.mypy]
+python_version = "3.12"
+cache_dir = "/tmp/mypy-cache"
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+strict = true
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
+
+# django-otp has no PEP 561 package. The Django plugin discovers this reverse model
+# relation while loading AUTH_USER_MODEL; this exception applies only to that library.
+[[tool.mypy.overrides]]
+module = ["django_otp.plugins.otp_totp.models"]
+ignore_missing_imports = true

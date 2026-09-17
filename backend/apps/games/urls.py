@@ -1,0 +1,15 @@
+from django.urls import path
+
+from apps.games.views import (
+    GameList,
+    GamePerformanceEventCreate,
+    PatientDifficultyChangeList,
+    PatientGameSessionList,
+)
+
+urlpatterns = [
+    path("game-events/", GamePerformanceEventCreate.as_view()),
+    path("games/", GameList.as_view()),
+    path("patients/<uuid:patient_id>/game-sessions/", PatientGameSessionList.as_view()),
+    path("patients/<uuid:patient_id>/difficulty-changes/", PatientDifficultyChangeList.as_view()),
+]

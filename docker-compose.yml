@@ -1,0 +1,151 @@
+name: smarana
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-smarana}
+      POSTGRES_USER: ${POSTGRES_USER:-smarana}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smarana_dev}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  minio:
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smarana}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-smarana_dev_password}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio-data:/data
+
+  createbuckets:
+    image: quay.io/minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smarana}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-smarana_dev_password}
+      MINIO_BUCKET: ${MINIO_BUCKET:-smarana-media}
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - >-
+        until mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}";
+        do sleep 2; done;
+        mc mb --ignore-existing "local/$${MINIO_BUCKET}"
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    environment: &backend-environment
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-development-only-change-me-at-least-32-bytes}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,backend,testserver}
+      POSTGRES_DB: ${POSTGRES_DB:-smarana}
+      POSTGRES_USER: ${POSTGRES_USER:-smarana}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smarana_dev}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_BUCKET: ${MINIO_BUCKET:-smarana-media}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-smarana}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-smarana_dev_password}
+      MINIO_REGION: ${MINIO_REGION:-us-east-1}
+      LOCAL_LLM_PROVIDER: ${LOCAL_LLM_PROVIDER:-}
+      LOCAL_LLM_MODEL: ${LOCAL_LLM_MODEL:-qwen2.5:1.5b}
+      LOCAL_LLM_URL: ${LOCAL_LLM_URL:-http://host.docker.internal:11434}
+      LOCAL_LLM_TIMEOUT: ${LOCAL_LLM_TIMEOUT:-8}
+      VOICE_LLM_FALLBACK: ${VOICE_LLM_FALLBACK:-false}
+      VOICE_ROUTER_ENDPOINT: ${VOICE_ROUTER_ENDPOINT:-}
+      VOICE_ROUTER_TOKEN: ${VOICE_ROUTER_TOKEN:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - ./shared:/shared:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+
+  celery:
+    build:
+      context: ./backend
+    command: celery -A config worker --loglevel=info
+    environment: *backend-environment
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+
+  celery-beat:
+    build:
+      context: ./backend
+    command: celery -A config beat --loglevel=info --schedule /tmp/celerybeat-schedule
+    environment: *backend-environment
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ./frontend
+    command: npm run dev -- --host 0.0.0.0
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:8000
+      VITE_VOICE_LLM_FALLBACK: ${VITE_VOICE_LLM_FALLBACK:-1}
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
+  frontend-node-modules:

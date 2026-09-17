@@ -1,0 +1,8 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Missing translations</h1>
+{% for language, items in rows %}
+  <h2>{{ language.name }} ({{ language.code }}) — {{ items|length }} missing</h2>
+  <ul>{% for item in items %}<li>{{ item.region.code }} · {{ item.kind }} · {{ item.title }}</li>{% empty %}<li>None</li>{% endfor %}</ul>
+{% endfor %}
+{% endblock %}
