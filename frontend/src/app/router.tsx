@@ -1,0 +1,118 @@
+import { createBrowserRouter } from "react-router-dom";
+import { RegisterPage } from "../features/auth/RegisterPage";
+
+import { AdminPortalPage } from "../features/auth/AdminPortalPage";
+import { LandingPage } from "../features/auth/LandingPage";
+import { ProfessionalLoginPage } from "../features/auth/ProfessionalLoginPage";
+import { PatientLoginPage } from "../features/auth/PatientLoginPage";
+import { PatientLayout, ProLayout, RequireRole } from "./layouts/RoleLayouts";
+import { PatientHomePage } from "../features/patient/home/PatientHomePage";
+import { CalmPage } from "../features/patient/calm/CalmPage";
+import { Navigate } from "react-router-dom";
+import { RoutinePage } from "../features/patient/routine/RoutinePage";
+import { MedicinesPage } from "../features/patient/medicines/MedicinesPage";
+import { ProgressPage } from "../features/patient/progress/ProgressPage";
+import { MemoriesPage } from "../features/patient/memories/MemoriesPage";
+import { MemoryDetailPage } from "../features/patient/memories/MemoryDetailPage";
+import { MemoryQuizPage } from "../features/patient/memories/quiz/MemoryQuizPage";
+import { PeoplePage } from "../features/patient/people/PeoplePage";
+import { PracticePage } from "../features/caregiver/PracticePage";
+import { CaregiverPortal } from "../features/caregiver/CaregiverPortal";
+import { GamesPage } from "../features/patient/games/GamesPage";
+import { GamePage } from "../features/patient/games/GamePage";
+import { DoctorDashboard } from "../features/doctor/DoctorDashboard";
+import { DoctorPatientPage } from "../features/doctor/DoctorPatientPage";
+import { WellnessPage } from "../features/patient/sleep/WellnessPage";
+import { SettingsPage } from "../features/patient/settings/SettingsPage";
+
+export const router = createBrowserRouter([
+  { path: "/register", element: <RegisterPage /> },
+  { path: "/login/user", element: <ProfessionalLoginPage role="patient" /> },
+  {
+    path: "/login/patient",
+    element: <PatientLoginPage />,
+  },
+  {
+    path: "/",
+    element: <LandingPage />,
+  },
+  {
+    element: (
+      <RequireRole allowed={["patient"]}>
+        <PatientLayout />
+      </RequireRole>
+    ),
+    children: [
+      {
+        path: "/patient",
+        element: <PatientHomePage />,
+      },
+      { path: "/patient/routine", element: <RoutinePage /> },
+      { path: "/patient/medicines", element: <MedicinesPage /> },
+      { path: "/patient/progress", element: <ProgressPage /> },
+      { path: "/patient/memories", element: <MemoriesPage /> },
+      { path: "/patient/memories/quiz", element: <MemoryQuizPage /> },
+      { path: "/patient/memories/:memoryId", element: <MemoryDetailPage /> },
+      { path: "/patient/people", element: <PeoplePage /> },
+      { path: "/patient/games", element: <GamesPage /> },
+      { path: "/patient/games/:gameKey", element: <GamePage /> },
+      { path: "/patient/settings", element: <SettingsPage /> },
+      { path: "/patient/sleep", element: <WellnessPage /> },
+      { path: "/patient/calm", element: <CalmPage /> },
+      { path: "/patient/calm-time", element: <CalmPage /> },
+      {
+        path: "/patient/:section",
+        element: <Navigate to="/patient" replace />,
+      },
+    ],
+  },
+  {
+    path: "/login/caregiver",
+    element: <ProfessionalLoginPage role="caregiver" />,
+  },
+  { path: "/login/doctor", element: <ProfessionalLoginPage role="doctor" /> },
+  { path: "/login/admin", element: <Navigate to="/portal/admin" replace /> },
+  { path: "/portal/admin", element: <AdminPortalPage /> },
+  {
+    element: (
+      <RequireRole allowed={["caregiver", "doctor"]}>
+        <ProLayout />
+      </RequireRole>
+    ),
+    children: [
+      {
+        path: "/caregiver/:patientId/practice/:gameKey?",
+        element: (
+          <RequireRole allowed={["caregiver"]}>
+            <PracticePage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: "/caregiver/:patientId?/:tab?",
+        element: (
+          <RequireRole allowed={["caregiver"]}>
+            <CaregiverPortal />
+          </RequireRole>
+        ),
+      },
+      {
+        path: "/doctor",
+        element: (
+          <RequireRole allowed={["doctor"]}>
+            <DoctorDashboard />
+          </RequireRole>
+        ),
+      },
+      {
+        path: "/doctor/patients/:patientId/:tab?",
+        element: (
+          <RequireRole allowed={["doctor"]}>
+            <DoctorPatientPage />
+          </RequireRole>
+        ),
+      },
+    ],
+  },
+  { path: "*", element: <LandingPage /> },
+]);

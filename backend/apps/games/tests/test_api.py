@@ -1,0 +1,122 @@
+from typing import Any
+
+import pytest
+from django.utils import timezone
+from rest_framework.test import APIClient
+
+from apps.games.models import DifficultyState, GameDefinition, GameSession
+from apps.shared.tests.types import CareScenario
+
+pytestmark = pytest.mark.django_db
+
+
+def payload() -> dict[str, Any]:
+    return {
+        "game_key": "memory_match",
+        "seed": "stable-seed",
+        "level": 1,
+        "started_at": timezone.now().isoformat(),
+        "ended_at": timezone.now().isoformat(),
+        "challenge_mode": False,
+        "metrics": {
+            "accuracy": 0.75,
+            "mean_reaction_ms": 1200,
+            "mistakes": 1,
+            "hints_used": 0,
+            "rounds": 4,
+            "duration_ms": 5000,
+            "completed": True,
+            "abandoned_reason": None,
+            "fatigue_flags": [],
+        },
+    }
+
+
+def test_patient_session_creates_minimum_difficulty_state(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
+    patient = care_scenario["patient"]
+    api.force_authenticate(patient.user)
+    response = api.post(f"/api/v1/patients/{patient.id}/game-sessions/", payload(), format="json")
+    assert response.status_code == 201
+    assert response.data["state"]["level"] == 1
+    assert response.data["change"] is None
+    assert response.data["message_key"] == "dda.same_next_time"
+    assert DifficultyState.objects.filter(patient=patient, level=1).exists()
+    assert GameSession.objects.filter(patient=patient).exists()
+
+
+def test_invalid_metrics_are_rejected(api: APIClient, care_scenario: CareScenario) -> None:
+    patient = care_scenario["patient"]
+    api.force_authenticate(patient.user)
+    invalid = payload()
+    invalid["metrics"] = {"accuracy": 2}
+    response = api.post(f"/api/v1/patients/{patient.id}/game-sessions/", invalid, format="json")
+    assert response.status_code == 400
+    assert GameSession.objects.count() == 0
+
+
+def test_patient_cannot_create_another_patients_session(
+    api: APIClient, care_scenario: CareScenario
+) -> None:
+    patient = care_scenario["patient"]
+    other = care_scenario["other_patient"]
+    api.force_authenticate(patient.user)
+    response = api.post(f"/api/v1/patients/{other.id}/game-sessions/", payload(), format="json")
+    assert response.status_code == 404
+
+
+def test_authenticated_users_can_list_catalog(api: APIClient, care_scenario: CareScenario) -> None:
+    api.force_authenticate(care_scenario["caregiver"])
+    response = api.get("/api/v1/games/")
+    assert response.status_code == 200
+    assert {game["key"] for game in response.data} >= {
+        "memory_match",
+        "sequence_recall",
+        "object_sorting",
+        "tea_garden_attention",
+        "bihu_rhythm_recall",
+        "daily_life_sequencing",
+        "familiar_place_recall",
+        "who_is_this",
+        "word_pairs",
+        "spot_the_change",
+        "festival_calendar",
+        "sound_match",
+    }
+    assert GameDefinition.objects.count() >= 12
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("accuracy", "invalid"),
+        ("accuracy", True),
+        ("rounds", -1),
+        ("mean_reaction_ms", -10),
+        ("mistakes", 1.5),
+    ],
+)
+def test_invalid_numeric_metrics_return_400(
+    api: APIClient, care_scenario: CareScenario, field: str, value: object
+) -> None:
+    patient = care_scenario["patient"]
+    api.force_authenticate(patient.user)
+    data = payload()
+    data["metrics"][field] = value
+    result = api.post(f"/api/v1/patients/{patient.id}/game-sessions/", data, format="json")
+    assert result.status_code == 400
+    assert not GameSession.objects.exists()
+
+
+def test_session_end_before_start_returns_400(api: APIClient, care_scenario: CareScenario) -> None:
+    from datetime import timedelta
+
+    patient = care_scenario["patient"]
+    api.force_authenticate(patient.user)
+    data = payload()
+    data["ended_at"] = (timezone.now() - timedelta(days=1)).isoformat()
+    assert (
+        api.post(f"/api/v1/patients/{patient.id}/game-sessions/", data, format="json").status_code
+        == 400
+    )

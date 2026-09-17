@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><style>
+@page { size: A4; margin: 16mm; @bottom-right {content: "Page " counter(page) " of " counter(pages);font-size:9pt;color:#526158} }
+body {font-family: "DejaVu Sans", sans-serif;font-size:10pt;color:#203c30;line-height:1.4}
+h1 {font-size:22pt;margin:0} h2 {font-size:14pt;border-bottom:1px solid #bccbc1;padding-top:12px}
+p {margin:6px 0} .muted {color:#526158} .disclaimer {padding:10px;background:#edf4ef;font-weight:bold}
+table {width:100%;border-collapse:collapse;font-size:9pt;table-layout:fixed}
+th,td {text-align:left;vertical-align:top;padding:6px;border-bottom:1px solid #d5dfd7;overflow-wrap:anywhere}
+thead {display:table-header-group} tr {break-inside:avoid} h2 {break-after:avoid}
+img {width:100%} .note {border-left:3px solid #24634b;padding-left:10px;white-space:pre-wrap;overflow-wrap:anywhere}
+{% block styles %}{% endblock %}
+</style><title>Smārana</title></head><body>{% block content %}{% endblock %}</body></html>

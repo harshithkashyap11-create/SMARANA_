@@ -1,0 +1,447 @@
+/*
+ * Styling for games 7-12.
+ *
+ * Every value reads from a SMARANA design token with a safe fallback, so if the
+ * project already defines --sm-* variables these rules inherit them. If games
+ * 1-6 ship their own game stylesheet, fold these class names into it and delete
+ * this file - the components only rely on the class names, not on this file.
+ *
+ * Accessibility floor enforced here: 72px minimum touch targets, 1.25rem
+ * minimum body text, visible focus rings, no motion beyond a 150ms colour fade.
+ */
+
+.sm-game {
+  --sm-touch: 4.5rem;
+  color: var(--sm-color-text, #1d2b2a);
+  font-size: var(--sm-font-size-base, 1.25rem);
+  line-height: 1.5;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: var(--sm-space-lg, 1.5rem);
+}
+
+.sm-game__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sm-space-md, 1rem);
+}
+
+.sm-game__title {
+  font-size: var(--sm-font-size-title, 2rem);
+  margin: 0 0 0.25rem;
+}
+
+.sm-game__instructions {
+  margin: 0;
+  color: var(--sm-color-text-muted, #4a5b59);
+}
+
+.sm-game__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sm-space-sm, 0.75rem);
+  margin: var(--sm-space-md, 1rem) 0;
+}
+
+.sm-game__chip {
+  background: var(--sm-color-surface-muted, #eef3f1);
+  border-radius: var(--sm-radius-pill, 999px);
+  padding: 0.4rem 1rem;
+  font-size: 1.05rem;
+}
+
+.sm-game__chip--muted {
+  color: var(--sm-color-text-muted, #4a5b59);
+}
+
+.sm-game__body {
+  margin-top: var(--sm-space-md, 1rem);
+}
+
+.sm-game__footer {
+  margin-top: var(--sm-space-lg, 1.5rem);
+  display: flex;
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------------ panels */
+
+.sm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sm-space-lg, 1.5rem);
+}
+
+.sm-panel--centered {
+  align-items: center;
+  text-align: center;
+}
+
+.sm-prompt {
+  font-size: var(--sm-font-size-prompt, 1.6rem);
+  margin: 0;
+}
+
+.sm-prompt__icon {
+  margin-left: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.sm-hint-text {
+  font-size: 1.15rem;
+  color: var(--sm-color-text-muted, #4a5b59);
+  margin: 0;
+}
+
+.sm-target {
+  font-size: 5rem;
+  line-height: 1;
+}
+
+.sm-summary__title {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.sm-summary__line {
+  margin: 0;
+}
+
+.sm-feedback {
+  display: flex;
+  align-items: center;
+  gap: var(--sm-space-md, 1rem);
+}
+
+.sm-feedback__icon {
+  font-size: 2.5rem;
+}
+
+.sm-feedback__text {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ inputs */
+
+.sm-btn {
+  min-height: var(--sm-touch);
+  min-width: 10rem;
+  padding: 0.75rem 1.75rem;
+  font-size: 1.25rem;
+  font-family: inherit;
+  border-radius: var(--sm-radius-md, 0.75rem);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.sm-btn--primary {
+  background: var(--sm-color-accent, #1f6f5c);
+  color: var(--sm-color-accent-contrast, #ffffff);
+}
+
+.sm-btn--quiet {
+  background: var(--sm-color-surface, #ffffff);
+  color: var(--sm-color-text, #1d2b2a);
+  border-color: var(--sm-color-border, #c3d2ce);
+}
+
+.sm-btn[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sm-btn:focus-visible,
+.sm-cell:focus-visible,
+.sm-choice:focus-visible,
+.sm-tap-area:focus-visible {
+  outline: 4px solid var(--sm-color-focus, #0b5fff);
+  outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------- grids */
+
+.sm-grid {
+  display: grid;
+  gap: var(--sm-space-md, 1rem);
+}
+
+.sm-cell {
+  min-height: var(--sm-touch);
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(2rem, 8vw, 3rem);
+  background: var(--sm-color-surface, #ffffff);
+  border: 2px solid var(--sm-color-border, #c3d2ce);
+  border-radius: var(--sm-radius-md, 0.75rem);
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.sm-cell[disabled] {
+  cursor: default;
+}
+
+.sm-cell--correct {
+  border-color: var(--sm-color-success, #1f6f5c);
+  background: var(--sm-color-success-soft, #e3f2ec);
+}
+
+.sm-cell--wrong {
+  border-color: var(--sm-color-notice, #9a6b1f);
+  background: var(--sm-color-notice-soft, #faf1e0);
+}
+
+.sm-cell--hint {
+  border-color: var(--sm-color-focus, #0b5fff);
+  background: var(--sm-color-focus-soft, #e7efff);
+}
+
+/* ----------------------------------------------------------------- choices */
+
+.sm-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sm-space-md, 1rem);
+  justify-content: center;
+}
+
+.sm-choice {
+  min-height: var(--sm-touch);
+  min-width: var(--sm-touch);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 1.2rem;
+  font-family: inherit;
+  background: var(--sm-color-surface, #ffffff);
+  border: 2px solid var(--sm-color-border, #c3d2ce);
+  border-radius: var(--sm-radius-md, 0.75rem);
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.sm-choice--text {
+  min-width: 12rem;
+  font-size: 1.35rem;
+}
+
+.sm-choices--text {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.sm-choice__emoji {
+  font-size: 2.6rem;
+}
+
+.sm-choice--correct {
+  border-color: var(--sm-color-success, #1f6f5c);
+  background: var(--sm-color-success-soft, #e3f2ec);
+}
+
+.sm-choice--wrong {
+  border-color: var(--sm-color-notice, #9a6b1f);
+  background: var(--sm-color-notice-soft, #faf1e0);
+}
+
+.sm-choice--muted {
+  opacity: 0.55;
+}
+
+.sm-choice--eliminated {
+  opacity: 0.35;
+  text-decoration: line-through;
+}
+
+/* ---------------------------------------------------------------- patterns */
+
+.sm-pattern-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sm-space-md, 1rem);
+  justify-content: center;
+}
+
+.sm-pattern-strip--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.sm-pattern-item {
+  min-width: 3.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.sm-pattern-item--blank {
+  font-size: 2.6rem;
+  color: var(--sm-color-text-muted, #4a5b59);
+  border-bottom: 3px dashed var(--sm-color-border, #c3d2ce);
+  min-width: 3.5rem;
+}
+
+.sm-pattern-cell {
+  font-size: 2.4rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.sm-pattern-cell--large {
+  font-size: 3rem;
+}
+
+.sm-pattern-cell__stack,
+.sm-pattern-cell__slots {
+  display: inline-flex;
+  gap: 0.2rem;
+}
+
+.sm-pattern-slot {
+  display: inline-block;
+}
+
+/* ------------------------------------------------------------------- pairs */
+
+.sm-pair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sm-space-lg, 1.5rem);
+  flex-wrap: wrap;
+}
+
+.sm-pair__side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sm-pair__emoji {
+  font-size: 4rem;
+}
+
+.sm-pair__label {
+  font-size: 1.25rem;
+}
+
+.sm-pair__link {
+  font-size: 2.5rem;
+  color: var(--sm-color-text-muted, #4a5b59);
+}
+
+.sm-pair__side--unknown {
+  font-size: 4rem;
+  color: var(--sm-color-text-muted, #4a5b59);
+}
+
+/* --------------------------------------------------------------- tap area */
+
+.sm-tap-area {
+  min-height: 22rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sm-space-lg, 1.5rem);
+  background: var(--sm-color-surface, #ffffff);
+  border: 3px solid var(--sm-color-border, #c3d2ce);
+  border-radius: var(--sm-radius-lg, 1rem);
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.sm-tap-area--tapped {
+  background: var(--sm-color-focus-soft, #e7efff);
+}
+
+.sm-tap-area__stimulus {
+  font-size: clamp(5rem, 22vw, 8rem);
+  min-height: 9rem;
+  display: flex;
+  align-items: center;
+}
+
+/* ----------------------------------------------------------- memory cards */
+
+.sm-memory-card {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sm-space-md, 1rem);
+}
+
+.sm-memory-card__image {
+  max-width: 100%;
+  width: 18rem;
+  height: 18rem;
+  object-fit: cover;
+  border-radius: var(--sm-radius-lg, 1rem);
+}
+
+.sm-memory-card__placeholder {
+  width: 15rem;
+  height: 15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 6rem;
+  background: var(--sm-color-surface-muted, #eef3f1);
+  border-radius: var(--sm-radius-lg, 1rem);
+}
+
+.sm-memory-card__caption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: center;
+  color: var(--sm-color-text-muted, #4a5b59);
+}
+
+.sm-memory-card__line {
+  font-size: 1.15rem;
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media (max-width: 30rem) {
+  .sm-game {
+    padding: var(--sm-space-md, 1rem);
+  }
+  .sm-game__title {
+    font-size: 1.6rem;
+  }
+  .sm-btn {
+    width: 100%;
+  }
+  .sm-choices {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sm-btn,
+  .sm-cell,
+  .sm-choice,
+  .sm-tap-area {
+    transition: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .sm-cell,
+  .sm-choice,
+  .sm-tap-area {
+    border-width: 3px;
+  }
+}

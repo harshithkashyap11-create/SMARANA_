@@ -1,0 +1,15 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block content %}
+{% if smarana_counts %}
+<div class="module" id="smarana-dashboard">
+  <table>
+    <caption>Smārana overview</caption>
+    {% for label, count in smarana_counts.items %}
+      <tr><th>{{ label|title }}</th><td>{{ count }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+{% endblock %}

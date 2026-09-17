@@ -1,0 +1,7 @@
+[
+  {"routineItemId":"00000000-0000-0000-0000-000000000001","date":"2026-09-14","expectedUuid":"4d039af6-6099-5161-a2c0-fba6fa8f71b0"},
+  {"routineItemId":"00000000-0000-0000-0000-000000000002","date":"2026-09-15","expectedUuid":"a0b9b0de-10ce-5dcc-b52c-61154bdbfa49"},
+  {"routineItemId":"11111111-1111-1111-1111-111111111111","date":"2026-01-01","expectedUuid":"4e75e534-6573-56be-a9c8-69c5b1fdc6ff"},
+  {"routineItemId":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa","date":"2027-12-31","expectedUuid":"b4a90613-66b6-5f73-a872-3cd6661ecacd"},
+  {"routineItemId":"ffffffff-ffff-ffff-ffff-ffffffffffff","date":"2025-05-05","expectedUuid":"4825a445-29f4-5e8b-a8f6-b577e929d5ad"}
+]

@@ -1,0 +1,948 @@
+openapi: 3.0.3
+info:
+  title: Smārana API
+  version: 1.0.0
+paths:
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/auth/login/:
+    post:
+      operationId: v1_auth_login_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfessionalLogin'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProfessionalLogin'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProfessionalLogin'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: ''
+  /api/v1/auth/logout/:
+    post:
+      operationId: v1_auth_logout_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Logout'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/auth/me/:
+    get:
+      operationId: v1_auth_me_retrieve
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+  /api/v1/auth/me/preferences/:
+    patch:
+      operationId: v1_auth_me_preferences_partial_update
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPreference'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPreference'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPreference'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preference'
+          description: ''
+  /api/v1/auth/patient/login/:
+    post:
+      operationId: v1_auth_patient_login_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientLogin'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientLogin'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientLogin'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: ''
+        '423':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LockedResponse'
+          description: ''
+  /api/v1/auth/patient/pin-reset/:
+    post:
+      operationId: v1_auth_patient_pin_reset_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientPinReset'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientPinReset'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientPinReset'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/auth/refresh/:
+    post:
+      operationId: v1_auth_refresh_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Refresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Refresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Refresh'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RotatedTokenResponse'
+          description: ''
+  /api/v1/health/:
+    get:
+      operationId: health_check
+      description: Confirm that the API process and its database are available.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthOk'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthUnavailable'
+          description: ''
+  /api/v1/patients/:
+    get:
+      operationId: v1_patients_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPatientCardList'
+          description: ''
+  /api/v1/patients/{id}/:
+    get:
+      operationId: v1_patients_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+  /api/v1/patients/{id}/consent/:
+    get:
+      operationId: v1_patients_consent_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+    patch:
+      operationId: v1_patients_consent_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+  /api/v1/patients/{id}/family/:
+    get:
+      operationId: v1_patients_family_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+    post:
+      operationId: v1_patients_family_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientCard'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+  /api/v1/patients/{id}/family/{family_id}/:
+    patch:
+      operationId: v1_patients_family_partial_update
+      parameters:
+      - in: path
+        name: family_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+    delete:
+      operationId: v1_patients_family_destroy
+      parameters:
+      - in: path
+        name: family_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/patients/{id}/profile/:
+    patch:
+      operationId: v1_patients_profile_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this patient profile.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPatientCard'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientCard'
+          description: ''
+components:
+  schemas:
+    AssignmentSummary:
+      type: object
+      properties:
+        patients:
+          type: array
+          items:
+            $ref: '#/components/schemas/PatientSummary'
+          readOnly: true
+      required:
+      - patients
+    HealthOk:
+      type: object
+      properties:
+        status:
+          type: string
+        db:
+          type: string
+      required:
+      - db
+      - status
+    HealthUnavailable:
+      type: object
+      properties:
+        status:
+          type: string
+        db:
+          type: string
+      required:
+      - db
+      - status
+    LanguageEnum:
+      enum:
+      - en
+      - as
+      - bn
+      type: string
+      description: |-
+        * `en` - English
+        * `as` - Assamese
+        * `bn` - Bengali
+    LockedResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        retry_after_seconds:
+          type: integer
+          readOnly: true
+      required:
+      - code
+      - detail
+      - retry_after_seconds
+    LoginResponse:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/UserSummary'
+          readOnly: true
+      required:
+      - access
+      - refresh
+      - user
+    Logout:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - refresh
+    Me:
+      type: object
+      properties:
+        user:
+          allOf:
+          - $ref: '#/components/schemas/UserSummary'
+          readOnly: true
+        role:
+          type: string
+          readOnly: true
+        preferences:
+          allOf:
+          - $ref: '#/components/schemas/Preference'
+          readOnly: true
+        assignments:
+          allOf:
+          - $ref: '#/components/schemas/AssignmentSummary'
+          readOnly: true
+      required:
+      - assignments
+      - preferences
+      - role
+      - user
+    PaginatedPatientCardList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PatientCard'
+    PatchedPatientCard:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        age:
+          type: integer
+          nullable: true
+          readOnly: true
+        language:
+          type: string
+          nullable: true
+          readOnly: true
+        primary_caregiver_name:
+          type: string
+          readOnly: true
+          nullable: true
+        last_active_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        open_alert_count:
+          type: integer
+          readOnly: true
+    PatchedPreference:
+      type: object
+      properties:
+        theme:
+          $ref: '#/components/schemas/ThemeEnum'
+        font_scale:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,1})?$
+        language:
+          $ref: '#/components/schemas/LanguageEnum'
+    PatientCard:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        age:
+          type: integer
+          nullable: true
+          readOnly: true
+        language:
+          type: string
+          nullable: true
+          readOnly: true
+        primary_caregiver_name:
+          type: string
+          readOnly: true
+          nullable: true
+        last_active_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        open_alert_count:
+          type: integer
+          readOnly: true
+      required:
+      - age
+      - id
+      - language
+      - last_active_at
+      - name
+      - open_alert_count
+      - primary_caregiver_name
+    PatientLogin:
+      type: object
+      properties:
+        login_id:
+          type: string
+          maxLength: 32
+        pin:
+          type: string
+          writeOnly: true
+          pattern: ^\d{4}$
+        device_id:
+          type: string
+          maxLength: 255
+      required:
+      - device_id
+      - login_id
+      - pin
+    PatientPinReset:
+      type: object
+      properties:
+        patient_id:
+          type: string
+          format: uuid
+        new_pin:
+          type: string
+          writeOnly: true
+          pattern: ^\d{4}$
+      required:
+      - new_pin
+      - patient_id
+    PatientSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - name
+    Preference:
+      type: object
+      properties:
+        theme:
+          $ref: '#/components/schemas/ThemeEnum'
+        font_scale:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,1})?$
+        language:
+          $ref: '#/components/schemas/LanguageEnum'
+    ProfessionalLogin:
+      type: object
+      properties:
+        email_or_phone:
+          type: string
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+        device_id:
+          type: string
+          maxLength: 255
+      required:
+      - device_id
+      - email_or_phone
+      - password
+    Refresh:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - refresh
+    RoleEnum:
+      enum:
+      - patient
+      - caregiver
+      - doctor
+      - admin
+      type: string
+      description: |-
+        * `patient` - Patient
+        * `caregiver` - Caregiver
+        * `doctor` - Doctor
+        * `admin` - Admin
+    RotatedTokenResponse:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - refresh
+    ThemeEnum:
+      enum:
+      - light
+      - dark
+      type: string
+      description: |-
+        * `light` - Light
+        * `dark` - Dark
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        display_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+        phone:
+          type: string
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+      required:
+      - display_name
+      - email
+      - id
+      - phone
+      - role
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+servers:
+- url: /
+  description: Current host

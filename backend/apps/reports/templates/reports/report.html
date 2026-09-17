@@ -1,0 +1,17 @@
+{% extends "reports/base.html" %}{% block content %}
+<h1>Smārana {{ variant }} Report</h1><p class="disclaimer">{{ disclaimer }}</p>
+<h2>Profile and period</h2><p><strong>{{ patient.user.display_name }}</strong> | {{ start }} to {{ end }}</p>
+<p>Date of birth: {{ patient.date_of_birth|default:"Not recorded" }} | Home: {{ patient.home_label|default:"Not recorded" }}</p>
+<h2>Sessions</h2><p>{{ sessions|length }} sessions. Practice excluded.</p>
+<table><thead><tr><th>Activity</th><th>Ended</th><th>Level</th><th>Accuracy / response (ms)</th></tr></thead><tbody>
+{% for row in sessions %}<tr><td>{{ row.game.name }}</td><td>{{ row.ended_at|date:"d M Y H:i" }}</td><td>{{ row.level }}</td><td>{{ row.metrics.accuracy|default_if_none:"—" }} / {{ row.metrics.mean_reaction_ms|default_if_none:"—" }}</td></tr>{% empty %}<tr><td colspan="4">No sessions in this period.</td></tr>{% endfor %}</tbody></table>
+<h2>Domain trends</h2><p>Descriptive completed-session means. Comparisons do not establish a clinical change.</p>
+{% if chart %}<img src="{{ chart }}" alt="Mean completed-session accuracy by domain">{% endif %}
+{% for row in domains %}<p>{{ row.name }}: {{ row.count }} sessions; mean accuracy {{ row.accuracy|floatformat:2 }}; first {{ row.first|floatformat:2 }}, latest {{ row.last|floatformat:2 }}.</p>{% empty %}<p>Not enough completed-session data.</p>{% endfor %}
+<h2>Difficulty history</h2>{% for row in changes %}<p>{{ row.created_at|date:"d M Y" }} | {{ row.state.game.name }}: {{ row.from_level }} to {{ row.to_level }}. {{ row.explanation }}</p>{% empty %}<p>No changes in this period.</p>{% endfor %}
+<h2>Adherence</h2><p>{{ reminder_total }} scheduled reminders. Taken: {{ adherence.taken }}; missed: {{ adherence.missed }}; skipped: {{ adherence.skipped }}; later: {{ adherence.later }}; help: {{ adherence.help }}; pending: {{ adherence.pending }}.</p>
+<h2>Flags</h2>{% for row in flags %}<p><strong>{{ row.title }}</strong> ({{ row.status }}) {{ row.explanation }}</p>{% empty %}<p>No flags in this period.</p>{% endfor %}
+<h2>Caregiver notes</h2>{% for row in caregiver_notes %}<p class="note">{{ row.author.display_name }} | {{ row.created_at|date:"d M Y" }}<br>{{ row.text }}</p>{% empty %}<p>No shared caregiver notes in this period.</p>{% endfor %}
+<h2>Doctor recommendations</h2>{% for row in doctor_notes %}<p class="note">{{ row.author.display_name }} | {{ row.created_at|date:"d M Y" }}<br>{{ row.status_summary }}<br>{{ row.text }}{% if row.follow_up_date %}<br>Next review: {{ row.follow_up_date }}{% endif %}</p>{% empty %}<p>No visible doctor recommendations in this period.</p>{% endfor %}
+<h2>Next review</h2>{% for row in assignments %}<p>{{ row.game.name }}: review {{ row.review_date }}. {{ row.notes }}</p>{% empty %}<p>No active exercise review scheduled.</p>{% endfor %}
+<p class="disclaimer">{{ disclaimer }}</p>{% endblock %}

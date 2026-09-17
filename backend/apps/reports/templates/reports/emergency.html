@@ -1,0 +1,13 @@
+{% extends "reports/base.html" %}{% block styles %}
+@page { margin: 12mm; } body {font-size:9pt} h2 {padding-top:5px;margin:8px 0 4px;font-size:12pt} td,th {padding:4px;font-size:8pt}
+{% endblock %}{% block content %}
+<h1>Emergency Card</h1><p>Smārana | Updated {{ today }} | Keep this card with you.</p>
+<h2>Essentials</h2><p><strong>{{ patient.user.display_name }}</strong> | Born {{ patient.date_of_birth|default:"Not recorded" }}</p>
+<p>Home: {{ patient.home_label|default:"Not recorded" }}</p>
+<h2>Allergies</h2><p>{{ baseline.allergies|default:"Not recorded - confirm with the care team." }}</p>
+<h2>Medications</h2><table><thead><tr><th>Medicine / dose</th><th>Times / instructions</th></tr></thead><tbody>{% for row in medications %}<tr><td>{{ row.name }} {{ row.dose }}</td><td>{{ row.times|join:", " }} {{ row.instructions }}</td></tr>{% empty %}<tr><td colspan="2">No current medications recorded.</td></tr>{% endfor %}</tbody></table>
+<h2>Emergency contacts</h2>{% for row in contacts %}<p>{{ row.name }} ({{ row.relationship_label|default:row.relationship }}) - {{ row.phone|default:"Phone not recorded" }}</p>{% empty %}<p>No family emergency contacts recorded.</p>{% endfor %}
+<h2>Care team contacts</h2>{% for row in caregivers %}<p>Caregiver: {{ row.caregiver.display_name }} - {{ row.caregiver.phone|default:"Phone not recorded" }} | {{ row.caregiver.email }}</p>{% endfor %}
+{% for row in doctors %}<p>Doctor: {{ row.doctor.display_name }} - {{ row.doctor.phone|default:"Phone not recorded" }} | {{ row.doctor.email }}</p>{% endfor %}
+<p class="muted">Verify medicines and allergies with the care team. This card supports communication and is not a diagnosis.</p>
+{% endblock %}
