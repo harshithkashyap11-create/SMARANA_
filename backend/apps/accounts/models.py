@@ -37,7 +37,15 @@ class User(AbstractUser):
     )
     language = models.CharField(
         max_length=8,
-        choices=(("en", "English"), ("as", "Assamese"), ("bn", "Bengali")),
+        choices=(
+            ("en", "English"),
+            ("as", "Assamese"),
+            ("bn", "Bengali"),
+            ("hi", "Hindi"),
+            ("te", "Telugu"),
+            ("mni", "Manipuri"),
+            ("lus", "Mizo"),
+        ),
         default="en",
     )
     is_approved = models.BooleanField(default=False)

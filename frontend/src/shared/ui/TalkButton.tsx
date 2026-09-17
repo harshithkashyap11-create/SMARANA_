@@ -1,5 +1,5 @@
 import { saveComfortSettings } from "../../db/accessibility";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -22,13 +22,19 @@ export function TalkButton({
   const navigate = useNavigate();
   const [listening, setListening] = useState(false);
   const [text, setText] = useState("");
+  const [error, setError] = useState("");
+  const [request, setRequest] = useState("");
+  const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState<{
     message: string;
     action: () => void;
   } | null>(null);
   const language = (i18n.resolvedLanguage?.split("-")[0] ??
     "en") as VoiceLanguage;
+  const playback = useRef<BrowserTextToSpeech>();
   const speech = useMemo(() => new BrowserSpeechToText(language), [language]);
+
+  useEffect(() => () => { speech.stop(); playback.current?.cancel(); }, [speech]);
 
   const handle = async (value: string): Promise<void> => {
     setText(value);
@@ -37,10 +43,12 @@ export function TalkButton({
     const profile = await activeProfile();
     if (!profile) return;
     const members = await patientRepository.getFamilyMembers();
+    playback.current?.cancel();
     const tts = new BrowserTextToSpeech(
       language,
       (await getMeta("slowSpeech")) === "1",
     );
+    playback.current = tts;
     const languageLocked = (await getMeta("languageLocked")) === "1";
     const lockedLanguageRequest =
       languageLocked && isLanguageSwitchRequest(value);
@@ -48,6 +56,7 @@ export function TalkButton({
       route(value, language, { familyMembers: members, languageLocked }) ??
       (lockedLanguageRequest ? null : await routeWithFallback(value, language));
     if (!command) {
+      setError(t(lockedLanguageRequest ? "voice.languageLocked" : "voice.unknown"));
       if (lockedLanguageRequest) {
         await tts.speak(t("voice.languageLocked"));
       }
@@ -81,10 +90,19 @@ export function TalkButton({
       setListening(false);
       return;
     }
+    setOpen(true);
+    setText("");
+    setError("");
+    window.speechSynthesis?.cancel();
     setListening(true);
     speech.start(
-      (value) => void handle(value),
+      (value) => {
+        setListening(false);
+        speech.stop();
+        void handle(value).catch(() => setError(t("voice.recognitionFailed")));
+      },
       () => setListening(false),
+      (code) => setError(t(code === "unsupported" ? "voice.unsupported" : code === "not-allowed" || code === "service-not-allowed" ? "voice.permissionDenied" : "voice.recognitionFailed")),
     );
   };
   return (
@@ -97,13 +115,27 @@ export function TalkButton({
       >
         ◖)) {t("patient.talk")}
       </button>
-      {listening || text ? (
+      {open ? (
         <div
           className="fixed inset-x-4 bottom-24 z-40 mx-auto max-w-lg rounded-card bg-surface p-5 shadow-card"
           role="status"
         >
           <strong>{listening ? t("voice.listening") : t("voice.heard")}</strong>
           {text ? <p>{text}</p> : null}
+          {error ? <p role="alert">{error}</p> : null}
+          <form className="mt-3 flex flex-wrap gap-2" onSubmit={(event) => {
+            event.preventDefault();
+            if (!request.trim()) return;
+            speech.stop();
+            setListening(false);
+            setError("");
+            void handle(request.trim()).catch(() => setError(t("voice.recognitionFailed")));
+            setRequest("");
+          }}>
+            <input aria-label={t("voice.request")} className="min-h-touch min-w-0 flex-1 rounded-card border p-2" value={request} onChange={(event) => setRequest(event.target.value)} />
+            <button className="min-h-touch rounded-card bg-primary px-4 text-primaryText" type="submit">{t("voice.send")}</button>
+          </form>
+          <button className="mt-2 min-h-touch underline" type="button" onClick={() => { speech.stop(); setListening(false); setOpen(false); }}>{t("auth.back")}</button>
         </div>
       ) : null}
       <ConfirmDialog

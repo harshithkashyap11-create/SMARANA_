@@ -1,15 +1,18 @@
 """Thin HTTP adapters for authentication and account preferences."""
 
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
-from apps.accounts.models import User
+from apps.accounts.models import DoctorProfile, User
 from apps.accounts.serializers import (
     LockedResponseSerializer,
     LoginResponseSerializer,
@@ -37,12 +40,56 @@ from apps.accounts.services import (
 )
 from apps.accounts.throttles import LoginThrottle
 from apps.audit.services import audit
+from apps.patients.models import ConsentSettings, PatientProfile
 from apps.shared.exceptions import UserFacingError
 from apps.shared.permissions import authenticated_user, role_permission
 
 
 def _token_error() -> UserFacingError:
     return UserFacingError("token_not_valid", status_code=status.HTTP_401_UNAUTHORIZED)
+
+
+class RegisterSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    display_name = serializers.CharField(max_length=150)
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
+    role = serializers.ChoiceField(choices=["patient", "caregiver", "doctor"])
+
+
+class RegisterView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginThrottle]
+
+    @extend_schema(request=RegisterSerializer, responses={201: UserSummarySerializer})
+    @transaction.atomic
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        email = data["email"].lower()
+        if (
+            User.objects.filter(email__iexact=email).exists()
+            or User.objects.filter(username__iexact=email).exists()
+        ):
+            raise serializers.ValidationError({"email": "An account already exists."})
+        user = User(
+            username=email, email=email, display_name=data["display_name"], role=data["role"]
+        )
+        try:
+            validate_password(data["password"], user)
+        except ValidationError as exc:
+            raise serializers.ValidationError({"password": exc.messages}) from exc
+        user.is_approved = user.role == User.Role.PATIENT
+        user.set_password(data["password"])
+        user.save()
+        if user.role == User.Role.PATIENT:
+            profile = PatientProfile.objects.create(user=user)
+            ConsentSettings.objects.create(patient=profile)
+        elif user.role == User.Role.DOCTOR:
+            DoctorProfile.objects.create(user=user, verification_status="pending")
+        audit(user, "account_created", user, request=request)
+        return Response(UserSummarySerializer(user).data, status=201)
 
 
 class ProfessionalLoginView(APIView):

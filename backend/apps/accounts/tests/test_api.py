@@ -227,3 +227,14 @@ def test_revoked_approval_blocks_access_and_refresh(api: APIClient) -> None:
     assert (
         api.post(REFRESH_URL, {"refresh": login.data["refresh"]}, format="json").status_code == 401
     )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("language", ["hi", "te", "mni", "lus"])
+def test_added_languages_persist(api: APIClient, language: str) -> None:
+    user = _professional(role=User.Role.CAREGIVER)
+    api.force_authenticate(user=user)
+    response = api.patch(PREFERENCES_URL, {"language": language}, format="json")
+    assert response.status_code == 200
+    user.refresh_from_db()
+    assert user.language == language

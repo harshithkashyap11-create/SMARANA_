@@ -73,7 +73,8 @@ const distance = (a: string, b: string): number => {
   return row[b.length] ?? 0;
 };
 export const isLanguageSwitchRequest = (utterance: string): boolean =>
-  /(switch|change).*(language|bengali|assamese|english)|(?:ভাষা|বাংলা|অসমীয়া|ইংৰাজী|ইংরেজি).*(?:সলনি|বদল)|(?:সলনি|বদল).*(?:ভাষা|বাংলা|অসমীয়া|ইংৰাজী|ইংরেজি)/u.test(
+  /(?:भाषा|हिन्दी|हिंदी|अंग्रेज़ी|बंगाली|असमिया|स्पेनिश).*(?:बदल|करो)|(?:बदल).*(?:भाषा|हिन्दी|हिंदी)|(?:cambia|cambiar).*(?:idioma|español|inglés|hindi|bengalí|asamés)/u.test(normalize(utterance)) ||
+  /(switch|change).*(language|bengali|assamese|english|hindi|telugu|manipuri|meitei|mizo)|(?:ভাষা|বাংলা|অসমীয়া|ইংৰাজী|ইংরেজি).*(?:সলনি|বদল)|(?:সলনি|বদল).*(?:ভাষা|বাংলা|অসমীয়া|ইংৰাজী|ইংরেজি)/u.test(
     normalize(utterance),
   );
 export function route(
@@ -87,6 +88,53 @@ export function route(
     slots: Record<string, string> = {},
     confirm = false,
   ): RoutedIntent => ({ intent, slots, requiresConfirm: confirm });
+  if (isLanguageSwitchRequest(text)) {
+    if (context.languageLocked) return null;
+    const choices: Array<[RegExp, VoiceLanguage]> = [
+      [/(?:bengali|বাংলা|बंगाली|bengalí)/u, "bn"],
+      [/(?:assamese|অসমীয়া|असमिया|asamés)/u, "as"],
+      [/(?:hindi|हिन्दी|हिंदी)/u, "hi"],
+      [/(?:telugu|తెలుగు)/u, "te"],
+      [/(?:manipuri|meitei)/u, "mni"],
+      [/(?:mizo)/u, "lus"],
+      [/(?:english|ইংৰাজী|ইংরেজি|अंग्रेज़ी|inglés)/u, "en"],
+    ];
+    const selected = choices.find(([pattern]) => pattern.test(text));
+    return selected ? make("switch_language", { language: selected[1] }) : null;
+  }
+  const nativeSections: Array<[RegExp, string]> = [
+    [/(?:यादें|यादों|recuerdos)/u, "memories"],
+    [/(?:दवा|दवाइयाँ|दवाइयां|medicamentos|medicinas)/u, "medicines"],
+    [/(?:दिनचर्या|rutina)/u, "routine"],
+    [/(?:खेल|juegos)/u, "games"],
+    [/(?:शांति|calma)/u, "calm-time"],
+    [/(?:परिवार|लोग|familia|personas)/u, "people"],
+    [/(?:सेटिंग्स|ajustes|configuración)/u, "settings"],
+    [/(?:प्रगति|progreso)/u, "progress"],
+  ];
+  const nativeSection = nativeSections.find(([pattern]) => pattern.test(text));
+  if (nativeSection && /(?:खोल|दिखा|जाओ|abre|abrir|muestra|ir a)/u.test(text))
+    return make("open_section", { section: nativeSection[1] });
+  if (/(?:आपातकाल|emergencia)/u.test(text)) return make("sos", {}, true);
+  if (/(?:मदद|उलझन|ayuda|confundido|confundida)/u.test(text)) return make("help");
+  if (/(?:धीरे बोल|habla despacio|hablar despacio)/u.test(text)) return make("speak_slowly");
+  if (/(?:सामान्य गति|सामान्य बोल|velocidad normal|habla normal)/u.test(text)) return make("speak_normally");
+  if (/(?:पढ़|lee esto|leer esto)/u.test(text)) return make("read_this");
+  if (/(?:अगला|आगे क्या|qué sigue|siguiente actividad|qué día|qué hora)/u.test(text)) return make("next_activity");
+  if (/(?:दवा|दवाइयाँ|medicamentos|medicinas)/u.test(text)) return make("medicines_today");
+  const nativeReminder = text.match(/(?:recuérdame|recuerdame) (?:que |a )?(.+?) a las ([0-9]{1,2}(?::[0-9]{2})?)/u)
+    ?? text.match(/(.+?) (?:के लिए )?([0-9]{1,2}(?::[0-9]{2})?) बजे याद दिला/u);
+  if (nativeReminder?.[1] && nativeReminder[2]) {
+    const time = reminderTime(nativeReminder[2]);
+    return time ? make("set_reminder", { title: nativeReminder[1], time }, true) : null;
+  }
+  const nativeCall = text.match(/(?:llama a|llamar a) (.+)|(.+?) (?:को (?:फ़ोन|फोन|कॉल) करो)/u);
+  if (nativeCall) {
+    const wanted = nativeCall[1] ?? nativeCall[2] ?? "";
+    const person = context.familyMembers?.find((member) => normalize(member.name) === wanted || normalize(member.relationship ?? "") === wanted);
+    if (person) return make("call_person", { name: person.name }, true);
+  }
+  if (/(?:खेल शुरू|खेलो|jugar|inicia un juego)/u.test(text)) return make("start_game");
   if (/^(help|i am confused|i m confused|সহায়|সাহায্য)/u.test(text))
     return make("help");
   if (/(emergency|need help now|জৰুৰী|জরুরি)/u.test(text))
@@ -138,17 +186,6 @@ export function route(
   );
   if (namedGame && /(?:play|start|খেল|খেলা|শুরু)/u.test(text))
     return make("start_game", { game: namedGame[1] });
-  if (isLanguageSwitchRequest(text))
-    return context.languageLocked
-      ? null
-      : make("switch_language", {
-          language:
-            text.includes("bengali") || text.includes("বাংলা")
-              ? "bn"
-              : text.includes("assamese") || text.includes("অসমীয়া")
-                ? "as"
-                : "en",
-        });
   const call = text.match(
     /(?:call|phone|ফোন কৰক|ফোন কর|কল কৰক|কল কর) (?:my )?(.+)/u,
   );

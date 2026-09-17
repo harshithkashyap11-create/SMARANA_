@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { ApiError } from "../../api/client";
 import {
@@ -163,6 +163,8 @@ export function PatientLoginPage() {
         onBackspace={() => setPin((value) => value.slice(0, -1))}
         onDigit={addDigit}
       />
+      <Link to="/login/user">{t("registration.passwordLogin")}</Link>
+      <Link to="/register">{t("registration.create")}</Link>
     </main>
   );
 }

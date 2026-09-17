@@ -1,5 +1,5 @@
 import { useCalmStore } from "../features/patient/confused/store";
-import type { VoiceLanguage } from "./stt";
+import { recognitionLocale, type VoiceLanguage } from "./stt";
 export interface TextToSpeech {
   speak(text: string, options?: { slow?: boolean }): Promise<void>;
   cancel(): void;
@@ -8,18 +8,24 @@ const voiceFallbacks: Record<VoiceLanguage, readonly string[]> = {
   en: ["en-IN", "en"],
   as: ["as-IN", "as", "bn-IN", "bn"],
   bn: ["bn-IN", "bn"],
+  hi: ["hi-IN", "hi"],
+  te: ["te-IN", "te"],
+  mni: ["mni-IN", "mni"],
+  lus: ["lus-IN", "lus"],
 };
 
 export class BrowserTextToSpeech implements TextToSpeech {
+  private generation = 0;
+  private pending?: () => void;
   constructor(
     private language: VoiceLanguage,
     private slow = false,
   ) {}
   async speak(text: string, options: { slow?: boolean } = {}): Promise<void> {
     this.cancel();
-    const locale = ({ en: "en-IN", as: "as-IN", bn: "bn-IN" } as const)[
-      this.language
-    ];
+    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+    const generation = this.generation;
+    const locale = recognitionLocale(this.language);
     const voices = speechSynthesis.getVoices();
     const voice = voiceFallbacks[this.language]
       .map(
@@ -36,15 +42,23 @@ export class BrowserTextToSpeech implements TextToSpeech {
     const isSlow =
       useCalmStore.getState().calmMode || (options.slow ?? this.slow);
     for (const [index, sentence] of sentences.entries()) {
+      if (generation !== this.generation) return;
       await new Promise<void>((resolve) => {
         const utterance = new SpeechSynthesisUtterance(sentence);
         utterance.lang = locale;
         utterance.voice = voice ?? null;
         utterance.rate = isSlow ? 0.7 : 0.95;
         utterance.pitch = 1;
-        utterance.onend = () => resolve();
-        utterance.onerror = () => resolve();
-        speechSynthesis.speak(utterance);
+        const finish = () => {
+          window.clearTimeout(timeout);
+          if (this.pending === finish) this.pending = undefined;
+          resolve();
+        };
+        const timeout = window.setTimeout(finish, Math.max(10_000, sentence.length * 250));
+        this.pending = finish;
+        utterance.onend = finish;
+        utterance.onerror = finish;
+        try { speechSynthesis.speak(utterance); } catch { finish(); }
       });
       if (isSlow && index < sentences.length - 1) {
         await new Promise<void>((resolve) => window.setTimeout(resolve, 400));
@@ -52,7 +66,10 @@ export class BrowserTextToSpeech implements TextToSpeech {
     }
   }
   cancel(): void {
-    speechSynthesis.cancel();
+    this.generation++;
+    this.pending?.();
+    this.pending = undefined;
+    window.speechSynthesis?.cancel();
   }
 }
 export class FakeTextToSpeech implements TextToSpeech {

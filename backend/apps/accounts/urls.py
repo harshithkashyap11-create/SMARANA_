@@ -10,9 +10,11 @@ from apps.accounts.views import (
     PreferenceView,
     ProfessionalLoginView,
     RefreshView,
+    RegisterView,
 )
 
 urlpatterns = [
+    path("register/", RegisterView.as_view(), name="register"),
     path("login/", ProfessionalLoginView.as_view(), name="professional-login"),
     path("patient/login/", PatientLoginView.as_view(), name="patient-login"),
     path("patient/pin-reset/", PatientPinResetView.as_view(), name="patient-pin-reset"),

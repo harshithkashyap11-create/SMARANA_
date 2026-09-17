@@ -83,3 +83,18 @@ describe("BrowserSpeechToText", () => {
     expect(RecognitionFake.instances[1]!.stop).toHaveBeenCalledOnce();
   });
 });
+
+it("reports missing recognition and denied microphone access", () => {
+  const error = vi.fn();
+  const end = vi.fn();
+  new BrowserSpeechToText("hi").start(vi.fn(), end, error);
+  expect(error).toHaveBeenCalledWith("unsupported");
+  (window as unknown as { SpeechRecognition: unknown }).SpeechRecognition = RecognitionFake;
+  const speech = new BrowserSpeechToText("te");
+  speech.start(vi.fn(), end, error);
+  const recognition = RecognitionFake.instances[0]!;
+  expect(recognition.lang).toBe("te-IN");
+  recognition.onerror?.({ error: "not-allowed" });
+  expect(error).toHaveBeenCalledWith("not-allowed");
+  expect(end).toHaveBeenCalledTimes(2);
+});

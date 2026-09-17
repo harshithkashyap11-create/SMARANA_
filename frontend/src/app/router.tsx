@@ -1,5 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
+import { RegisterPage } from "../features/auth/RegisterPage";
 
+import { AdminPortalPage } from "../features/auth/AdminPortalPage";
 import { LandingPage } from "../features/auth/LandingPage";
 import { ProfessionalLoginPage } from "../features/auth/ProfessionalLoginPage";
 import { PatientLoginPage } from "../features/auth/PatientLoginPage";
@@ -24,6 +26,8 @@ import { WellnessPage } from "../features/patient/sleep/WellnessPage";
 import { SettingsPage } from "../features/patient/settings/SettingsPage";
 
 export const router = createBrowserRouter([
+  { path: "/register", element: <RegisterPage /> },
+  { path: "/login/user", element: <ProfessionalLoginPage role="patient" /> },
   {
     path: "/login/patient",
     element: <PatientLoginPage />,
@@ -67,7 +71,8 @@ export const router = createBrowserRouter([
     element: <ProfessionalLoginPage role="caregiver" />,
   },
   { path: "/login/doctor", element: <ProfessionalLoginPage role="doctor" /> },
-  { path: "/login/admin", element: <ProfessionalLoginPage role="admin" /> },
+  { path: "/login/admin", element: <Navigate to="/portal/admin" replace /> },
+  { path: "/portal/admin", element: <AdminPortalPage /> },
   {
     element: (
       <RequireRole allowed={["caregiver", "doctor"]}>

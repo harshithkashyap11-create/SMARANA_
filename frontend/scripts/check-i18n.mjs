@@ -25,7 +25,13 @@ export function catalogErrors(catalog, english, language) {
 async function files(dir) { return (await Promise.all((await readdir(dir, { withFileTypes: true })).map((e) => e.isDirectory() ? files(join(dir, e.name)) : [join(dir, e.name)]))).flat(); }
 const english = flatten(JSON.parse(await readFile(join(root, "src/shared/i18n/en.json"), "utf8")));
 const problems = [];
-for (const lang of ["en", "as", "bn"]) problems.push(...catalogErrors(flatten(JSON.parse(await readFile(join(root, `src/shared/i18n/${lang}.json`), "utf8"))), english, lang));
+for (const lang of ["en", "as", "bn", "hi"]) problems.push(...catalogErrors(flatten(JSON.parse(await readFile(join(root, `src/shared/i18n/${lang}.json`), "utf8"))), english, lang));
+const telugu = flatten(JSON.parse(await readFile(join(root, "src/shared/i18n/te.json"), "utf8")));
+for (const [key, value] of Object.entries(telugu)) {
+  if (!value.trim()) problems.push(`te: empty ${key}`);
+  const vars = (text) => [...text.matchAll(/{{\s*([^}]+)\s*}}/g)].map((match) => match[1].trim()).sort().join(",");
+  if (english[key] && vars(value) !== vars(english[key])) problems.push(`te: interpolation mismatch ${key}`);
+}
 for (const file of await files(join(root, "src"))) {
   if (!/\.tsx?$/.test(file) || file.includes(".test.")) continue;
   const source = ts.createSourceFile(file, await readFile(file, "utf8"), ts.ScriptTarget.Latest, true, file.endsWith("tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
@@ -49,6 +55,6 @@ async function references(value, region) {
 const packs = JSON.parse(await readFile(join(root, "src/content/demo-packs.json"), "utf8"));
 for (const [region, pack] of Object.entries(packs)) { if (pack.region !== region) problems.push(`Invalid region reference ${region}`); await references(pack.items, region); }
 const review = JSON.parse(await readFile(join(root, "src/shared/i18n/review-status.json"), "utf8"));
-for (const lang of ["en", "as", "bn"]) if (!review[lang]?.origin || !review[lang]?.nativeReview || !review[lang]?.clinicalReview) problems.push(`${lang}: missing review provenance`);
+for (const lang of ["en", "as", "bn", "hi", "te", "mni", "lus"]) if (!review[lang]?.origin || !review[lang]?.nativeReview || !review[lang]?.clinicalReview) problems.push(`${lang}: missing review provenance`);
 if (problems.length) { console.error(problems.join("\n")); process.exitCode = 1; }
 else console.log(`Locale catalogs, patient copy, interpolation, review provenance and content references pass (${Object.keys(english).length} keys).`);

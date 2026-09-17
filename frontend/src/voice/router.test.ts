@@ -48,3 +48,14 @@ describe("voice intent router", () => {
     },
   );
 });
+
+it("routes Hindi navigation, new language choices and language locks", () => {
+  expect(route("खेल खोलो", "hi")).toMatchObject({ intent: "open_section", slots: { section: "games" } });
+  expect(route("open memories", "te")).toMatchObject({ intent: "open_section", slots: { section: "memories" } });
+  expect(route("धीरे बोलो", "hi")).toMatchObject({ intent: "speak_slowly" });
+  expect(route("switch language to telugu", "en")).toMatchObject({ intent: "switch_language", slots: { language: "te" } });
+  expect(route("switch language to manipuri", "en")).toMatchObject({ intent: "switch_language", slots: { language: "mni" } });
+  expect(route("switch language to mizo", "en")).toMatchObject({ intent: "switch_language", slots: { language: "lus" } });
+  expect(route("भाषा हिंदी करो", "en", { languageLocked: true })).toBeNull();
+  expect(route("change language", "en")).toBeNull();
+});

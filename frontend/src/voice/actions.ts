@@ -27,7 +27,7 @@ export async function performAction(
     const { getMeta } = await import("../db/schema");
     if (
       (await getMeta("languageLocked")) !== "1" &&
-      ["en", "as", "bn"].includes(command.slots.language ?? "")
+      ["en", "as", "bn", "hi", "te", "mni", "lus"].includes(command.slots.language ?? "")
     )
       await i18n.changeLanguage(command.slots.language);
     return;

@@ -1,4 +1,17 @@
 {
+  "registration": {
+    "create": "Create account",
+    "passwordLogin": "Sign in with password",
+    "type": "Account type",
+    "user": "User",
+    "caregiver": "Caregiver",
+    "doctor": "Doctor",
+    "name": "Name",
+    "email": "Email",
+    "created": "Account created. Use password sign-in to open your dashboard.",
+    "pending": "Account created. An administrator must approve your account before you can sign in.",
+    "devicePin": "Existing device PIN (optional; use your previous PIN to preserve saved records)"
+  },
   "app": {
     "eyebrow": "Your gentle daily companion",
     "title": "Smārana",
@@ -252,7 +265,14 @@
     "familyMember": "your family member",
     "call": "Call {{name}}?",
     "emergency": "Open emergency help?",
-    "reminder": "Set a reminder for {{title}}?"
+    "reminder": "Set a reminder for {{title}}?",
+    "unsupported": "Voice recognition is unavailable. Type your request below.",
+    "permissionDenied": "Microphone access was denied. Allow it in your browser or type below.",
+    "recognitionFailed": "I could not hear you. Try again or type below.",
+    "unknown": "I could not understand. Try “open games”.",
+    "request": "Your request",
+    "send": "Send",
+    "assistant": "Voice assistant"
   },
   "common": {
     "yes": "Yes",

@@ -25,3 +25,4 @@ def test_createsuperuser_command_and_admin_loads() -> None:
     response = client.get("/admin/")
 
     assert response.status_code == 200
+    assert response.headers["X-Frame-Options"] == "SAMEORIGIN"

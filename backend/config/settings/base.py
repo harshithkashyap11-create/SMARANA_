@@ -186,3 +186,6 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=2, minute=0),
     },
 }
+
+# The website embeds staff administration on the same origin.
+X_FRAME_OPTIONS = "SAMEORIGIN"

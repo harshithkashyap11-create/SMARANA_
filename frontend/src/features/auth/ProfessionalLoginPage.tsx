@@ -34,6 +34,7 @@ export function ProfessionalLoginPage({ role }: { role: RoleEnum }) {
   const login = useAuthStore((state) => state.login);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [offlinePin, setOfflinePin] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -42,20 +43,27 @@ export function ProfessionalLoginPage({ role }: { role: RoleEnum }) {
     setBusy(true);
     setMessage(null);
     try {
-      const session = await login({
-        email_or_phone: identifier,
-        password,
-        device_id: browserDeviceId(),
-      });
+      const session = await login(
+        {
+          email_or_phone: identifier,
+          password,
+          device_id: browserDeviceId(),
+        },
+        offlinePin,
+      );
       if (session.user.role !== role) {
         useAuthStore.getState().clearSession();
         setMessage(t("auth.roleMismatch"));
         return;
       }
-      if (role === "admin") window.location.assign("/admin/");
+      if (role === "admin") void navigate("/portal/admin", { replace: true });
       else void navigate(`/${role}`, { replace: true });
     } catch (error) {
-      setMessage(t(`auth.errors.${errorCode(error)}`));
+      setMessage(
+        role === "patient" && !(error instanceof ApiError)
+          ? t("registration.devicePin")
+          : t(`auth.errors.${errorCode(error)}`),
+      );
     } finally {
       setBusy(false);
     }
@@ -66,7 +74,9 @@ export function ProfessionalLoginPage({ role }: { role: RoleEnum }) {
       <Link className="min-h-[44px] self-start text-primary underline" to="/">
         {t("auth.back")}
       </Link>
-      <h1 className="text-3xl font-bold">{t(`auth.loginTitle.${role}`)}</h1>
+      <h1 className="text-3xl font-bold">
+        {t(`auth.loginTitle.${role}`, { defaultValue: "User sign in" })}
+      </h1>
       <form
         className="flex flex-col gap-4"
         onSubmit={(event) => void submit(event)}
@@ -90,6 +100,19 @@ export function ProfessionalLoginPage({ role }: { role: RoleEnum }) {
             onChange={(event) => setPassword(event.target.value)}
           />
         </label>
+        {role === "patient" ? (
+          <label className="grid gap-2">
+            <span>{t("registration.devicePin")}</span>
+            <input
+              className="min-h-[48px] rounded-card border-2 border-primary bg-surface px-3"
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={offlinePin}
+              onChange={(event) => setOfflinePin(event.target.value)}
+            />
+          </label>
+        ) : null}
         {message ? <p role="alert">{message}</p> : null}
         <button
           className="min-h-touch rounded-card bg-primary px-5 font-bold text-primaryText"
@@ -99,6 +122,7 @@ export function ProfessionalLoginPage({ role }: { role: RoleEnum }) {
           {busy ? t("auth.signingIn") : t("auth.signIn")}
         </button>
       </form>
+      <Link to="/register">{t("registration.create")}</Link>
     </main>
   );
 }

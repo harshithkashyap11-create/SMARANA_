@@ -1,3 +1,6 @@
+import { supportedLanguages, languageNames } from "../../../shared/i18n";
+import { BrowserTextToSpeech } from "../../../voice/tts";
+import type { VoiceLanguage } from "../../../voice/stt";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getMeta } from "../../../db/schema";
@@ -45,9 +48,7 @@ export function SettingsPage() {
           value={i18n.resolvedLanguage?.split("-")[0] ?? "en"}
           onChange={(e) => void i18n.changeLanguage(e.target.value)}
         >
-          <option value="en">English</option>
-          <option value="as">অসমীয়া</option>
-          <option value="bn">বাংলা</option>
+          {supportedLanguages.map((language) => <option key={language} value={language}>{languageNames[language]}</option>)}
         </select>
       </label>
       {locked ? <p>{t("settings.lockedHelp")}</p> : null}
@@ -111,11 +112,7 @@ export function SettingsPage() {
         className="min-h-touch rounded-card border-2 border-primary px-4"
         type="button"
         onClick={() => {
-          const speech = new SpeechSynthesisUtterance(
-            t("settings.instructions"),
-          );
-          speech.lang = i18n.resolvedLanguage ?? "en";
-          window.speechSynthesis?.speak(speech);
+          void new BrowserTextToSpeech((i18n.resolvedLanguage ?? "en") as VoiceLanguage, slow).speak(t("settings.instructions"));
         }}
       >
         {t("settings.replay")}

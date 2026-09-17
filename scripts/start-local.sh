@@ -44,10 +44,11 @@ if [ ! -f "$local_state/seeded" ]; then
   done
   touch "$local_state/seeded"
 fi
+(cd backend && .venv/bin/python manage.py seed_telemetry) > "$local_state/demo-setup.txt"
 (cd frontend && npm run build) > "$local_state/build.log" 2>&1
 (cd backend && exec .venv/bin/python manage.py runserver 127.0.0.1:8000 --noreload) > "$local_state/backend.log" 2>&1 &
 backend_pid=$!
 (cd frontend && exec node node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 5173 --strictPort) > "$local_state/frontend.log" 2>&1 &
 frontend_pid=$!
-printf 'Smārana: http://localhost:5173\nAdmin: http://localhost:8000/admin/\nDemo: RAO1234 / PIN 1234; priya@example.com or deka@example.com / SmaranaDemo123!\nAdmin authenticator setup: .local/demo-setup.txt\n'
+printf 'Smārana: http://localhost:5173\nAdmin: http://localhost:5173/portal/admin\nDemo: RAO1234 / PIN 1234; priya@example.com or deka@example.com / SmaranaDemo123!\nAdmin authenticator setup: .local/demo-setup.txt\n'
 wait -n "$backend_pid" "$frontend_pid"

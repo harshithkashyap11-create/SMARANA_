@@ -55,14 +55,12 @@ def assigned_patients(*, user: User) -> QuerySet[PatientProfile]:
 
 
 def authenticate_professional(*, email_or_phone: str, password: str) -> User:
-    """Verify a non-patient account without disclosing whether it exists."""
+    """Verify a password account without disclosing whether it exists."""
 
     identifier = email_or_phone.strip()
-    user = (
-        User.objects.filter(Q(email__iexact=identifier) | Q(phone=identifier))
-        .exclude(role=User.Role.PATIENT)
-        .first()
-    )
+    user = User.objects.filter(
+        Q(email__iexact=identifier) | Q(phone=identifier) | Q(username__iexact=identifier)
+    ).first()
     encoded_password = user.password if user is not None else DUMMY_PASSWORD_HASH
     password_matches = check_password(password, encoded_password)
 
